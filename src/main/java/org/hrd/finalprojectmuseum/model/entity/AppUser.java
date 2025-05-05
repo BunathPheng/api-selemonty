@@ -16,18 +16,12 @@ import java.util.UUID;
 @Builder
 public class AppUser implements UserDetails {
     private UUID userId;
-    private String name;
     private String email;
     private String password;
-    private String credentialType;
     private String role;
-    private UUID profileImageId;
     private Boolean isVerified;
-    private Boolean isApprove;
-    private Boolean isActive;
-    private LocalDateTime updatedAt;
     private LocalDateTime createdAt;
-    private Boolean isDelete;
+    private LocalDateTime updatedAt;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

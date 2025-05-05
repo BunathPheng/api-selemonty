@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import java.util.Base64;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -16,16 +17,29 @@ import java.util.function.Function;
 public class JwtUtils {
     private final long expiration = TimeUnit.MINUTES.toMillis(120);
 
-    // generate token for user
-    public String generateToken(String email, UUID userId) {
+    //generate reset token
+    public String generateResetToken(String email) {
+        long expiration = TimeUnit.MINUTES.toMillis(2);
         return Jwts.builder()
                 .setSubject(email)
-                .claim("userId", userId) // Add user ID here
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(generateSignKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
+
+    // generate token for user
+    public String generateToken(String email, UUID userId, String role) {
+        return Jwts.builder()
+                .setSubject(email)
+                .claim("userId", userId)
+                .claim("roles", List.of(role)) // List of roles
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + expiration))
+                .signWith(generateSignKey(), SignatureAlgorithm.HS256)
+                .compact();
+    }
+
 
     // generate secret key for signing token
     private SecretKey generateSignKey() {
@@ -57,6 +71,11 @@ public class JwtUtils {
 
     public String extractUserId(String token) {
         return extractClaim(token, claims -> claims.get("userId", String.class));
+    }
+
+    // retrieve role from jwt token
+    public List<String> extractRoles(String token) {
+        return extractClaim(token, claims -> claims.get("roles", List.class));
     }
 
     // retrieve expiration date from jwt token

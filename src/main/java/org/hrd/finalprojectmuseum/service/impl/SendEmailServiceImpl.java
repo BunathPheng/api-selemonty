@@ -9,6 +9,7 @@ import com.sendgrid.helpers.mail.objects.Content;
 import com.sendgrid.helpers.mail.objects.Email;
 import org.hrd.finalprojectmuseum.exception.AppNotFoundException;
 import org.hrd.finalprojectmuseum.service.SendEmailService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
@@ -20,9 +21,8 @@ import java.util.Random;
 public class SendEmailServiceImpl implements SendEmailService {
 
     //    @Value("${sendgrid.api.key}")
-    private final String send = "SG.";
-    private final String api = "0udDsQA3TMWYSPrSl-9j5g.";
-    private final String key = "TT9htpSzolrJ3WEM-EofecJGsZxV8skc6HQ48hIA2ZU";
+    @Value("${app.api.sendgrid}")
+   String sendGridApiKey;
 
     public String generateOtp() {
         int otp = 100000 + new Random().nextInt(900000);
@@ -36,7 +36,7 @@ public class SendEmailServiceImpl implements SendEmailService {
         Content content = new Content("text/html", loadTemplate(otp));
         Mail mail = new Mail(from, subject, to, content);
 
-        SendGrid sg = new SendGrid(send+api+key);
+        SendGrid sg = new SendGrid(sendGridApiKey);
         Request request = new Request();
         try {
             request.setMethod(Method.POST);
@@ -48,10 +48,37 @@ public class SendEmailServiceImpl implements SendEmailService {
         }
     }
 
+    public void sendResetPasswordEmail(String toEmail, String resetLink) throws IOException {
+        Email from = new Email("hoeunpichet@gmail.com", "Anusa Boran Company");
+        String subject = "Reset Your Password";
+        Email to = new Email(toEmail);
+        Content content = new Content("text/html", loadResetTemplate(resetLink));
+        Mail mail = new Mail(from, subject, to, content);
+
+        SendGrid sg = new SendGrid(sendGridApiKey);
+        Request request = new Request();
+        try {
+            request.setMethod(Method.POST);
+            request.setEndpoint("mail/send");
+            request.setBody(mail.build());
+            Response response = sg.api(request);
+        } catch (IOException ex) {
+            throw new AppNotFoundException("Failed to send reset email: " + ex.getMessage());
+        }
+    }
+
+
     public String loadTemplate(String otp) throws IOException {
         ClassPathResource resource = new ClassPathResource("templates/otpTemplate.html");
         String content = new String(resource.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
         return content.replace("{{otp}}", otp);
     }
+
+    public String loadResetTemplate(String resetLink) throws IOException {
+        ClassPathResource resource = new ClassPathResource("templates/resetPasswordTemplate.html");
+        String content = new String(resource.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+        return content.replace("{{resetLink}}", resetLink);
+    }
+
 
 }

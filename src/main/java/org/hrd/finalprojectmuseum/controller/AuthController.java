@@ -5,8 +5,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hrd.finalprojectmuseum.exception.AppBadRequestException;
 import org.hrd.finalprojectmuseum.jwt.JwtUtils;
+import org.hrd.finalprojectmuseum.model.dto.request.ForgotPasswordRequest;
 import org.hrd.finalprojectmuseum.model.dto.request.LoginRequest;
 import org.hrd.finalprojectmuseum.model.dto.request.RegisterRequest;
+import org.hrd.finalprojectmuseum.model.dto.request.ResetPasswordRequest;
 import org.hrd.finalprojectmuseum.model.dto.response.ApiResponse;
 import org.hrd.finalprojectmuseum.model.entity.AppUserRegister;
 import org.hrd.finalprojectmuseum.model.entity.LoginToken;
@@ -50,7 +52,7 @@ public class AuthController {
                 .success(true)
                 .message("Logged in successfully")
                 .status(HttpStatus.OK)
-                .payload(new LoginToken(jwtUtils.generateToken(appUserRegister.getEmail(), appUserRegister.getUserId())))
+                .payload(new LoginToken(jwtUtils.generateToken(appUserRegister.getEmail(), appUserRegister.getUserId(), String.valueOf(appUserRegister.getRole()))))
                 .build();
 
         return ResponseEntity.ok(response);
@@ -75,7 +77,7 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PostMapping("/resend")
+    @PostMapping("/send-otp")
     public ResponseEntity<ApiResponse<String>> sendOtp(@RequestParam String email) {
         String otp = sendEmailService.generateOtp();
         appUserService.checkEmailBeforeOpt(email);
@@ -121,5 +123,28 @@ public class AuthController {
                 .build();
         return ResponseEntity.ok(response);
     }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<ApiResponse<String>> forgotPassword(@RequestBody @Valid ForgotPasswordRequest forgotPasswordRequest) throws IOException {
+        String email = appUserService.sendResetLink(forgotPasswordRequest.getEmail());
+        ApiResponse<String> response = ApiResponse.<String>builder()
+                .success(true)
+                .message("Check your email to change your password")
+                .payload(email)
+                .status(HttpStatus.OK)
+                .build();
+        return ResponseEntity.ok(response);
+    }
+    @PostMapping("/reset-password")
+    public ResponseEntity<ApiResponse<String>> resetPassword(@RequestBody @Valid ResetPasswordRequest resetPasswordRequest) {
+        String email = appUserService.resetPassword(resetPasswordRequest.getToken(), resetPasswordRequest.getNewPassword());
+        ApiResponse<String> response = ApiResponse.<String>builder()
+                .success(true)
+                .message("Your password has been reset successfully")
+                .status(HttpStatus.OK)
+                .build();
+        return ResponseEntity.ok(response);
+    }
+
 }
 
