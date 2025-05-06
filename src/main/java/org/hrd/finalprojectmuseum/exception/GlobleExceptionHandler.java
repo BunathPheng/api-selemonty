@@ -40,4 +40,12 @@ public class GlobleExceptionHandler {
 
         return detail;
     }
+
+    @ExceptionHandler(InvalidOptException.class)
+    public ProblemDetail handleInvalidOptException(InvalidOptException e) {
+        ProblemDetail detail = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
+        detail.setDetail(e.getMessage());
+        detail.setProperty("timestamp", LocalDateTime.now());
+        return detail;
+    }
 }

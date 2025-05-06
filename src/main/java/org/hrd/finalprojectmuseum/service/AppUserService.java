@@ -1,8 +1,8 @@
 package org.hrd.finalprojectmuseum.service;
 
 import jakarta.validation.Valid;
-import org.hrd.finalprojectmuseum.model.dto.request.ForgotPasswordRequest;
-import org.hrd.finalprojectmuseum.model.dto.request.RegisterRequest;
+import jakarta.validation.constraints.Email;
+import org.hrd.finalprojectmuseum.model.dto.request.auth.RegisterRequest;
 import org.hrd.finalprojectmuseum.model.entity.AppUserRegister;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -25,4 +25,8 @@ public interface AppUserService extends UserDetailsService {
     String sendResetLink(String email) throws IOException;
 
     String resetPassword(String token, String newPassword);
+
+    void checkEmail(String email);
+
+    String getToken(@Email(message = "Email is wrong syntax") String email);
 }

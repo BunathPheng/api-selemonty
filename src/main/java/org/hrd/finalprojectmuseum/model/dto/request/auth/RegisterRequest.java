@@ -1,4 +1,4 @@
-package org.hrd.finalprojectmuseum.model.dto.request;
+package org.hrd.finalprojectmuseum.model.dto.request.auth;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
@@ -7,8 +7,6 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import org.hrd.finalprojectmuseum.model.enums.Role;
-
-import java.util.UUID;
 
 @Data
 public class RegisterRequest {

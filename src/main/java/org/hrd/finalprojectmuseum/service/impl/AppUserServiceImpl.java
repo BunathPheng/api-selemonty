@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.hrd.finalprojectmuseum.exception.AppBadRequestException;
 import org.hrd.finalprojectmuseum.exception.ThrowFieldException;
 import org.hrd.finalprojectmuseum.jwt.JwtUtils;
-import org.hrd.finalprojectmuseum.model.dto.request.RegisterRequest;
+import org.hrd.finalprojectmuseum.model.dto.request.auth.RegisterRequest;
 import org.hrd.finalprojectmuseum.model.entity.AppUser;
 import org.hrd.finalprojectmuseum.model.entity.AppUserRegister;
 import org.hrd.finalprojectmuseum.repository.AppUserRepository;
@@ -77,8 +77,7 @@ public class AppUserServiceImpl implements AppUserService {
 
     @Override
     public void checkEmailBeforeOpt(String email) {
-        AppUser appUser = appUserRepository.getUserByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        AppUser appUser = appUserRepository.findUserByEmail(email);
         if (appUser == null) {
             throw new AppBadRequestException("Your email has not registered yet.");
         }
@@ -87,6 +86,8 @@ public class AppUserServiceImpl implements AppUserService {
             throw new AppBadRequestException("Your email has already verified.");
         }
     }
+
+
 
     @Override
     public void verifyEmailWithOpt(String email) {
@@ -110,8 +111,6 @@ public class AppUserServiceImpl implements AppUserService {
         return email;
     }
 
-
-
     @Override
     public String resetPassword(String token, String newPassword) {
         String email;
@@ -134,6 +133,21 @@ public class AppUserServiceImpl implements AppUserService {
         user.setPassword(encodedPassword);
         appUserRepository.updatePassword(user);
         return email;
+    }
+
+    @Override
+    public void checkEmail(String email) {
+        AppUser appUser = appUserRepository.findUserByEmail(email);
+        if (appUser == null) {
+            throw new AppBadRequestException("Email not found.");
+        }
+    }
+
+    @Override
+    public String getToken(String email) {
+        appUserRepository.getUserByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("Email not found"));
+        return jwtUtils.generateResetToken(email);
     }
 }
 

@@ -1,33 +1,59 @@
 package org.hrd.finalprojectmuseum.service.impl;
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
+import lombok.RequiredArgsConstructor;
+import org.hrd.finalprojectmuseum.exception.InvalidOptException;
+import org.hrd.finalprojectmuseum.model.entity.AppUser;
+import org.hrd.finalprojectmuseum.model.entity.Otps;
+import org.hrd.finalprojectmuseum.repository.AppUserRepository;
+import org.hrd.finalprojectmuseum.repository.OtpRepository;
 import org.hrd.finalprojectmuseum.service.OtpCacheService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-
-import java.util.concurrent.TimeUnit;
+import java.time.LocalDateTime;
 
 @Service
+@RequiredArgsConstructor
 public class OtpCacheServiceImpl implements OtpCacheService {
 
-    private final Cache<String, String> otpCache;
+    private final OtpRepository otpRepository;
+    private final AppUserRepository appUserRepository;
 
-    public OtpCacheServiceImpl() {
-        this.otpCache = Caffeine.newBuilder()
-                .expireAfterWrite(2, TimeUnit.MINUTES)
-                .maximumSize(1000)
-                .build();
-    }
-
+    @Override
     public void storeOtp(String email, String otp) {
-        otpCache.put(email, otp);
+        LocalDateTime expiredDate = LocalDateTime.now().plusMinutes(2);
+        AppUser appUser = appUserRepository.findUserByEmail(email);
+        otpRepository.saveOpt(appUser.getUserId(), expiredDate, otp);
     }
 
+    @Override
     public String getOtp(String email, String otp) {
-        return otpCache.getIfPresent(email);
+        AppUser appUser = appUserRepository.getUserByEmail(email)
+                .orElseThrow(()->  new UsernameNotFoundException("Email is not register yet"));
+        Otps storedOtp = otpRepository.getOptByUserId(appUser.getUserId());
+        if (storedOtp == null) {
+            throw new InvalidOptException("Otp is not request yet");
+        }
+        if (storedOtp.getExpiredDate().isBefore(LocalDateTime.now())) {
+            throw new InvalidOptException("Otp is expired");
+        }
+        return storedOtp.getOtpCode();
     }
 
+    @Override
     public void removeOtp(String email) {
-        otpCache.invalidate(email);
+        AppUser appUser = appUserRepository.findUserByEmail(email);
+        otpRepository.removeOptByUserId(appUser.getUserId());
+    }
+
+    @Override
+    public LocalDateTime getExpirationByOtpId(String email) {
+        AppUser appUser = appUserRepository.findUserByEmail(email);
+        return otpRepository.getExpirationByUserId(appUser.getUserId());
+    }
+
+    @Override
+    public Otps getOtpByUserId(String email) {
+        AppUser appUser = appUserRepository.findUserByEmail(email);
+        return otpRepository.getOptByUserId(appUser.getUserId());
     }
 }

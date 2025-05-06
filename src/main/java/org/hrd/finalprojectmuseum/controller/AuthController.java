@@ -1,17 +1,19 @@
 package org.hrd.finalprojectmuseum.controller;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hrd.finalprojectmuseum.exception.AppBadRequestException;
 import org.hrd.finalprojectmuseum.jwt.JwtUtils;
-import org.hrd.finalprojectmuseum.model.dto.request.ForgotPasswordRequest;
-import org.hrd.finalprojectmuseum.model.dto.request.LoginRequest;
-import org.hrd.finalprojectmuseum.model.dto.request.RegisterRequest;
-import org.hrd.finalprojectmuseum.model.dto.request.ResetPasswordRequest;
+import org.hrd.finalprojectmuseum.model.dto.request.auth.ForgotPasswordRequest;
+import org.hrd.finalprojectmuseum.model.dto.request.auth.LoginRequest;
+import org.hrd.finalprojectmuseum.model.dto.request.auth.RegisterRequest;
+import org.hrd.finalprojectmuseum.model.dto.request.auth.ResetPasswordRequest;
 import org.hrd.finalprojectmuseum.model.dto.response.ApiResponse;
 import org.hrd.finalprojectmuseum.model.entity.AppUserRegister;
 import org.hrd.finalprojectmuseum.model.entity.LoginToken;
+import org.hrd.finalprojectmuseum.model.entity.Otps;
 import org.hrd.finalprojectmuseum.service.AppUserService;
 import org.hrd.finalprojectmuseum.service.OtpCacheService;
 import org.hrd.finalprojectmuseum.service.SendEmailService;
@@ -23,6 +25,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Slf4j
 @RestController
@@ -33,7 +37,7 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final JwtUtils jwtUtils;
     private final SendEmailService sendEmailService;
-    private final OtpCacheService otpCacheService;
+    private final OtpCacheService otpService;
 
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<LoginToken>> login(@Valid @RequestBody LoginRequest loginRequest) {
@@ -72,13 +76,13 @@ public class AuthController {
 
         String otp = sendEmailService.generateOtp();
         sendEmailService.sendOtpEmail(registerRequest.getEmail(), otp);
-        otpCacheService.storeOtp(registerRequest.getEmail(), otp);
+        otpService.storeOtp(registerRequest.getEmail(), otp);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PostMapping("/send-otp")
-    public ResponseEntity<ApiResponse<String>> sendOtp(@RequestParam String email) {
+    public ResponseEntity<ApiResponse<Otps>> sendOtp(@RequestParam String email) {
         String otp = sendEmailService.generateOtp();
         appUserService.checkEmailBeforeOpt(email);
 
@@ -88,33 +92,31 @@ public class AuthController {
             throw new AppBadRequestException("Failed to send OTP: " + e.getMessage());
         }
 
-        ApiResponse<String> response = ApiResponse.<String>builder()
+        Otps opts = otpService.getOtpByUserId(email);
+        ApiResponse<Otps> response = ApiResponse.<Otps>builder()
                 .success(true)
                 .message("Sent OTP successfully")
+                .payload(opts)
                 .status(HttpStatus.CREATED)
                 .build();
 
-        otpCacheService.removeOtp(email);
-        otpCacheService.storeOtp(email, otp);
+        otpService.removeOtp(email);
+        otpService.storeOtp(email, otp);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PostMapping("/verify")
-    public ResponseEntity<ApiResponse<String>> verifyEmail(@RequestParam String email, @RequestParam String otp) {
+    public ResponseEntity<ApiResponse<String>> verifyEmail(@RequestParam @Email(message = "Email is wrong syntax") String email, @RequestParam String otp) {
         appUserService.checkEmailBeforeOpt(email);
-        String cachedOtp = otpCacheService.getOtp(email, otp);
+        String storedOtp = otpService.getOtp(email, otp);
 
-        if (cachedOtp == null) {
-            throw new AppBadRequestException("Your OTP has been expired.");
-        }
-
-        if (!cachedOtp.equals(otp)) {
+        if (!storedOtp.equals(otp)) {
             throw new AppBadRequestException("OTP is incorrect.");
         }
 
         appUserService.verifyEmailWithOpt(email);
-        otpCacheService.removeOtp(email);
+        otpService.removeOtp(email);
 
         ApiResponse<String> response = ApiResponse.<String>builder()
                 .success(true)
@@ -125,19 +127,47 @@ public class AuthController {
     }
 
     @PostMapping("/forgot-password")
-    public ResponseEntity<ApiResponse<String>> forgotPassword(@RequestBody @Valid ForgotPasswordRequest forgotPasswordRequest) throws IOException {
-        String email = appUserService.sendResetLink(forgotPasswordRequest.getEmail());
-        ApiResponse<String> response = ApiResponse.<String>builder()
+    public ResponseEntity<ApiResponse<Otps>> forgotPassword(@RequestBody @Valid ForgotPasswordRequest forgotPasswordRequest) {
+        String otp = sendEmailService.generateOtp();
+        appUserService.checkEmail(forgotPasswordRequest.getEmail());
+        try {
+            sendEmailService.sendOtpEmail(forgotPasswordRequest.getEmail(), otp);
+        } catch (Exception e) {
+            throw new AppBadRequestException("Failed to send OTP: " + e.getMessage());
+        }
+        otpService.storeOtp(forgotPasswordRequest.getEmail(), otp);
+        Otps opts = otpService.getOtpByUserId(forgotPasswordRequest.getEmail());
+        ApiResponse<Otps> response = ApiResponse.<Otps>builder()
                 .success(true)
                 .message("Check your email to change your password")
-                .payload(email)
+                .payload(opts)
                 .status(HttpStatus.OK)
                 .build();
         return ResponseEntity.ok(response);
     }
+
+    @PostMapping("/verify-otp-forgot-password")
+    public ResponseEntity<ApiResponse<String>> verifyOtpForgotPassword(@RequestParam @Email(message = "Email is wrong syntax") String email, @RequestParam String otp) {
+        appUserService.checkEmail(email);
+        String storedOtp = otpService.getOtp(email, otp);
+
+        if (!storedOtp.equals(otp)) {
+            throw new AppBadRequestException("OTP is incorrect.");
+        }
+        otpService.removeOtp(email);
+        String token = appUserService.getToken(email);
+        ApiResponse<String> response = ApiResponse.<String>builder()
+                .success(true)
+                .message("Otp has been verified successfully.")
+                .payload(token)
+                .status(HttpStatus.OK)
+                .build();
+        return ResponseEntity.ok(response);
+    }
+
     @PostMapping("/reset-password")
     public ResponseEntity<ApiResponse<String>> resetPassword(@RequestBody @Valid ResetPasswordRequest resetPasswordRequest) {
-        String email = appUserService.resetPassword(resetPasswordRequest.getToken(), resetPasswordRequest.getNewPassword());
+        appUserService.resetPassword(resetPasswordRequest.getToken(), resetPasswordRequest.getNewPassword());
         ApiResponse<String> response = ApiResponse.<String>builder()
                 .success(true)
                 .message("Your password has been reset successfully")
@@ -146,5 +176,16 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/otp-expiration")
+    public ResponseEntity<ApiResponse<LocalDateTime>> otpExpiration(@RequestParam @Email(message = "email is not correct syntax") String email) {
+        LocalDateTime expiration = otpService.getExpirationByOtpId(email);
+        ApiResponse<LocalDateTime> response = ApiResponse.<LocalDateTime>builder()
+                .success(true)
+                .message("Successfully get the expiration datetime")
+                .status(HttpStatus.OK)
+                .payload(expiration)
+                .build();
+        return ResponseEntity.ok(response);
+    }
 }
 

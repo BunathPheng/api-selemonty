@@ -2,7 +2,7 @@ package org.hrd.finalprojectmuseum.repository;
 
 import org.apache.ibatis.annotations.*;
 import org.apache.ibatis.type.JdbcType;
-import org.hrd.finalprojectmuseum.model.dto.request.RegisterRequest;
+import org.hrd.finalprojectmuseum.model.dto.request.auth.RegisterRequest;
 import org.hrd.finalprojectmuseum.model.entity.AppUser;
 
 import java.util.Optional;

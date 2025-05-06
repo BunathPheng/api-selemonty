@@ -1,4 +1,4 @@
-package org.hrd.finalprojectmuseum.model.dto.request;
+package org.hrd.finalprojectmuseum.model.dto.request.auth;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;

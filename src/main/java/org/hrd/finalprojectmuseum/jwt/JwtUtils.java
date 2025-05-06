@@ -19,7 +19,7 @@ public class JwtUtils {
 
     //generate reset token
     public String generateResetToken(String email) {
-        long expiration = TimeUnit.MINUTES.toMillis(2);
+        long expiration = TimeUnit.MINUTES.toMillis(5);
         return Jwts.builder()
                 .setSubject(email)
                 .setIssuedAt(new Date())

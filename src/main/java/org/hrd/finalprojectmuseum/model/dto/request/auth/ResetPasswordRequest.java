@@ -1,4 +1,4 @@
-package org.hrd.finalprojectmuseum.model.dto.request;
+package org.hrd.finalprojectmuseum.model.dto.request.auth;
 
 import lombok.Data;
 
