@@ -2,9 +2,11 @@ package org.hrd.finalprojectmuseum.repository;
 
 import org.apache.ibatis.annotations.*;
 import org.apache.ibatis.type.JdbcType;
-import org.hrd.finalprojectmuseum.model.dto.request.auth.RegisterRequest;
+import org.hrd.finalprojectmuseum.model.dto.request.auth.VisitorRegisterRequest;
 import org.hrd.finalprojectmuseum.model.entity.AppUser;
+import org.hrd.finalprojectmuseum.model.enums.Role;
 
+import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -41,11 +43,11 @@ public interface AppUserRepository {
 
     @Select("""
             INSERT INTO user_info(email, password, role)
-            VALUES(#{user.email}, #{user.password}, #{user.role})
+            VALUES(#{email}, #{password}, #{role})
             RETURNING *
             """)
     @ResultMap("userMapper")
-    AppUser registerUser(@Param("user") RegisterRequest registerRequest);
+    AppUser registerUser(String email, String password, Role role);
 
     @Update("""
             UPDATE user_info
@@ -58,4 +60,15 @@ public interface AppUserRepository {
      UPDATE user_info SET password = #{password} WHERE email = #{email}
     """)
     void updatePassword(AppUser user);
+
+    @Insert("""
+        INSERT INTO visitors(user_id, full_name) VALUES(#{userId}::uuid, #{fullName})
+    """)
+    void storeVistitor(UUID userId, String fullName);
+
+    @Insert("""
+        INSERT INTO museum_owners(user_id, name, lat, lng, logo, description)
+        VALUES (#{userId}::uuid, #{name}, #{lat}, #{lng}, #{logoLink}, #{description})
+    """)
+    void storeMeseumOwner(UUID userId, String name, String logoLink, BigDecimal lat, Double lng, String description);
 }

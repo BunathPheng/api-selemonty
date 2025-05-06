@@ -6,14 +6,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hrd.finalprojectmuseum.exception.AppBadRequestException;
 import org.hrd.finalprojectmuseum.jwt.JwtUtils;
-import org.hrd.finalprojectmuseum.model.dto.request.auth.ForgotPasswordRequest;
-import org.hrd.finalprojectmuseum.model.dto.request.auth.LoginRequest;
-import org.hrd.finalprojectmuseum.model.dto.request.auth.RegisterRequest;
-import org.hrd.finalprojectmuseum.model.dto.request.auth.ResetPasswordRequest;
+import org.hrd.finalprojectmuseum.model.dto.request.auth.*;
 import org.hrd.finalprojectmuseum.model.dto.response.ApiResponse;
 import org.hrd.finalprojectmuseum.model.entity.AppUserRegister;
 import org.hrd.finalprojectmuseum.model.entity.LoginToken;
 import org.hrd.finalprojectmuseum.model.entity.Otps;
+import org.hrd.finalprojectmuseum.model.enums.Role;
 import org.hrd.finalprojectmuseum.service.AppUserService;
 import org.hrd.finalprojectmuseum.service.OtpCacheService;
 import org.hrd.finalprojectmuseum.service.SendEmailService;
@@ -22,11 +20,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Slf4j
 @RestController
@@ -62,11 +60,11 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/register")
-    public ResponseEntity<ApiResponse<AppUserRegister>> registerUser(@RequestBody @Valid RegisterRequest registerRequest) throws IOException {
+    @PostMapping("/visitor-register")
+    public ResponseEntity<ApiResponse<AppUserRegister>> registerVisitor(@RequestBody @Valid VisitorRegisterRequest visitorRegisterRequest) throws IOException {
 
-        AppUserRegister appUser = appUserService.registerUser(registerRequest);
-
+        AppUserRegister appUser = appUserService.registerUser(visitorRegisterRequest.getEmail(), visitorRegisterRequest.getPassword(), Role.ROLE_VISITOR);
+        appUserService.storeVisitor(appUser.getUserId(), visitorRegisterRequest.getFullName());
         ApiResponse<AppUserRegister> response = ApiResponse.<AppUserRegister>builder()
                 .success(true)
                 .message("Registered successfully")
@@ -75,8 +73,28 @@ public class AuthController {
                 .build();
 
         String otp = sendEmailService.generateOtp();
-        sendEmailService.sendOtpEmail(registerRequest.getEmail(), otp);
-        otpService.storeOtp(registerRequest.getEmail(), otp);
+        sendEmailService.sendOtpEmail(visitorRegisterRequest.getEmail(), otp);
+        otpService.storeOtp(visitorRegisterRequest.getEmail(), otp);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PostMapping("/museum-owner-register")
+    @Transactional
+    public ResponseEntity<ApiResponse<AppUserRegister>> registerMuseumOwner(@RequestBody @Valid MuseumOwnerRegisterRequest museumOwnerRegisterRequest) throws IOException {
+
+        AppUserRegister appUser = appUserService.registerUser(museumOwnerRegisterRequest.getEmail(), museumOwnerRegisterRequest.getPassword(), Role.ROLE_MUSEUM_OWNER);
+        appUserService.storeMuseumOwner(appUser.getUserId(), museumOwnerRegisterRequest.getName(), museumOwnerRegisterRequest.getLogoLink(), museumOwnerRegisterRequest.getLat(), museumOwnerRegisterRequest.getLng(), museumOwnerRegisterRequest.getDescription());
+        ApiResponse<AppUserRegister> response = ApiResponse.<AppUserRegister>builder()
+                .success(true)
+                .message("Registered successfully")
+                .payload(appUser)
+                .status(HttpStatus.CREATED)
+                .build();
+
+        String otp = sendEmailService.generateOtp();
+        sendEmailService.sendOtpEmail(museumOwnerRegisterRequest.getEmail(), otp);
+        otpService.storeOtp(museumOwnerRegisterRequest.getEmail(), otp);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }

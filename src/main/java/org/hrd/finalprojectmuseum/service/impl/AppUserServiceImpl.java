@@ -5,9 +5,10 @@ import lombok.RequiredArgsConstructor;
 import org.hrd.finalprojectmuseum.exception.AppBadRequestException;
 import org.hrd.finalprojectmuseum.exception.ThrowFieldException;
 import org.hrd.finalprojectmuseum.jwt.JwtUtils;
-import org.hrd.finalprojectmuseum.model.dto.request.auth.RegisterRequest;
+import org.hrd.finalprojectmuseum.model.dto.request.auth.VisitorRegisterRequest;
 import org.hrd.finalprojectmuseum.model.entity.AppUser;
 import org.hrd.finalprojectmuseum.model.entity.AppUserRegister;
+import org.hrd.finalprojectmuseum.model.enums.Role;
 import org.hrd.finalprojectmuseum.repository.AppUserRepository;
 import org.hrd.finalprojectmuseum.service.AppUserService;
 import org.hrd.finalprojectmuseum.service.SendEmailService;
@@ -22,7 +23,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -45,15 +48,14 @@ public class AppUserServiceImpl implements AppUserService {
     }
 
     @Override
-    public AppUserRegister registerUser(@Valid RegisterRequest registerRequest) {
-        AppUser findUser = appUserRepository.findUserByEmail(registerRequest.getEmail());
+    public AppUserRegister registerUser(String email, String password, Role role) {
+        AppUser findUser = appUserRepository.findUserByEmail(email);
         if (findUser != null) {
             throw new ThrowFieldException("email", "Email has already taken");
         }
 
-        String encodedPass = passwordEncoder.encode(registerRequest.getPassword());
-        registerRequest.setPassword(encodedPass);
-        AppUser appUser = appUserRepository.registerUser(registerRequest);
+        String encodedPass = passwordEncoder.encode(password);
+        AppUser appUser = appUserRepository.registerUser(email, encodedPass, role);
         AppUserRegister appUserResponse = mapper.map(appUserRepository.getUserById(appUser.getUserId()), AppUserRegister.class);
         return appUserResponse;
     }
@@ -94,22 +96,6 @@ public class AppUserServiceImpl implements AppUserService {
         appUserRepository.verifyEmailWithOpt(email);
     }
 
-    @Override
-    public String sendResetLink(String email){
-        AppUser appUser = appUserRepository.getUserByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-
-        String token = jwtUtils.generateResetToken(email);
-        String resetLink = urlResetPassword + token;
-        System.out.println("Reset Link: " + resetLink);
-        try {
-            sendEmailService.sendResetPasswordEmail(email, resetLink);
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to send reset email");
-        }
-
-        return email;
-    }
 
     @Override
     public String resetPassword(String token, String newPassword) {
@@ -148,6 +134,16 @@ public class AppUserServiceImpl implements AppUserService {
         appUserRepository.getUserByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("Email not found"));
         return jwtUtils.generateResetToken(email);
+    }
+
+    @Override
+    public void storeVisitor(UUID userId, String fullName) {
+        appUserRepository.storeVistitor(userId, fullName);
+    }
+
+    @Override
+    public void storeMuseumOwner(UUID userId, String name, String logoLink, BigDecimal lat, Double lng, String description) {
+        appUserRepository.storeMeseumOwner(userId, name, logoLink, lat, lng, description);
     }
 }
 

@@ -5,15 +5,17 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import lombok.Builder;
 import lombok.Data;
 import org.hrd.finalprojectmuseum.model.enums.Role;
 
 @Data
-public class RegisterRequest {
-//    @NotBlank(message = "Username is required")
-//    @Size(min = 3, message = "Username must be at least 3 characters")
-//    @Size(max = 50, message = "Username cannot be greater than 50 characters")
-//    private String name;
+@Builder
+public class VisitorRegisterRequest {
+    @NotBlank(message = "Full name is required")
+    @Size(min = 3, message = "Full name must be at least 3 characters")
+    @Size(max = 50, message = "Full name cannot be greater than 50 characters")
+    private String fullName;
 
     @Schema(example = "example@gmail.com")
     @NotBlank(message = "Email is required")
@@ -30,5 +32,4 @@ public class RegisterRequest {
     )
     private String password;
 
-    private Role role;
 }
