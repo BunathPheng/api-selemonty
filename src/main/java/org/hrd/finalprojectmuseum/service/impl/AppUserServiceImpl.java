@@ -1,19 +1,15 @@
 package org.hrd.finalprojectmuseum.service.impl;
 
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.hrd.finalprojectmuseum.exception.AppBadRequestException;
 import org.hrd.finalprojectmuseum.exception.ThrowFieldException;
 import org.hrd.finalprojectmuseum.jwt.JwtUtils;
-import org.hrd.finalprojectmuseum.model.dto.request.auth.VisitorRegisterRequest;
 import org.hrd.finalprojectmuseum.model.entity.AppUser;
 import org.hrd.finalprojectmuseum.model.entity.AppUserRegister;
 import org.hrd.finalprojectmuseum.model.enums.Role;
 import org.hrd.finalprojectmuseum.repository.AppUserRepository;
 import org.hrd.finalprojectmuseum.service.AppUserService;
-import org.hrd.finalprojectmuseum.service.SendEmailService;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
@@ -22,7 +18,6 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
@@ -34,9 +29,6 @@ public class AppUserServiceImpl implements AppUserService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtils jwtUtils;
     private final ModelMapper mapper = new ModelMapper();
-    private final SendEmailService sendEmailService;
-    @Value("${app.url.resetpassword}")
-    String urlResetPassword;
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
@@ -55,7 +47,7 @@ public class AppUserServiceImpl implements AppUserService {
         }
 
         String encodedPass = passwordEncoder.encode(password);
-        AppUser appUser = appUserRepository.registerUser(email, encodedPass, role);
+        AppUser appUser = appUserRepository.registerUser(email, encodedPass, role, false);
         AppUserRegister appUserResponse = mapper.map(appUserRepository.getUserById(appUser.getUserId()), AppUserRegister.class);
         return appUserResponse;
     }
@@ -138,7 +130,7 @@ public class AppUserServiceImpl implements AppUserService {
 
     @Override
     public void storeVisitor(UUID userId, String fullName) {
-        appUserRepository.storeVistitor(userId, fullName);
+        appUserRepository.storeVisitor(userId, fullName, null);
     }
 
     @Override

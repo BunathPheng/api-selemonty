@@ -13,6 +13,7 @@ import org.hrd.finalprojectmuseum.model.entity.LoginToken;
 import org.hrd.finalprojectmuseum.model.entity.Otps;
 import org.hrd.finalprojectmuseum.model.enums.Role;
 import org.hrd.finalprojectmuseum.service.AppUserService;
+import org.hrd.finalprojectmuseum.service.GoogleAuthService;
 import org.hrd.finalprojectmuseum.service.OtpCacheService;
 import org.hrd.finalprojectmuseum.service.SendEmailService;
 import org.springframework.http.HttpStatus;
@@ -36,6 +37,7 @@ public class AuthController {
     private final JwtUtils jwtUtils;
     private final SendEmailService sendEmailService;
     private final OtpCacheService otpService;
+    private final GoogleAuthService googleAuthService;
 
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<LoginToken>> login(@Valid @RequestBody LoginRequest loginRequest) {
@@ -57,6 +59,30 @@ public class AuthController {
                 .payload(new LoginToken(jwtUtils.generateToken(appUserRegister.getEmail(), appUserRegister.getUserId(), String.valueOf(appUserRegister.getRole()))))
                 .build();
 
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/google-login-visitor")
+    public ResponseEntity<ApiResponse<LoginToken>> handleGoogleLoginAsVisitor(@RequestBody IdTokenRequest request) throws Exception {
+        LoginToken userInfo = googleAuthService.verifyAndExtractUserInfo(request.getIdToken(), Role.ROLE_VISITOR);
+        ApiResponse<LoginToken> response = ApiResponse.<LoginToken>builder()
+                .success(true)
+                .message("Logged in successfully")
+                .status(HttpStatus.OK)
+                .payload(userInfo)
+                .build();
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/google-login-museum-owner")
+    public ResponseEntity<ApiResponse<LoginToken>> handleGoogleLoginAsMuseumOwner(@RequestBody IdTokenRequest request) throws Exception {
+        LoginToken userInfo = googleAuthService.verifyAndExtractUserInfo(request.getIdToken(), Role.ROLE_MUSEUM_OWNER);
+        ApiResponse<LoginToken> response = ApiResponse.<LoginToken>builder()
+                .success(true)
+                .message("Logged in successfully")
+                .status(HttpStatus.OK)
+                .payload(userInfo)
+                .build();
         return ResponseEntity.ok(response);
     }
 
@@ -91,7 +117,6 @@ public class AuthController {
                 .payload(appUser)
                 .status(HttpStatus.CREATED)
                 .build();
-
         String otp = sendEmailService.generateOtp();
         sendEmailService.sendOtpEmail(museumOwnerRegisterRequest.getEmail(), otp);
         otpService.storeOtp(museumOwnerRegisterRequest.getEmail(), otp);

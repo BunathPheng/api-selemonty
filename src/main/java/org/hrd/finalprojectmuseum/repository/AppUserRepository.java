@@ -2,7 +2,6 @@ package org.hrd.finalprojectmuseum.repository;
 
 import org.apache.ibatis.annotations.*;
 import org.apache.ibatis.type.JdbcType;
-import org.hrd.finalprojectmuseum.model.dto.request.auth.VisitorRegisterRequest;
 import org.hrd.finalprojectmuseum.model.entity.AppUser;
 import org.hrd.finalprojectmuseum.model.enums.Role;
 
@@ -42,12 +41,12 @@ public interface AppUserRepository {
 
 
     @Select("""
-            INSERT INTO user_info(email, password, role)
-            VALUES(#{email}, #{password}, #{role})
+            INSERT INTO user_info(email, password, role, is_verified)
+            VALUES(#{email}, #{password}, #{role}, #{isVerified})
             RETURNING *
             """)
     @ResultMap("userMapper")
-    AppUser registerUser(String email, String password, Role role);
+    AppUser registerUser(String email, String password, Role role, Boolean isVerified);
 
     @Update("""
             UPDATE user_info
@@ -62,13 +61,18 @@ public interface AppUserRepository {
     void updatePassword(AppUser user);
 
     @Insert("""
-        INSERT INTO visitors(user_id, full_name) VALUES(#{userId}::uuid, #{fullName})
+        INSERT INTO visitors(user_id, full_name, profile_image_link) VALUES(#{userId}::uuid, #{fullName}, #{profileImageLink})
     """)
-    void storeVistitor(UUID userId, String fullName);
+    void storeVisitor(UUID userId, String fullName, String profileImageLink);
 
     @Insert("""
         INSERT INTO museum_owners(user_id, name, lat, lng, logo, description)
         VALUES (#{userId}::uuid, #{name}, #{lat}, #{lng}, #{logoLink}, #{description})
     """)
     void storeMeseumOwner(UUID userId, String name, String logoLink, BigDecimal lat, Double lng, String description);
+
+    @Delete("""
+        DELETE FROM user_info WHERE user_id = #{userId}::UUID
+    """)
+    void deleteUser(UUID userId);
 }
