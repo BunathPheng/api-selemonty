@@ -10,13 +10,11 @@ import org.hrd.finalprojectmuseum.jwt.JwtUtils;
 import org.hrd.finalprojectmuseum.model.dto.request.auth.*;
 import org.hrd.finalprojectmuseum.model.dto.response.ApiResponse;
 import org.hrd.finalprojectmuseum.model.entity.AppUserRegister;
+import org.hrd.finalprojectmuseum.model.entity.EmailDetails;
 import org.hrd.finalprojectmuseum.model.entity.LoginToken;
 import org.hrd.finalprojectmuseum.model.entity.Otps;
 import org.hrd.finalprojectmuseum.model.enums.Role;
-import org.hrd.finalprojectmuseum.service.AppUserService;
-import org.hrd.finalprojectmuseum.service.GoogleAuthService;
-import org.hrd.finalprojectmuseum.service.OtpCacheService;
-import org.hrd.finalprojectmuseum.service.SendEmailService;
+import org.hrd.finalprojectmuseum.service.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -42,6 +40,7 @@ public class AuthController {
     private final SendEmailService sendEmailService;
     private final OtpCacheService otpService;
     private final GoogleAuthService googleAuthService;
+    private final EmailService emailService;
 
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<LoginToken>> login(@Valid @RequestBody LoginRequest loginRequest) {
@@ -103,7 +102,9 @@ public class AuthController {
                 .build();
 
         String otp = sendEmailService.generateOtp();
-        sendEmailService.sendOtpEmail(visitorRegisterRequest.getEmail(), otp);
+
+        emailService.sendMailAsHTML(visitorRegisterRequest.getEmail(), otp);
+//        sendEmailService.sendOtpEmail(visitorRegisterRequest.getEmail(), otp);
         otpService.storeOtp(visitorRegisterRequest.getEmail(), otp);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -122,7 +123,8 @@ public class AuthController {
                 .status(HttpStatus.CREATED)
                 .build();
         String otp = sendEmailService.generateOtp();
-        sendEmailService.sendOtpEmail(museumOwnerRegisterRequest.getEmail(), otp);
+        emailService.sendMailAsHTML(museumOwnerRegisterRequest.getEmail(), otp);
+//        sendEmailService.sendOtpEmail(museumOwnerRegisterRequest.getEmail(), otp);
         otpService.storeOtp(museumOwnerRegisterRequest.getEmail(), otp);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -132,12 +134,13 @@ public class AuthController {
     public ResponseEntity<ApiResponse<Otps>> sendOtp(@RequestParam String email) {
         String otp = sendEmailService.generateOtp();
         appUserService.checkEmailBeforeOpt(email);
-
-        try {
-            sendEmailService.sendOtpEmail(email, otp);
-        } catch (Exception e) {
-            throw new AppBadRequestException("Failed to send OTP: " + e.getMessage());
-        }
+//        try {
+////            sendEmailService.sendOtpEmail(email, otp);
+//
+//        } catch (Exception e) {
+//            throw new AppBadRequestException("Failed to send OTP: " + e.getMessage());
+//        }
+        String result = emailService.sendMailAsHTML(email, otp);
 
         Otps opts = otpService.getOtpByUserId(email);
         ApiResponse<Otps> response = ApiResponse.<Otps>builder()
@@ -177,11 +180,12 @@ public class AuthController {
     public ResponseEntity<ApiResponse<Otps>> forgotPassword(@RequestBody @Valid ForgotPasswordRequest forgotPasswordRequest) {
         String otp = sendEmailService.generateOtp();
         appUserService.checkEmail(forgotPasswordRequest.getEmail());
-        try {
-            sendEmailService.sendOtpEmail(forgotPasswordRequest.getEmail(), otp);
-        } catch (Exception e) {
-            throw new AppBadRequestException("Failed to send OTP: " + e.getMessage());
-        }
+//        try {
+//            sendEmailService.sendOtpEmail(forgotPasswordRequest.getEmail(), otp);
+//        } catch (Exception e) {
+//            throw new AppBadRequestException("Failed to send OTP: " + e.getMessage());
+//        }
+        emailService.sendMailAsHTML(forgotPasswordRequest.getEmail(), otp);
         otpService.storeOtp(forgotPasswordRequest.getEmail(), otp);
         Otps opts = otpService.getOtpByUserId(forgotPasswordRequest.getEmail());
         ApiResponse<Otps> response = ApiResponse.<Otps>builder()
