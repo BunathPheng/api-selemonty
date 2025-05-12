@@ -10,7 +10,7 @@ import java.util.UUID;
 public interface VisitorRepository {
     @Results(id = "visitorMapper", value = {
             @Result(property = "visitorId", column = "visitor_id"),
-            @Result(property = "appUser", column = "user_id",
+            @Result(property = "appUserRegister", column = "user_id",
             one = @One(select = "org.hrd.finalprojectmuseum.repository.AppUserRepository.getUserById")),
             @Result(property = "fullName", column = "full_name"),
             @Result(property = "contactNumber", column = "contact_number"),

@@ -10,6 +10,7 @@ import com.google.api.client.json.gson.GsonFactory;
 import lombok.RequiredArgsConstructor;
 import org.hrd.finalprojectmuseum.jwt.JwtUtils;
 import org.hrd.finalprojectmuseum.model.entity.AppUser;
+import org.hrd.finalprojectmuseum.model.entity.AppUserRegister;
 import org.hrd.finalprojectmuseum.model.entity.LoginToken;
 import org.hrd.finalprojectmuseum.model.enums.Role;
 import org.hrd.finalprojectmuseum.repository.AppUserRepository;
@@ -37,7 +38,7 @@ public class GoogleAuthServiceImpl implements GoogleAuthService {
 
     @Override
     @Transactional
-    public LoginToken verifyAndExtractUserInfo(String idTokenString, Role role) throws GeneralSecurityException, IOException {
+    public LoginToken verifyAndExtractUserInfo(String idTokenString, String role) throws GeneralSecurityException, IOException {
         GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(transport, jsonFactory)
                 .setAudience(Collections.singletonList(webClientId))
                 .build();
@@ -46,18 +47,19 @@ public class GoogleAuthServiceImpl implements GoogleAuthService {
         if (idToken != null) {
             Payload payload = idToken.getPayload();
             System.out.println((String) payload.get("name"));
-            AppUser appUser = appUserRepository.findUserByEmail(payload.getEmail());
-            if(appUser == null) {
+            AppUserRegister appUserRegister = appUserRepository.findUserByEmail(payload.getEmail());
+            if(appUserRegister == null) {
                 String encodedPass = passwordEncoder.encode("Kom@3");
-                AppUser registerUser = appUserRepository.registerUser(payload.getEmail(), encodedPass, role, true);
-                if (role == Role.ROLE_VISITOR){
+                Role roleEnum = role.equals("VISITOR") ? Role.ROLE_VISITOR : Role.ROLE_MUSEUM_OWNER;
+                AppUserRegister registerUser = appUserRepository.registerUser(payload.getEmail(), encodedPass, roleEnum, true);
+                if (role.equals("VISITOR")){
                     appUserRepository.storeVisitor(registerUser.getUserId(), (String) payload.get("name"), (String) payload.get("picture"));
                 }else {
                     appUserRepository.storeMeseumOwner(registerUser.getUserId(), (String) payload.get("name"), (String) payload.get("picture"), null, null, null);
                 }
-                return new LoginToken(jwtUtils.generateToken(registerUser.getEmail(), registerUser.getUserId(), registerUser.getRole()));
+                return new LoginToken(jwtUtils.generateToken(registerUser.getEmail(), registerUser.getUserId(), registerUser.getRole().toString()));
             }else {
-                return new LoginToken(jwtUtils.generateToken(appUser.getEmail(), appUser.getUserId(), appUser.getRole()));
+                return new LoginToken(jwtUtils.generateToken(appUserRegister.getEmail(), appUserRegister.getUserId(), appUserRegister.getRole().toString()));
             }
         } else {
             throw new IllegalArgumentException("Invalid ID token.");

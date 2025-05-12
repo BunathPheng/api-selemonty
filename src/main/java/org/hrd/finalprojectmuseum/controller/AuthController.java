@@ -1,5 +1,6 @@
 package org.hrd.finalprojectmuseum.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import lombok.RequiredArgsConstructor;
@@ -23,9 +24,12 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.view.RedirectView;
 
 import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.time.LocalDateTime;
+import java.util.Map;
 
 @Slf4j
 @RestController
@@ -64,7 +68,7 @@ public class AuthController {
 
     @PostMapping("/google-login-visitor")
     public ResponseEntity<ApiResponse<LoginToken>> handleGoogleLoginAsVisitor(@RequestBody IdTokenRequest request) throws Exception {
-        LoginToken userInfo = googleAuthService.verifyAndExtractUserInfo(request.getIdToken(), Role.ROLE_VISITOR);
+        LoginToken userInfo = googleAuthService.verifyAndExtractUserInfo(request.getIdToken(), "VISITOR");
         ApiResponse<LoginToken> response = ApiResponse.<LoginToken>builder()
                 .success(true)
                 .message("Logged in successfully")
@@ -76,7 +80,7 @@ public class AuthController {
 
     @PostMapping("/google-login-museum-owner")
     public ResponseEntity<ApiResponse<LoginToken>> handleGoogleLoginAsMuseumOwner(@RequestBody IdTokenRequest request) throws Exception {
-        LoginToken userInfo = googleAuthService.verifyAndExtractUserInfo(request.getIdToken(), Role.ROLE_MUSEUM_OWNER);
+        LoginToken userInfo = googleAuthService.verifyAndExtractUserInfo(request.getIdToken(), "MUSEUM-OWNER");
         ApiResponse<LoginToken> response = ApiResponse.<LoginToken>builder()
                 .success(true)
                 .message("Logged in successfully")
@@ -230,5 +234,18 @@ public class AuthController {
                 .build();
         return ResponseEntity.ok(response);
     }
+
+
+    @GetMapping("/google/login")
+    @Operation(summary = "For Testing only", description = "this endpoint server side flow for google sign in")
+    public RedirectView googleLogin(@RequestParam(required = false, defaultValue = "VISITOR") String role) {
+        String redirectUrl = "/oauth2/authorize/google";
+        if (role != null && !role.isEmpty()) {
+            redirectUrl += "?role=" + role;
+        }
+        return new RedirectView(redirectUrl);
+    }
+
+
 }
 

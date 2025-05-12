@@ -30,7 +30,7 @@ public class SendEmailServiceImpl implements SendEmailService {
     }
 
     public void sendOtpEmail(String toEmail, String otp) throws IOException {
-        Email from = new Email("hoeunpichet@gmail.com", "Seila Munty Team");
+        Email from = new Email("tirachlo34@gmail.com", "Sela Monty Team");
         String subject = "Your OTP Code: " + otp;
         Email to = new Email(toEmail);
         Content content = new Content("text/html", loadTemplate(otp));

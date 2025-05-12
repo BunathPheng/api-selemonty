@@ -41,13 +41,13 @@ public class AppUserServiceImpl implements AppUserService {
 
     @Override
     public AppUserRegister registerUser(String email, String password, Role role) {
-        AppUser findUser = appUserRepository.findUserByEmail(email);
+        AppUserRegister findUser = appUserRepository.findUserByEmail(email);
         if (findUser != null) {
             throw new ThrowFieldException("email", "Email has already taken");
         }
 
         String encodedPass = passwordEncoder.encode(password);
-        AppUser appUser = appUserRepository.registerUser(email, encodedPass, role, false);
+        AppUserRegister appUser = appUserRepository.registerUser(email, encodedPass, role, false);
         AppUserRegister appUserResponse = mapper.map(appUserRepository.getUserById(appUser.getUserId()), AppUserRegister.class);
         return appUserResponse;
     }
@@ -71,7 +71,7 @@ public class AppUserServiceImpl implements AppUserService {
 
     @Override
     public void checkEmailBeforeOpt(String email) {
-        AppUser appUser = appUserRepository.findUserByEmail(email);
+        AppUserRegister appUser = appUserRepository.findUserByEmail(email);
         if (appUser == null) {
             throw new AppBadRequestException("Your email has not registered yet.");
         }
@@ -115,7 +115,7 @@ public class AppUserServiceImpl implements AppUserService {
 
     @Override
     public void checkEmail(String email) {
-        AppUser appUser = appUserRepository.findUserByEmail(email);
+        AppUserRegister appUser = appUserRepository.findUserByEmail(email);
         if (appUser == null) {
             throw new AppBadRequestException("Email not found.");
         }

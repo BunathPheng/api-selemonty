@@ -2,6 +2,8 @@ package org.hrd.finalprojectmuseum.model.entity.museum_owner;
 
 import lombok.Data;
 import org.hrd.finalprojectmuseum.model.entity.AppUser;
+import org.hrd.finalprojectmuseum.model.entity.AppUserRegister;
+import org.hrd.finalprojectmuseum.repository.AppUserRepository;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -12,7 +14,7 @@ import java.util.UUID;
 @Data
 public class MuseumOwner {
     private UUID museumId;
-    private AppUser appUser;
+    private AppUserRegister appUserRegister;
     private String name;
     private String contactNumber;
     private BigDecimal lat;

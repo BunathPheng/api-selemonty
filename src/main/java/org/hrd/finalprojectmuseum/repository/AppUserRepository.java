@@ -3,6 +3,7 @@ package org.hrd.finalprojectmuseum.repository;
 import org.apache.ibatis.annotations.*;
 import org.apache.ibatis.type.JdbcType;
 import org.hrd.finalprojectmuseum.model.entity.AppUser;
+import org.hrd.finalprojectmuseum.model.entity.AppUserRegister;
 import org.hrd.finalprojectmuseum.model.enums.Role;
 
 import java.math.BigDecimal;
@@ -20,24 +21,34 @@ public interface AppUserRepository {
             @Result(property = "userId", column = "user_id", javaType = UUID.class, jdbcType = JdbcType.VARCHAR),
             @Result(property = "role", column = "role"),
             @Result(property = "isVerified", column = "is_verified"),
+            @Result(property = "password", column = "password"),
 //            @Result(property = "isApprove", column = "is_approve"),
             @Result(property = "updatedAt", column = "updated_at"),
             @Result(property = "createdAt", column = "created_at"),
     })
     Optional<AppUser> getUserByEmail(String email);
 
-    @ResultMap(value = "userMapper")
+    @Select("""
+    SELECT * FROM user_info
+    WHERE user_id = #{appUserId}::UUID
+    """)
+    @Results(id = "userRegisterMapper", value = {
+            @Result(property = "userId", column = "user_id", javaType = UUID.class, jdbcType = JdbcType.VARCHAR),
+            @Result(property = "email", column = "email"),
+            @Result(property = "password", column = "password"),
+            @Result(property = "role", column = "role"),
+            @Result(property = "isVerified", column = "is_verified"),
+            @Result(property = "createdAt", column = "created_at"),
+            @Result(property = "updatedAt", column = "updated_at")
+    })
+    AppUserRegister getUserById(UUID appUserId);
+
+    @ResultMap(value = "userRegisterMapper")
     @Select("""
             SELECT * from user_info
             WHERE email = #{email}
             """)
-    AppUser findUserByEmail(String email);
-    @Select("""
-            SELECT * from user_info
-            WHERE user_id = #{appUserId}::UUID
-            """)
-    @ResultMap("userMapper")
-    AppUser getUserById(UUID appUserId);
+    AppUserRegister findUserByEmail(String email);
 
 
     @Select("""
@@ -45,8 +56,8 @@ public interface AppUserRepository {
             VALUES(#{email}, #{password}, #{role}, #{isVerified})
             RETURNING *
             """)
-    @ResultMap("userMapper")
-    AppUser registerUser(String email, String password, Role role, Boolean isVerified);
+    @ResultMap("userRegisterMapper")
+    AppUserRegister registerUser(String email, String password, Role role, Boolean isVerified);
 
     @Update("""
             UPDATE user_info

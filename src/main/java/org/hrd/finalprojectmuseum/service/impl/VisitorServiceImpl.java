@@ -5,6 +5,7 @@ import org.apache.ibatis.javassist.NotFoundException;
 import org.hrd.finalprojectmuseum.exception.AppNotFoundException;
 import org.hrd.finalprojectmuseum.model.dto.request.visitor.VisitorRequest;
 import org.hrd.finalprojectmuseum.model.entity.AppUser;
+import org.hrd.finalprojectmuseum.model.entity.AppUserRegister;
 import org.hrd.finalprojectmuseum.model.entity.visitor.Visitor;
 import org.hrd.finalprojectmuseum.repository.AppUserRepository;
 import org.hrd.finalprojectmuseum.repository.VisitorRepository;
@@ -45,7 +46,7 @@ public class VisitorServiceImpl implements VisitorService {
 
     @Override
     public void deleteVisitor(UUID userId) {
-        AppUser appUser = appUserRepository.getUserById(userId);
+        AppUserRegister appUser = appUserRepository.getUserById(userId);
         if (appUser == null) {
             throw new AppNotFoundException("UserId is wrong");
         }
