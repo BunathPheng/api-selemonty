@@ -77,7 +77,7 @@ public interface AppUserRepository {
     void storeVisitor(UUID userId, String fullName, String profileImageLink);
 
     @Insert("""
-        INSERT INTO museum_owners(user_id, name, lat, lng, logo, description)
+        INSERT INTO museum_owners(user_id, name, lat, lng, logo_link, description)
         VALUES (#{userId}::uuid, #{name}, #{lat}, #{lng}, #{logoLink}, #{description})
     """)
     void storeMeseumOwner(UUID userId, String name, String logoLink, BigDecimal lat, Double lng, String description);
@@ -86,4 +86,9 @@ public interface AppUserRepository {
         DELETE FROM user_info WHERE user_id = #{userId}::UUID
     """)
     void deleteUser(UUID userId);
+
+    @Update("""
+        UPDATE user_info SET password = #{newPassword} WHERE user_id = #{userId}::UUID
+    """)
+    void updatePasswordByUserId(UUID userId, String newPassword);
 }

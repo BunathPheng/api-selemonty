@@ -41,7 +41,7 @@ CREATE TABLE admin (
     user_id UUID,
     FOREIGN KEY (user_id) REFERENCES user_info(user_id) ON DELETE CASCADE,
     name VARCHAR(255) NOT NULL,
-    profile_image VARCHAR(255),
+    profile_image_link VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

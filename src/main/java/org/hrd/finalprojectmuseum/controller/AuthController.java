@@ -20,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.view.RedirectView;
@@ -65,7 +66,7 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/google-login-visitor")
+    @PostMapping("/visitor/google-login")
     public ResponseEntity<ApiResponse<LoginToken>> handleGoogleLoginAsVisitor(@RequestBody IdTokenRequest request) throws Exception {
         LoginToken userInfo = googleAuthService.verifyAndExtractUserInfo(request.getIdToken(), "VISITOR");
         ApiResponse<LoginToken> response = ApiResponse.<LoginToken>builder()
@@ -77,7 +78,7 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/google-login-museum-owner")
+    @PostMapping("/museum-owner/google-login")
     public ResponseEntity<ApiResponse<LoginToken>> handleGoogleLoginAsMuseumOwner(@RequestBody IdTokenRequest request) throws Exception {
         LoginToken userInfo = googleAuthService.verifyAndExtractUserInfo(request.getIdToken(), "MUSEUM-OWNER");
         ApiResponse<LoginToken> response = ApiResponse.<LoginToken>builder()
@@ -89,7 +90,7 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/visitor-register")
+    @PostMapping("/visitor/register")
     public ResponseEntity<ApiResponse<AppUserRegister>> registerVisitor(@RequestBody @Valid VisitorRegisterRequest visitorRegisterRequest) throws IOException {
 
         AppUserRegister appUser = appUserService.registerUser(visitorRegisterRequest.getEmail(), visitorRegisterRequest.getPassword(), Role.ROLE_VISITOR);
@@ -110,7 +111,7 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PostMapping("/museum-owner-register")
+    @PostMapping("/museum-owner/register")
     @Transactional
     public ResponseEntity<ApiResponse<AppUserRegister>> registerMuseumOwner(@RequestBody @Valid MuseumOwnerRegisterRequest museumOwnerRegisterRequest) throws IOException {
 
@@ -197,7 +198,7 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/verify-otp-forgot-password")
+    @PostMapping("/verify-otp/forgot-password")
     public ResponseEntity<ApiResponse<String>> verifyOtpForgotPassword(@RequestParam @Email(message = "Email is wrong syntax") String email, @RequestParam String otp) {
         appUserService.checkEmail(email);
         String storedOtp = otpService.getOtp(email, otp);

@@ -4,6 +4,7 @@ import org.apache.ibatis.annotations.*;
 import org.hrd.finalprojectmuseum.model.dto.request.visitor.VisitorRequest;
 import org.hrd.finalprojectmuseum.model.entity.visitor.Visitor;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Mapper
@@ -28,8 +29,8 @@ public interface VisitorRepository {
     @ResultMap("visitorMapper")
     @Select("""
        UPDATE visitors SET full_name = #{visitor.fullName}, contact_number = #{visitor.contactNumber}, gender = #{visitor.gender},
-                           dob = #{visitor.dob}, profile_image_link = #{visitor.profileImageLink} WHERE user_id = #{userId}::uuid
+                           dob = #{visitor.dob}, profile_image_link = #{visitor.profileImageLink}, updated_at = #{updatedAt}  WHERE user_id = #{userId}::uuid
                             RETURNING *;
     """)
-    Visitor modifyVisitorByVisitorId(UUID userId, @Param("visitor") VisitorRequest visitorRequest);
+    Visitor modifyVisitorByVisitorId(UUID userId, @Param("visitor") VisitorRequest visitorRequest, LocalDateTime updatedAt);
 }

@@ -1,19 +1,19 @@
 package org.hrd.finalprojectmuseum.service.impl;
 
 import lombok.RequiredArgsConstructor;
-import org.apache.ibatis.javassist.NotFoundException;
 import org.hrd.finalprojectmuseum.exception.AppNotFoundException;
 import org.hrd.finalprojectmuseum.model.dto.request.visitor.VisitorRequest;
-import org.hrd.finalprojectmuseum.model.entity.AppUser;
 import org.hrd.finalprojectmuseum.model.entity.AppUserRegister;
 import org.hrd.finalprojectmuseum.model.entity.visitor.Visitor;
 import org.hrd.finalprojectmuseum.repository.AppUserRepository;
 import org.hrd.finalprojectmuseum.repository.VisitorRepository;
 import org.hrd.finalprojectmuseum.service.VisitorService;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
+
+import static org.hrd.finalprojectmuseum.utils.RequestUtils.getOrDefault;
 
 @Service
 @RequiredArgsConstructor
@@ -31,18 +31,22 @@ public class VisitorServiceImpl implements VisitorService {
     }
 
     @Override
-    public Visitor updateVisitor(UUID userId, VisitorRequest visitorRequest) {
+    public Visitor updateVisitor(UUID userId, VisitorRequest request) {
         Visitor visitor = visitorRepository.findVisitor(userId);
         if (visitor == null) {
             throw new AppNotFoundException("Visitor not found");
         }
-        visitorRequest.setFullName(visitorRequest.getFullName().isEmpty()? visitor.getFullName() : visitorRequest.getFullName());
-        visitorRequest.setContactNumber(visitorRequest.getContactNumber().isEmpty()? visitor.getContactNumber() : visitorRequest.getContactNumber());
-        visitorRequest.setDob(visitorRequest.getDob() == null? visitor.getDob() : visitorRequest.getDob());
-        visitorRequest.setGender(visitorRequest.getGender().isEmpty()? visitor.getGender() : visitorRequest.getGender());
-        visitorRequest.setProfileImageLink(visitorRequest.getProfileImageLink().isEmpty()? visitor.getProfileImageLink() : visitorRequest.getProfileImageLink());
-        return visitorRepository.modifyVisitorByVisitorId(userId, visitorRequest);
+
+        VisitorRequest updatedRequest = new VisitorRequest();
+
+        updatedRequest.setFullName(getOrDefault(request.getFullName(), visitor.getFullName()));
+        updatedRequest.setContactNumber(getOrDefault(request.getContactNumber(), visitor.getContactNumber()));
+        updatedRequest.setGender(getOrDefault(request.getGender(), visitor.getGender()));
+        updatedRequest.setProfileImageLink(getOrDefault(request.getProfileImageLink(), visitor.getProfileImageLink()));
+        updatedRequest.setDob(request.getDob()!=null?request.getDob():visitor.getDob());
+        return visitorRepository.modifyVisitorByVisitorId(userId, updatedRequest, LocalDateTime.now());
     }
+
 
     @Override
     public void deleteVisitor(UUID userId) {

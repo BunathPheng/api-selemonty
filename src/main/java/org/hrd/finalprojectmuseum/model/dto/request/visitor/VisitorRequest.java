@@ -33,6 +33,4 @@ public class VisitorRequest {
 
     private String profileImageLink;
 
-    @NotNull(message = "UpdatedAt is required")
-    private LocalDateTime updatedAt;
 }
