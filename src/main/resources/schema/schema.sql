@@ -65,7 +65,7 @@ CREATE TABLE museum_owners (
     logo VARCHAR(255),
     banner VARCHAR(255),
     landscapes JSONB,
-    description VARCHAR(255),
+    description TEXT,
     is_approved BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP

@@ -4,9 +4,11 @@ import com.alibaba.fastjson2.JSONObject;
 import org.apache.ibatis.annotations.*;
 import org.apache.ibatis.type.JdbcType;
 import org.hrd.finalprojectmuseum.model.dto.request.museum_owner.MuseumOwnerRequest;
+import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumCategory;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Mapper
@@ -15,7 +17,8 @@ public interface MuseumOwnerRepository {
             @Result(property = "museumId", column = "museum_id", javaType = UUID.class, jdbcType = JdbcType.VARCHAR),
             @Result(property = "appUserRegister", column = "user_id",
                     one = @One(select = "org.hrd.finalprojectmuseum.repository.AppUserRepository.getUserById")),
-            @Result(property = "museumCategoryId", column = "museum_category_id", javaType = UUID.class, jdbcType = JdbcType.VARCHAR),
+            @Result(property = "museumCategory", column = "museum_category_id", javaType = UUID.class, jdbcType = JdbcType.VARCHAR,
+                    many = @Many(select = "findMuseumCategoryById")),
             @Result(property = "name", column = "name"),
             @Result(property = "contactNumber", column = "contact_number"),
             @Result(property = "lat", column = "lat"),
@@ -50,4 +53,16 @@ public interface MuseumOwnerRepository {
         UPDATE museum_owners SET landscape_links = #{existLandscape}::JSONB WHERE museum_id = #{museumId}::UUID RETURNING landscape_links
     """)
     JSONObject modifyLandscapeByMuseumId(UUID museumId, JSONObject existLandscape);
+
+    @Result(property = "museumCategoryId", column = "museum_category_id")
+    @Select("""
+        SELECT museum_category_id, name FROM museum_categories;
+    """)
+    List<MuseumCategory> getMuseumCategories();
+
+    @Result(property = "museumCategoryId", column = "museum_category_id")
+    @Select("""
+        SELECT museum_category_id, name FROM museum_categories WHERE museum_category_id = #{museumCategoryId}::UUID;
+    """)
+    MuseumCategory findMuseumCategoryById(UUID museumCategoryId);
 }

@@ -2,8 +2,10 @@ package org.hrd.finalprojectmuseum.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.hrd.finalprojectmuseum.exception.AppBadRequestException;
+import org.hrd.finalprojectmuseum.exception.AppNotFoundException;
 import org.hrd.finalprojectmuseum.exception.ThrowFieldException;
 import org.hrd.finalprojectmuseum.jwt.JwtUtils;
+import org.hrd.finalprojectmuseum.model.dto.request.auth.ChangePasswordRequest;
 import org.hrd.finalprojectmuseum.model.entity.AppUser;
 import org.hrd.finalprojectmuseum.model.entity.AppUserRegister;
 import org.hrd.finalprojectmuseum.model.enums.Role;
@@ -48,8 +50,7 @@ public class AppUserServiceImpl implements AppUserService {
 
         String encodedPass = passwordEncoder.encode(password);
         AppUserRegister appUser = appUserRepository.registerUser(email, encodedPass, role, false);
-        AppUserRegister appUserResponse = mapper.map(appUserRepository.getUserById(appUser.getUserId()), AppUserRegister.class);
-        return appUserResponse;
+        return mapper.map(appUserRepository.getUserById(appUser.getUserId()), AppUserRegister.class);
     }
 
     @Override
@@ -63,10 +64,7 @@ public class AppUserServiceImpl implements AppUserService {
 
         if (!appUser.getIsVerified()) throw new AppBadRequestException("User has not verified yet.");
 
-        AppUserRegister appUserResponse = mapper.map(appUser, AppUserRegister.class);
-
-
-        return appUserResponse;
+        return mapper.map(appUser, AppUserRegister.class);
     }
 
     @Override
@@ -136,6 +134,17 @@ public class AppUserServiceImpl implements AppUserService {
     @Override
     public void storeMuseumOwner(UUID userId, String name, String logoLink, BigDecimal lat, Double lng, String description) {
         appUserRepository.storeMeseumOwner(userId, name, logoLink, lat, lng, description);
+    }
+
+    @Override
+    public void updatePassword(UUID userId, ChangePasswordRequest passwordRequest) {
+        AppUserRegister appUserRegister = appUserRepository.getUserById(userId);
+        if (appUserRegister == null) {
+            throw new AppNotFoundException("Invalid user. Please login first.");
+        }
+        boolean isCorrect = passwordEncoder.matches(passwordRequest.getOldPassword(), appUserRegister.getPassword());
+        if (!isCorrect) throw new AppBadRequestException("Invalid old password. Please check your old password and try again.");
+        appUserRepository.updatePasswordByUserId(userId, passwordEncoder.encode(passwordRequest.getNewPassword()));
     }
 }
 

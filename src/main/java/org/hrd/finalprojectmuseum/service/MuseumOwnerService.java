@@ -2,8 +2,10 @@ package org.hrd.finalprojectmuseum.service;
 
 import com.alibaba.fastjson2.JSONObject;
 import org.hrd.finalprojectmuseum.model.dto.request.museum_owner.MuseumOwnerRequest;
+import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumCategory;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface MuseumOwnerService {
@@ -16,4 +18,6 @@ public interface MuseumOwnerService {
     JSONObject addLanscapeByUserId(UUID userId, JSONObject landscapeRequest);
 
     void deleteLandscapeByUserId(UUID userId, String landscapeKey);
+
+    List<MuseumCategory> getMuseumCategories();
 }

@@ -1,15 +1,12 @@
 package org.hrd.finalprojectmuseum.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.checkerframework.checker.units.qual.A;
 import org.hrd.finalprojectmuseum.model.dto.request.admin.AdminRequest;
-import org.hrd.finalprojectmuseum.model.dto.request.admin.ChangePasswordRequest;
 import org.hrd.finalprojectmuseum.model.dto.response.ApiResponse;
 import org.hrd.finalprojectmuseum.model.entity.admin.Admin;
-import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
-import org.hrd.finalprojectmuseum.repository.AdminRepository;
 import org.hrd.finalprojectmuseum.service.AdminService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -45,6 +42,7 @@ public class AdminController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    @Operation(summary = "Use for insert and update. Any field can be null if dont want to update", description = "this endpoint can be use for insert more detail and also update any field. so you dont need to worry about field that dont want to update just leave it empty or null.")
     @PutMapping()
     public ResponseEntity<ApiResponse<Admin>> updateProfile(@RequestBody @Valid AdminRequest adminRequest) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -55,19 +53,6 @@ public class AdminController {
                 .message("Admin has been fetched successfully")
                 .status(HttpStatus.OK)
                 .payload(admin)
-                .build();
-        return ResponseEntity.status(HttpStatus.OK).body(response);
-    }
-
-    @PatchMapping("/change-password")
-    public ResponseEntity<ApiResponse<Void>> updatePassword(@RequestBody @Valid ChangePasswordRequest passwordRequest) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        UUID userId = UUID.fromString((String) auth.getCredentials());
-        adminService.updatePassword(userId, passwordRequest);
-        ApiResponse<Void> response = ApiResponse.<Void>builder()
-                .success(true)
-                .message("Password has been updated successfully")
-                .status(HttpStatus.OK)
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }

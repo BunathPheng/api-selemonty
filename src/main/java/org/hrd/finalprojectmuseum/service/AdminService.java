@@ -1,8 +1,6 @@
 package org.hrd.finalprojectmuseum.service;
 
-import jakarta.validation.Valid;
 import org.hrd.finalprojectmuseum.model.dto.request.admin.AdminRequest;
-import org.hrd.finalprojectmuseum.model.dto.request.admin.ChangePasswordRequest;
 import org.hrd.finalprojectmuseum.model.entity.admin.Admin;
 
 import java.util.UUID;
@@ -13,5 +11,5 @@ public interface AdminService {
 
     Admin updateAdminByUserId(UUID userId, AdminRequest adminRequest);
 
-    void updatePassword(UUID userId, @Valid ChangePasswordRequest passwordRequest);
+
 }

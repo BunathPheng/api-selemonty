@@ -1,5 +1,6 @@
 package org.hrd.finalprojectmuseum.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +20,7 @@ import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("api/v1/visitor-profile")
+@RequestMapping("api/v1/visitor/profile")
 @SecurityRequirement(name = "bearerAuth")
 @PreAuthorize("hasRole('ROLE_VISITOR')")
 public class VisitorController {
@@ -38,6 +39,7 @@ public class VisitorController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    @Operation(summary = "Use for insert and update. Any field can be null if dont want to update", description = "this endpoint can be use for insert more detail and also update any field. so you dont need to worry about field that dont want to update just leave it empty or null.")
     @PutMapping()
     public ResponseEntity<ApiResponse<Visitor>> updateProfile(@RequestBody @Valid VisitorRequest visitorRequest) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();

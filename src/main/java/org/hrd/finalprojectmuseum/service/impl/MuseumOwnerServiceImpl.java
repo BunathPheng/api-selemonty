@@ -4,12 +4,14 @@ import com.alibaba.fastjson2.JSONObject;
 import lombok.RequiredArgsConstructor;
 import org.hrd.finalprojectmuseum.exception.AppNotFoundException;
 import org.hrd.finalprojectmuseum.model.dto.request.museum_owner.MuseumOwnerRequest;
+import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumCategory;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
 import org.hrd.finalprojectmuseum.repository.MuseumOwnerRepository;
 import org.hrd.finalprojectmuseum.service.MuseumOwnerService;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import static org.hrd.finalprojectmuseum.utils.RequestUtils.getOrDefault;
@@ -35,7 +37,12 @@ public class MuseumOwnerServiceImpl implements MuseumOwnerService {
         MuseumOwnerRequest updatedRequest = new MuseumOwnerRequest();
 
         updatedRequest.setName(getOrDefault(request.getName(), existing.getName()));
-        updatedRequest.setMuseumCategoryId(Optional.ofNullable(request.getMuseumCategoryId()).orElse(existing.getMuseumCategoryId()));
+        if (existing.getMuseumCategory() == null){
+            updatedRequest.setMuseumCategoryId(request.getMuseumCategoryId());
+        }else{
+            updatedRequest.setMuseumCategoryId(Optional.ofNullable(request.getMuseumCategoryId()).orElse(existing.getMuseumCategory().getMuseumCategoryId()));
+        }
+
         updatedRequest.setContactNumber(getOrDefault(request.getContactNumber(), existing.getContactNumber()));
         updatedRequest.setLat(Optional.ofNullable(request.getLat()).orElse(existing.getLat()));
         updatedRequest.setLng(Optional.ofNullable(request.getLng()).orElse(existing.getLng()));
@@ -78,5 +85,14 @@ public class MuseumOwnerServiceImpl implements MuseumOwnerService {
             throw new AppNotFoundException("Landscape Key Not Found");
         }
         museumOwnerRepository.modifyLandscapeByMuseumId(museumOwner.getMuseumId(), existLandscape);
+    }
+
+    @Override
+    public List<MuseumCategory> getMuseumCategories() {
+        List<MuseumCategory> museumCategories = museumOwnerRepository.getMuseumCategories();
+        if (museumCategories == null) {
+            throw new AppNotFoundException("Museum Categories Not Found");
+        }
+        return museumCategories;
     }
 }

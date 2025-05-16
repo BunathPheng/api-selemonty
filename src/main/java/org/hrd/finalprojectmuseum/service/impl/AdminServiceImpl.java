@@ -1,11 +1,8 @@
 package org.hrd.finalprojectmuseum.service.impl;
 
 import lombok.RequiredArgsConstructor;
-import org.hrd.finalprojectmuseum.exception.AppBadRequestException;
 import org.hrd.finalprojectmuseum.exception.AppNotFoundException;
 import org.hrd.finalprojectmuseum.model.dto.request.admin.AdminRequest;
-import org.hrd.finalprojectmuseum.model.dto.request.admin.ChangePasswordRequest;
-import org.hrd.finalprojectmuseum.model.entity.AppUserRegister;
 import org.hrd.finalprojectmuseum.model.entity.admin.Admin;
 import org.hrd.finalprojectmuseum.repository.AdminRepository;
 import org.hrd.finalprojectmuseum.repository.AppUserRepository;
@@ -43,14 +40,5 @@ public class AdminServiceImpl implements AdminService {
         return adminRepository.modifyAdminByAdminId(admin.getAdminId(), update);
     }
 
-    @Override
-    public void updatePassword(UUID userId, ChangePasswordRequest passwordRequest) {
-        AppUserRegister appUserRegister = appUserRepository.getUserById(userId);
-        if (appUserRegister == null) {
-            throw new AppNotFoundException("Invalid user. Please login first.");
-        }
-        boolean isCorrect = passwordEncoder.matches(passwordRequest.getOldPassword(), appUserRegister.getPassword());
-        if (!isCorrect) throw new AppBadRequestException("Invalid old password. Please check your old password and try again.");
-        appUserRepository.updatePasswordByUserId(userId, passwordEncoder.encode(passwordRequest.getNewPassword()));
-    }
+
 }

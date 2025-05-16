@@ -32,6 +32,10 @@ public class MuseumOwnerRegisterRequest {
     )
     private String password;
 
+    @Pattern(
+            regexp = "^$|^(https?:\\/\\/.*\\.(?:png|jpg|jpeg|gif))$",
+            message = "Must be a valid image URL (jpg, jpeg, png, gif) or empty"
+    )
     private String logoLink;
 
     @NotNull(message = "Name is required")
@@ -42,5 +46,7 @@ public class MuseumOwnerRegisterRequest {
     @Digits(integer = 4, fraction = 6, message = "Must be a number with up to 4 integer digits and 6 fractional digits")
     private Double lng;
 
+    @NotBlank(message = "Description is required")
+    @Max(value = 2000, message = "Description can not be greater than 2000")
     private String description;
 }

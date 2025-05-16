@@ -30,6 +30,7 @@ public class OtpCacheServiceImpl implements OtpCacheService {
     public String getOtp(String email, String otp) {
         AppUser appUser = appUserRepository.getUserByEmail(email)
                 .orElseThrow(()->  new UsernameNotFoundException("Email is not register yet"));
+        String otpCode = otpRepository.getOptCodeByUserId(appUser.getUserId());
         Otps storedOtp = otpRepository.getOptByUserId(appUser.getUserId());
         if (storedOtp == null) {
             throw new InvalidOptException("Otp is not request yet");
@@ -37,7 +38,7 @@ public class OtpCacheServiceImpl implements OtpCacheService {
         if (storedOtp.getExpiredDate().isBefore(LocalDateTime.now())) {
             throw new InvalidOptException("Otp is expired");
         }
-        return storedOtp.getOtpCode();
+        return otpCode;
     }
 
     @Override

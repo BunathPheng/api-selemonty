@@ -13,7 +13,7 @@ import java.util.UUID;
 public class MuseumOwner {
     private UUID museumId;
     private AppUserRegister appUserRegister;
-    private UUID museumCategoryId;
+    private MuseumCategory museumCategory;
     private String name;
     private String contactNumber;
     private BigDecimal lat;
