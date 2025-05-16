@@ -29,8 +29,8 @@ public class FileController {
         String fileName = fileService.uploadFile(file, bucketType);
 
         String fileUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
-                .path("/logo/" + fileName)
-                .toString();
+                .path("/api/v1/file/view/"+fileName)
+                .toUriString();
 
         File fileDto = File.builder()
                 .fileName(fileName)
@@ -49,11 +49,10 @@ public class FileController {
 
     @GetMapping("/view/{fileName}")
     public ResponseEntity<?> viewFileByFileName(
-            @PathVariable String fileName,
-            @RequestParam("bucketType") BucketType bucketType
+            @PathVariable String fileName
     ) throws Exception{
 
-        Resource resource = fileService.viewFileByFileName(fileName, bucketType);
+        Resource resource = fileService.viewFileByFileName(fileName);
 
         MediaType mediaType = MediaType.APPLICATION_OCTET_STREAM;
 
@@ -84,10 +83,9 @@ public class FileController {
 
     @DeleteMapping("delete/{fileName}")
     public ResponseEntity<ApiResponse<Void>> deleteFile(
-            @RequestParam("fileName") String fileName,
-            @RequestParam("bucketType") BucketType bucketType
+            @RequestParam("fileName") String fileName
     ) throws Exception {
-        fileService.deleteFile(fileName, bucketType);
+        fileService.deleteFile(fileName);
         ApiResponse<Void> response = ApiResponse.<Void>builder()
                 .success(true)
                 .message("File has been delete successfully")

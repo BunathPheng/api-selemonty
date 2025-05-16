@@ -70,7 +70,7 @@ public class AuthController {
     }
 
     @Operation(summary = "Login with google with IdToken", description = "This endpoint need google IdToken from frontend to verify to register or login. Can use google oauth2 playground website to get IdToken for testing.")
-    @PostMapping("/visitor/google-login")
+    @PostMapping("/google/sign-in/visitor")
     public ResponseEntity<ApiResponse<LoginToken>> handleGoogleLoginAsVisitor(@RequestBody @Valid IdTokenRequest request) throws Exception {
         LoginToken userInfo = googleAuthService.verifyAndExtractUserInfo(request.getIdToken(), "VISITOR");
         ApiResponse<LoginToken> response = ApiResponse.<LoginToken>builder()
@@ -82,7 +82,7 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/museum-owner/google-login")
+    @PostMapping("/google/sign-in/museum-owner")
     public ResponseEntity<ApiResponse<LoginToken>> handleGoogleLoginAsMuseumOwner(@RequestBody @Valid IdTokenRequest request) throws Exception {
         LoginToken userInfo = googleAuthService.verifyAndExtractUserInfo(request.getIdToken(), "MUSEUM-OWNER");
         ApiResponse<LoginToken> response = ApiResponse.<LoginToken>builder()
@@ -95,7 +95,7 @@ public class AuthController {
     }
 
     @Operation(summary = "Register as visitor role")
-    @PostMapping("/visitor/register")
+    @PostMapping("/register/visitor")
     public ResponseEntity<ApiResponse<AppUserRegister>> registerVisitor(@RequestBody @Valid VisitorRegisterRequest visitorRegisterRequest) throws IOException {
 
         AppUserRegister appUser = appUserService.registerUser(visitorRegisterRequest.getEmail(), visitorRegisterRequest.getPassword(), Role.ROLE_VISITOR);
@@ -117,7 +117,7 @@ public class AuthController {
     }
 
     @Operation(summary = "Register as museum owner role")
-    @PostMapping("/museum-owner/register")
+    @PostMapping("/register/museum-owner")
     @Transactional
     public ResponseEntity<ApiResponse<AppUserRegister>> registerMuseumOwner(@RequestBody @Valid MuseumOwnerRegisterRequest museumOwnerRegisterRequest) throws IOException {
 
@@ -208,7 +208,7 @@ public class AuthController {
     }
 
     @Operation(summary = "Verify OTP to confirm change password", description = "Use OTP in email to verify then it will return token. This token can be use to combine with frontend route to make sure the link use to change password can be use only in period of time and nobody can access, accepted user.")
-    @PostMapping("/verify-otp/forgot-password")
+    @PostMapping("/forgot-password/verify-otp")
     public ResponseEntity<ApiResponse<String>> verifyOtpForgotPassword(@RequestParam @Email(message = "Email is wrong syntax") @NotBlank(message = "Email is required") String email, @RequestParam @NotBlank(message = "OTP is required") String otp) {
         appUserService.checkEmail(email);
         String storedOtp = otpService.getOtp(email, otp);
@@ -228,7 +228,7 @@ public class AuthController {
     }
 
     @Operation(summary = "Reset password after confirm all step", description = "This endpoint use to confirm token and then change password to new password for user")
-    @PostMapping("/reset-password")
+    @PostMapping("/forgot-password/reset-password")
     public ResponseEntity<ApiResponse<String>> resetPassword(@RequestBody @Valid ResetPasswordRequest resetPasswordRequest) {
         appUserService.resetPassword(resetPasswordRequest.getToken(), resetPasswordRequest.getNewPassword());
         ApiResponse<String> response = ApiResponse.<String>builder()

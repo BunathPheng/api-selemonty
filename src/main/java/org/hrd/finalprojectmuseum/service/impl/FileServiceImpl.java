@@ -70,78 +70,63 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
-    public Resource viewFileByFileName(String fileName, BucketType bucketType) throws ServerException, InsufficientDataException,
+    public Resource viewFileByFileName(String fileName) throws ServerException, InsufficientDataException,
             ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException,
             InvalidResponseException, XmlParserException, InternalException {
 
-        String bucketName = "";
-        if(bucketType == BucketType.LOGO){
-            bucketName = bucketNames.getFirst();
-        }else if(bucketType == BucketType.IMAGE){
-            bucketName = bucketNames.get(1);
-        } else if (bucketType == BucketType.ARTIFACT3D) {
-            bucketName = bucketNames.get(2);
-        }
+        for (String bucket : bucketNames) {
+            try {
+                // Check if object exists or not
+                minioClient.statObject(
+                        StatObjectArgs.builder()
+                                .bucket(bucket)
+                                .object(fileName)
+                                .build()
+                );
+                InputStream result = minioClient.getObject(
+                        GetObjectArgs.builder()
+                                .bucket(bucket)
+                                .object(fileName)
+                                .build()
+                );
 
-        //check is file exist in bucket or not
-        try {
-            minioClient.statObject(
-                    StatObjectArgs.builder()
-                            .bucket(bucketName)
-                            .object(fileName)
-                            .build()
-            );
+                return new InputStreamResource(result);
 
-        } catch (ErrorResponseException e) {
-            if ("NoSuchKey".equals(e.errorResponse().code())) {
-                throw new AppNotFoundException("File not found in bucket: " + bucketType.name());
+            } catch (ErrorResponseException e) {
+                if (!"NoSuchKey".equals(e.errorResponse().code())) {
+                    throw e;
+                }
             }
-            throw e;
         }
-
-        GetObjectArgs object = GetObjectArgs.builder()
-                .bucket(bucketName)
-                .object(fileName)
-                .build();
-
-        InputStream result = minioClient.getObject(object);
-        Resource resource = new InputStreamResource(result);
-
-        return resource;
+        throw new AppNotFoundException("File not found in any bucket: " + fileName);
     }
 
+
     @Override
-    public void deleteFile(String fileName, BucketType bucketType) throws ServerException, InsufficientDataException,
+    public void deleteFile(String fileName) throws ServerException, InsufficientDataException,
             ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException,
             InvalidResponseException, XmlParserException, InternalException {
-        String bucketName = "";
-        if(bucketType == BucketType.LOGO){
-            bucketName = bucketNames.getFirst();
-        }else if(bucketType == BucketType.IMAGE){
-            bucketName = bucketNames.get(1);
-        } else if (bucketType == BucketType.ARTIFACT3D) {
-            bucketName = bucketNames.get(2);
-        }
-        //check if file exist or not
-        try {
-            minioClient.statObject(
-                    StatObjectArgs.builder()
-                            .bucket(bucketName)
-                            .object(fileName)
-                            .build()
-            );
-        } catch (ErrorResponseException e) {
-            if (e.errorResponse().code().equals("NoSuchKey")) {
-                throw new AppNotFoundException("File not found in bucket: " + bucketType.name());
+        for (String bucket : bucketNames) {
+            try {
+                // Check if object exists or not
+                minioClient.statObject(
+                        StatObjectArgs.builder()
+                                .bucket(bucket)
+                                .object(fileName)
+                                .build()
+                );
+                minioClient.removeObject(RemoveObjectArgs.builder()
+                        .bucket(bucket)
+                        .object(fileName)
+                        .build());
+                return;
+
+            } catch (ErrorResponseException e) {
+                if (!"NoSuchKey".equals(e.errorResponse().code())) {
+                    throw e;
+                }
             }
-            throw e;
         }
-
-        RemoveObjectArgs object = RemoveObjectArgs.builder()
-                .bucket(bucketName)
-                .object(fileName)
-                .build();
-
-        minioClient.removeObject(object);
+        throw new AppNotFoundException("File not found in any bucket: " + fileName);
     }
 }
