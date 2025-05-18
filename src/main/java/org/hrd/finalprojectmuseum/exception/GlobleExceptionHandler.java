@@ -43,7 +43,6 @@ public class GlobleExceptionHandler {
         ProblemDetail detail = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
         detail.setDetail(e.getMessage());
         detail.setProperty("timestamp", LocalDateTime.now());
-
         return detail;
     }
 
