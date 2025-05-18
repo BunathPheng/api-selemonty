@@ -13,7 +13,7 @@ import java.util.UUID;
 @Builder
 public class MuseumOwnerRegisterRequest {
     @NotBlank(message = "Name is required")
-    @Size(min = 3, message = "Name must be at least 3 characters")
+    @Size(min = 2, message = "Name must be at least 2 characters")
     @Size(max = 50, message = "Name cannot be greater than 50 characters")
     private String name;
 
@@ -32,17 +32,18 @@ public class MuseumOwnerRegisterRequest {
     )
     private String password;
 
+    @NotBlank(message = "Logo is required")
     @Pattern(
             regexp = "^$|^(https?:\\/\\/.*\\.(?:png|jpg|jpeg|gif))$",
-            message = "Must be a valid image URL (jpg, jpeg, png, gif) or empty"
+            message = "Must be a valid image URL (jpg, jpeg, png, gif)"
     )
     private String logoLink;
 
-    @NotNull(message = "Name is required")
+    @NotNull(message = "lat is required")
     @Digits(integer = 4, fraction = 6, message = "Must be a number with up to 4 integer digits and 6 fractional digits")
     private BigDecimal lat;
 
-    @NotNull(message = "Name is required")
+    @NotNull(message = "lng is required")
     @Digits(integer = 4, fraction = 6, message = "Must be a number with up to 4 integer digits and 6 fractional digits")
     private Double lng;
 

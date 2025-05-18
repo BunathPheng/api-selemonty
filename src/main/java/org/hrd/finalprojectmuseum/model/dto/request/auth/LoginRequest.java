@@ -1,5 +1,7 @@
 package org.hrd.finalprojectmuseum.model.dto.request.auth;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -11,7 +13,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class LoginRequest {
-    @NotBlank(message = "email is required")
+    @Schema(example = "example@gmail.com")
+    @NotBlank(message = "Email is required")
+    @Email(message = "Email is not valid")
+    @Size(max = 255, message = "Email cannot be greater than 255 characters")
     private String email;
 
     @NotBlank(message = "Password is required")

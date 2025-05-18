@@ -11,8 +11,8 @@ import java.util.UUID;
 @Data
 public class VisitorRequest {
     @Pattern(
-            regexp = "^$|[A-Za-z ]{3,255}",
-            message = "Full name must be 3–50 letters/spaces"
+            regexp = "^$|[A-Za-z ]{2,255}",
+            message = "Full name must be 2–255 letters"
     )
     private String fullName;
 
