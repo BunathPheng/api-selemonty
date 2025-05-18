@@ -3,6 +3,7 @@ package org.hrd.finalprojectmuseum.service.impl;
 import lombok.RequiredArgsConstructor;
 import org.hrd.finalprojectmuseum.exception.InvalidOptException;
 import org.hrd.finalprojectmuseum.model.entity.AppUser;
+import org.hrd.finalprojectmuseum.model.entity.AppUserRegister;
 import org.hrd.finalprojectmuseum.model.entity.Otps;
 import org.hrd.finalprojectmuseum.repository.AppUserRepository;
 import org.hrd.finalprojectmuseum.repository.OtpRepository;
@@ -21,7 +22,7 @@ public class OtpCacheServiceImpl implements OtpCacheService {
     @Override
     public void storeOtp(String email, String otp) {
         LocalDateTime expiredDate = LocalDateTime.now().plusMinutes(2);
-        AppUser appUser = appUserRepository.findUserByEmail(email);
+        AppUserRegister appUser = appUserRepository.findUserByEmail(email);
         otpRepository.saveOpt(appUser.getUserId(), expiredDate, otp);
     }
 
@@ -29,6 +30,7 @@ public class OtpCacheServiceImpl implements OtpCacheService {
     public String getOtp(String email, String otp) {
         AppUser appUser = appUserRepository.getUserByEmail(email)
                 .orElseThrow(()->  new UsernameNotFoundException("Email is not register yet"));
+        String otpCode = otpRepository.getOptCodeByUserId(appUser.getUserId());
         Otps storedOtp = otpRepository.getOptByUserId(appUser.getUserId());
         if (storedOtp == null) {
             throw new InvalidOptException("Otp is not request yet");
@@ -36,24 +38,24 @@ public class OtpCacheServiceImpl implements OtpCacheService {
         if (storedOtp.getExpiredDate().isBefore(LocalDateTime.now())) {
             throw new InvalidOptException("Otp is expired");
         }
-        return storedOtp.getOtpCode();
+        return otpCode;
     }
 
     @Override
     public void removeOtp(String email) {
-        AppUser appUser = appUserRepository.findUserByEmail(email);
+        AppUserRegister appUser = appUserRepository.findUserByEmail(email);
         otpRepository.removeOptByUserId(appUser.getUserId());
     }
 
     @Override
     public LocalDateTime getExpirationByOtpId(String email) {
-        AppUser appUser = appUserRepository.findUserByEmail(email);
+        AppUserRegister appUser = appUserRepository.findUserByEmail(email);
         return otpRepository.getExpirationByUserId(appUser.getUserId());
     }
 
     @Override
     public Otps getOtpByUserId(String email) {
-        AppUser appUser = appUserRepository.findUserByEmail(email);
+        AppUserRegister appUser = appUserRepository.findUserByEmail(email);
         return otpRepository.getOptByUserId(appUser.getUserId());
     }
 }

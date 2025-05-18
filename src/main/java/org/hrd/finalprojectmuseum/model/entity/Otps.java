@@ -11,7 +11,6 @@ import java.util.UUID;
 public class Otps {
     private UUID otp_id;
     private UUID user_id;
-    private String otpCode;
     private LocalDateTime expiredDate;
     private LocalDateTime createdAt;
 }

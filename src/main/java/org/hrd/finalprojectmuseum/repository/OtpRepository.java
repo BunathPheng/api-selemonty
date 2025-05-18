@@ -27,7 +27,12 @@ public interface OtpRepository {
     void removeOptByUserId(UUID userId);
 
     @Select("""
-        SELECT * FROM otps WHERE user_id = #{userId}::uuid
+        SELECT otp_code FROM otps WHERE user_id = #{userId}::uuid
+    """)
+    String getOptCodeByUserId(UUID userId);
+
+    @Select("""
+        SELECT otp_id, user_id, expired_date, created_at FROM otps WHERE user_id = #{userId}::uuid
     """)
     Otps getOptByUserId(UUID userId);
 

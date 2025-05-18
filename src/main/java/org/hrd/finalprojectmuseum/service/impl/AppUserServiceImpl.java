@@ -1,19 +1,17 @@
 package org.hrd.finalprojectmuseum.service.impl;
 
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.hrd.finalprojectmuseum.exception.AppBadRequestException;
+import org.hrd.finalprojectmuseum.exception.AppNotFoundException;
 import org.hrd.finalprojectmuseum.exception.ThrowFieldException;
 import org.hrd.finalprojectmuseum.jwt.JwtUtils;
-import org.hrd.finalprojectmuseum.model.dto.request.auth.VisitorRegisterRequest;
+import org.hrd.finalprojectmuseum.model.dto.request.auth.ChangePasswordRequest;
 import org.hrd.finalprojectmuseum.model.entity.AppUser;
 import org.hrd.finalprojectmuseum.model.entity.AppUserRegister;
 import org.hrd.finalprojectmuseum.model.enums.Role;
 import org.hrd.finalprojectmuseum.repository.AppUserRepository;
 import org.hrd.finalprojectmuseum.service.AppUserService;
-import org.hrd.finalprojectmuseum.service.SendEmailService;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
@@ -22,7 +20,6 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
@@ -34,9 +31,6 @@ public class AppUserServiceImpl implements AppUserService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtils jwtUtils;
     private final ModelMapper mapper = new ModelMapper();
-    private final SendEmailService sendEmailService;
-    @Value("${app.url.resetpassword}")
-    String urlResetPassword;
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
@@ -49,15 +43,14 @@ public class AppUserServiceImpl implements AppUserService {
 
     @Override
     public AppUserRegister registerUser(String email, String password, Role role) {
-        AppUser findUser = appUserRepository.findUserByEmail(email);
+        AppUserRegister findUser = appUserRepository.findUserByEmail(email);
         if (findUser != null) {
             throw new ThrowFieldException("email", "Email has already taken");
         }
 
         String encodedPass = passwordEncoder.encode(password);
-        AppUser appUser = appUserRepository.registerUser(email, encodedPass, role);
-        AppUserRegister appUserResponse = mapper.map(appUserRepository.getUserById(appUser.getUserId()), AppUserRegister.class);
-        return appUserResponse;
+        AppUserRegister appUser = appUserRepository.registerUser(email, encodedPass, role, false);
+        return mapper.map(appUserRepository.getUserById(appUser.getUserId()), AppUserRegister.class);
     }
 
     @Override
@@ -71,15 +64,12 @@ public class AppUserServiceImpl implements AppUserService {
 
         if (!appUser.getIsVerified()) throw new AppBadRequestException("User has not verified yet.");
 
-        AppUserRegister appUserResponse = mapper.map(appUser, AppUserRegister.class);
-
-
-        return appUserResponse;
+        return mapper.map(appUser, AppUserRegister.class);
     }
 
     @Override
     public void checkEmailBeforeOpt(String email) {
-        AppUser appUser = appUserRepository.findUserByEmail(email);
+        AppUserRegister appUser = appUserRepository.findUserByEmail(email);
         if (appUser == null) {
             throw new AppBadRequestException("Your email has not registered yet.");
         }
@@ -123,7 +113,7 @@ public class AppUserServiceImpl implements AppUserService {
 
     @Override
     public void checkEmail(String email) {
-        AppUser appUser = appUserRepository.findUserByEmail(email);
+        AppUserRegister appUser = appUserRepository.findUserByEmail(email);
         if (appUser == null) {
             throw new AppBadRequestException("Email not found.");
         }
@@ -138,12 +128,23 @@ public class AppUserServiceImpl implements AppUserService {
 
     @Override
     public void storeVisitor(UUID userId, String fullName) {
-        appUserRepository.storeVistitor(userId, fullName);
+        appUserRepository.storeVisitor(userId, fullName, null);
     }
 
     @Override
     public void storeMuseumOwner(UUID userId, String name, String logoLink, BigDecimal lat, Double lng, String description) {
         appUserRepository.storeMeseumOwner(userId, name, logoLink, lat, lng, description);
+    }
+
+    @Override
+    public void updatePassword(UUID userId, ChangePasswordRequest passwordRequest) {
+        AppUserRegister appUserRegister = appUserRepository.getUserById(userId);
+        if (appUserRegister == null) {
+            throw new AppNotFoundException("Invalid user. Please login first.");
+        }
+        boolean isCorrect = passwordEncoder.matches(passwordRequest.getOldPassword(), appUserRegister.getPassword());
+        if (!isCorrect) throw new AppBadRequestException("Invalid old password. Please check your old password and try again.");
+        appUserRepository.updatePasswordByUserId(userId, passwordEncoder.encode(passwordRequest.getNewPassword()));
     }
 }
 

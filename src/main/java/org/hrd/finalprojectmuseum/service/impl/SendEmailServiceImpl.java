@@ -30,7 +30,7 @@ public class SendEmailServiceImpl implements SendEmailService {
     }
 
     public void sendOtpEmail(String toEmail, String otp) throws IOException {
-        Email from = new Email("hoeunpichet@gmail.com", "Anusa Boran Company");
+        Email from = new Email("tirachlo34@gmail.com", "Sela Monty Team");
         String subject = "Your OTP Code: " + otp;
         Email to = new Email(toEmail);
         Content content = new Content("text/html", loadTemplate(otp));
@@ -49,22 +49,22 @@ public class SendEmailServiceImpl implements SendEmailService {
     }
 
     public void sendResetPasswordEmail(String toEmail, String resetLink) throws IOException {
-        Email from = new Email("hoeunpichet@gmail.com", "Anusa Boran Company");
-        String subject = "Reset Your Password";
-        Email to = new Email(toEmail);
-        Content content = new Content("text/html", loadResetTemplate(resetLink));
-        Mail mail = new Mail(from, subject, to, content);
-
-        SendGrid sg = new SendGrid(sendGridApiKey);
-        Request request = new Request();
-        try {
-            request.setMethod(Method.POST);
-            request.setEndpoint("mail/send");
-            request.setBody(mail.build());
-            Response response = sg.api(request);
-        } catch (IOException ex) {
-            throw new AppNotFoundException("Failed to send reset email: " + ex.getMessage());
-        }
+//        Email from = new Email("hoeunpichet@gmail.com", "Anusa Boran Company");
+//        String subject = "Reset Your Password";
+//        Email to = new Email(toEmail);
+//        Content content = new Content("text/html", loadResetTemplate(resetLink));
+//        Mail mail = new Mail(from, subject, to, content);
+//
+//        SendGrid sg = new SendGrid(sendGridApiKey);
+//        Request request = new Request();
+//        try {
+//            request.setMethod(Method.POST);
+//            request.setEndpoint("mail/send");
+//            request.setBody(mail.build());
+//            Response response = sg.api(request);
+//        } catch (IOException ex) {
+//            throw new AppNotFoundException("Failed to send reset email: " + ex.getMessage());
+//        }
     }
 
 
@@ -74,11 +74,11 @@ public class SendEmailServiceImpl implements SendEmailService {
         return content.replace("{{otp}}", otp);
     }
 
-    public String loadResetTemplate(String resetLink) throws IOException {
-        ClassPathResource resource = new ClassPathResource("templates/resetPasswordTemplate.html");
-        String content = new String(resource.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
-        return content.replace("{{resetLink}}", resetLink);
-    }
+//    public String loadResetTemplate(String resetLink) throws IOException {
+//        ClassPathResource resource = new ClassPathResource("templates/resetPasswordTemplate.html");
+//        String content = new String(resource.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+//        return content.replace("{{resetLink}}", resetLink);
+//    }
 
 
 }

@@ -1,30 +1,36 @@
 package org.hrd.finalprojectmuseum.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.validator.constraints.Length;
 import org.hrd.finalprojectmuseum.exception.AppBadRequestException;
 import org.hrd.finalprojectmuseum.jwt.JwtUtils;
+import org.hrd.finalprojectmuseum.model.dto.request.auth.ChangePasswordRequest;
 import org.hrd.finalprojectmuseum.model.dto.request.auth.*;
 import org.hrd.finalprojectmuseum.model.dto.response.ApiResponse;
 import org.hrd.finalprojectmuseum.model.entity.AppUserRegister;
 import org.hrd.finalprojectmuseum.model.entity.LoginToken;
 import org.hrd.finalprojectmuseum.model.entity.Otps;
 import org.hrd.finalprojectmuseum.model.enums.Role;
-import org.hrd.finalprojectmuseum.service.AppUserService;
-import org.hrd.finalprojectmuseum.service.OtpCacheService;
-import org.hrd.finalprojectmuseum.service.SendEmailService;
+import org.hrd.finalprojectmuseum.service.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.view.RedirectView;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Slf4j
 @RestController
@@ -36,7 +42,10 @@ public class AuthController {
     private final JwtUtils jwtUtils;
     private final SendEmailService sendEmailService;
     private final OtpCacheService otpService;
+    private final GoogleAuthService googleAuthService;
+    private final EmailService emailService;
 
+    @Operation(summary = "Use for login for all role")
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<LoginToken>> login(@Valid @RequestBody LoginRequest loginRequest) {
         String email = loginRequest.getEmail();
@@ -60,7 +69,33 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/visitor-register")
+    @Operation(summary = "Login with google with IdToken", description = "This endpoint need google IdToken from frontend to verify to register or login. Can use google oauth2 playground website to get IdToken for testing.")
+    @PostMapping("/google/sign-in/visitor")
+    public ResponseEntity<ApiResponse<LoginToken>> handleGoogleLoginAsVisitor(@RequestBody @Valid IdTokenRequest request) throws Exception {
+        LoginToken userInfo = googleAuthService.verifyAndExtractUserInfo(request.getIdToken(), "VISITOR");
+        ApiResponse<LoginToken> response = ApiResponse.<LoginToken>builder()
+                .success(true)
+                .message("Logged in successfully")
+                .status(HttpStatus.OK)
+                .payload(userInfo)
+                .build();
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/google/sign-in/museum-owner")
+    public ResponseEntity<ApiResponse<LoginToken>> handleGoogleLoginAsMuseumOwner(@RequestBody @Valid IdTokenRequest request) throws Exception {
+        LoginToken userInfo = googleAuthService.verifyAndExtractUserInfo(request.getIdToken(), "MUSEUM-OWNER");
+        ApiResponse<LoginToken> response = ApiResponse.<LoginToken>builder()
+                .success(true)
+                .message("Logged in successfully")
+                .status(HttpStatus.OK)
+                .payload(userInfo)
+                .build();
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "Register as visitor role")
+    @PostMapping("/register/visitor")
     public ResponseEntity<ApiResponse<AppUserRegister>> registerVisitor(@RequestBody @Valid VisitorRegisterRequest visitorRegisterRequest) throws IOException {
 
         AppUserRegister appUser = appUserService.registerUser(visitorRegisterRequest.getEmail(), visitorRegisterRequest.getPassword(), Role.ROLE_VISITOR);
@@ -73,13 +108,16 @@ public class AuthController {
                 .build();
 
         String otp = sendEmailService.generateOtp();
-        sendEmailService.sendOtpEmail(visitorRegisterRequest.getEmail(), otp);
+
+        emailService.sendMailAsHTML(visitorRegisterRequest.getEmail(), otp);
+//        sendEmailService.sendOtpEmail(visitorRegisterRequest.getEmail(), otp);
         otpService.storeOtp(visitorRegisterRequest.getEmail(), otp);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PostMapping("/museum-owner-register")
+    @Operation(summary = "Register as museum owner role")
+    @PostMapping("/register/museum-owner")
     @Transactional
     public ResponseEntity<ApiResponse<AppUserRegister>> registerMuseumOwner(@RequestBody @Valid MuseumOwnerRegisterRequest museumOwnerRegisterRequest) throws IOException {
 
@@ -91,24 +129,26 @@ public class AuthController {
                 .payload(appUser)
                 .status(HttpStatus.CREATED)
                 .build();
-
         String otp = sendEmailService.generateOtp();
-        sendEmailService.sendOtpEmail(museumOwnerRegisterRequest.getEmail(), otp);
+        emailService.sendMailAsHTML(museumOwnerRegisterRequest.getEmail(), otp);
+//        sendEmailService.sendOtpEmail(museumOwnerRegisterRequest.getEmail(), otp);
         otpService.storeOtp(museumOwnerRegisterRequest.getEmail(), otp);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @Operation(summary = "For send re-send otp to verify account", description = "This endpoint use for send otp to verify account if user request to resend again")
     @PostMapping("/send-otp")
-    public ResponseEntity<ApiResponse<Otps>> sendOtp(@RequestParam String email) {
+    public ResponseEntity<ApiResponse<Otps>> sendOtp(@RequestParam @Email(message = "Email form is incorrect") @NotBlank(message = "Email is required") String email) {
         String otp = sendEmailService.generateOtp();
         appUserService.checkEmailBeforeOpt(email);
-
-        try {
-            sendEmailService.sendOtpEmail(email, otp);
-        } catch (Exception e) {
-            throw new AppBadRequestException("Failed to send OTP: " + e.getMessage());
-        }
+//        try {
+////            sendEmailService.sendOtpEmail(email, otp);
+//
+//        } catch (Exception e) {
+//            throw new AppBadRequestException("Failed to send OTP: " + e.getMessage());
+//        }
+        String result = emailService.sendMailAsHTML(email, otp);
 
         Otps opts = otpService.getOtpByUserId(email);
         ApiResponse<Otps> response = ApiResponse.<Otps>builder()
@@ -124,8 +164,9 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @Operation(summary = "For Verify account using OTP", description = "After getting OTP from email, use it to verify account")
     @PostMapping("/verify")
-    public ResponseEntity<ApiResponse<String>> verifyEmail(@RequestParam @Email(message = "Email is wrong syntax") String email, @RequestParam String otp) {
+    public ResponseEntity<ApiResponse<String>> verifyEmail(@RequestParam @Email(message = "Email form is incorrect") @NotBlank(message = "Email is required") String email, @RequestParam @NotBlank(message = "OTP is required") String otp) {
         appUserService.checkEmailBeforeOpt(email);
         String storedOtp = otpService.getOtp(email, otp);
 
@@ -144,15 +185,17 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
+    @Operation(summary = "For forgot password feature", description = "After input email, OTP will send to email. Then use OTP to verify in verify-otp/forgot-password endpoint. NOTE: if you dont see OTP email send in inbox please kinda check in spam. ")
     @PostMapping("/forgot-password")
     public ResponseEntity<ApiResponse<Otps>> forgotPassword(@RequestBody @Valid ForgotPasswordRequest forgotPasswordRequest) {
         String otp = sendEmailService.generateOtp();
         appUserService.checkEmail(forgotPasswordRequest.getEmail());
-        try {
-            sendEmailService.sendOtpEmail(forgotPasswordRequest.getEmail(), otp);
-        } catch (Exception e) {
-            throw new AppBadRequestException("Failed to send OTP: " + e.getMessage());
-        }
+//        try {
+//            sendEmailService.sendOtpEmail(forgotPasswordRequest.getEmail(), otp);
+//        } catch (Exception e) {
+//            throw new AppBadRequestException("Failed to send OTP: " + e.getMessage());
+//        }
+        emailService.sendMailAsHTML(forgotPasswordRequest.getEmail(), otp);
         otpService.storeOtp(forgotPasswordRequest.getEmail(), otp);
         Otps opts = otpService.getOtpByUserId(forgotPasswordRequest.getEmail());
         ApiResponse<Otps> response = ApiResponse.<Otps>builder()
@@ -164,8 +207,9 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/verify-otp-forgot-password")
-    public ResponseEntity<ApiResponse<String>> verifyOtpForgotPassword(@RequestParam @Email(message = "Email is wrong syntax") String email, @RequestParam String otp) {
+    @Operation(summary = "Verify OTP to confirm change password", description = "Use OTP in email to verify then it will return token. This token can be use to combine with frontend route to make sure the link use to change password can be use only in period of time and nobody can access, accepted user.")
+    @PostMapping("/forgot-password/verify-otp")
+    public ResponseEntity<ApiResponse<String>> verifyOtpForgotPassword(@RequestParam @Email(message = "Email is wrong syntax") @NotBlank(message = "Email is required") String email, @RequestParam @NotBlank(message = "OTP is required") String otp) {
         appUserService.checkEmail(email);
         String storedOtp = otpService.getOtp(email, otp);
 
@@ -183,7 +227,8 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/reset-password")
+    @Operation(summary = "Reset password after confirm all step", description = "This endpoint use to confirm token and then change password to new password for user")
+    @PostMapping("/forgot-password/reset-password")
     public ResponseEntity<ApiResponse<String>> resetPassword(@RequestBody @Valid ResetPasswordRequest resetPasswordRequest) {
         appUserService.resetPassword(resetPasswordRequest.getToken(), resetPasswordRequest.getNewPassword());
         ApiResponse<String> response = ApiResponse.<String>builder()
@@ -195,7 +240,7 @@ public class AuthController {
     }
 
     @GetMapping("/otp-expiration")
-    public ResponseEntity<ApiResponse<LocalDateTime>> otpExpiration(@RequestParam @Email(message = "email is not correct syntax") String email) {
+    public ResponseEntity<ApiResponse<LocalDateTime>> otpExpiration(@RequestParam @Email(message = "Email form is incorrect") @NotBlank(message = "Email is required") String email) {
         LocalDateTime expiration = otpService.getExpirationByOtpId(email);
         ApiResponse<LocalDateTime> response = ApiResponse.<LocalDateTime>builder()
                 .success(true)
@@ -205,5 +250,32 @@ public class AuthController {
                 .build();
         return ResponseEntity.ok(response);
     }
+
+
+    @GetMapping("/google/login")
+    @Operation(summary = "For Testing only", description = "this endpoint server side flow for google sign in")
+    public RedirectView googleLogin(@RequestParam(required = false, defaultValue = "VISITOR") String role) {
+        String redirectUrl = "/oauth2/authorize/google";
+        if (role != null && !role.isEmpty()) {
+            redirectUrl += "?role=" + role;
+        }
+        return new RedirectView(redirectUrl);
+    }
+
+    @Operation(summary = "Use old password to change password")
+    @SecurityRequirement(name = "bearerAuth")
+    @PatchMapping("/change-password")
+    public ResponseEntity<ApiResponse<Void>> updatePassword(@RequestBody @Valid ChangePasswordRequest passwordRequest) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        UUID userId = UUID.fromString((String) auth.getCredentials());
+        appUserService.updatePassword(userId, passwordRequest);
+        ApiResponse<Void> response = ApiResponse.<Void>builder()
+                .success(true)
+                .message("Password has been updated successfully")
+                .status(HttpStatus.OK)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
 }
 
