@@ -4,8 +4,10 @@ import com.alibaba.fastjson2.JSONObject;
 import org.apache.ibatis.annotations.*;
 import org.apache.ibatis.type.JdbcType;
 import org.hrd.finalprojectmuseum.model.dto.request.museum_owner.MuseumOwnerRequest;
+import org.hrd.finalprojectmuseum.model.dto.response.ListMuseumResponse;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumCategory;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
+import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumShortInfo;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -54,6 +56,12 @@ public interface MuseumOwnerRepository {
     """)
     JSONObject modifyLandscapeByMuseumId(UUID museumId, JSONObject existLandscape);
 
+    @ResultMap("museumMapper")
+    @Select("""
+        SELECT * FROM museum_owners WHERE museum_id = #{museumId}::UUID;
+    """)
+    MuseumOwner findMuseumOwnerByMuseumId(UUID museumId);
+
     @Result(property = "museumCategoryId", column = "museum_category_id")
     @Select("""
         SELECT museum_category_id, name FROM museum_categories;
@@ -66,32 +74,4 @@ public interface MuseumOwnerRepository {
     """)
     MuseumCategory findMuseumCategoryById(UUID museumCategoryId);
 
-    @ResultMap("museumMapper")
-    @Select("""
-        SELECT * FROM museum_owners WHERE is_approved = false;
-    """)
-    List<MuseumOwner> getAllRequestMuseums();
-
-    @ResultMap("museumMapper")
-    @Select("""
-        SELECT * FROM museum_owners WHERE museum_id = #{museumId}::UUID;
-    """)
-    MuseumOwner findMuseumOwnerByMuseumId(UUID museumId);
-
-    @Update("""
-        UPDATE museum_owners SET is_approved = true WHERE museum_id = #{museumId}::UUID;
-    """)
-    void udpateIsApprovedStatus(UUID museumId);
-
-    @ResultMap("museumMapper")
-    @Select("""
-        SELECT * FROM museum_owners;
-    """)
-    List<MuseumOwner> getAllMuseums();
-
-    @ResultMap("museumMapper")
-    @Select("""
-        SELECT * FROM museum_owners WHERE is_approved = true;
-    """)
-    List<MuseumOwner> getAllApprovedMuseums();
 }

@@ -1,15 +1,13 @@
-package org.hrd.finalprojectmuseum.controller;
+package org.hrd.finalprojectmuseum.controller.admin;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.hrd.finalprojectmuseum.model.dto.request.admin.AdminRequest;
 import org.hrd.finalprojectmuseum.model.dto.response.ApiResponse;
 import org.hrd.finalprojectmuseum.model.entity.admin.Admin;
-import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
-import org.hrd.finalprojectmuseum.service.AdminService;
+import org.hrd.finalprojectmuseum.service.AdminProfileService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -18,7 +16,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -26,9 +23,9 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @SecurityRequirement(name = "bearerAuth")
 @PreAuthorize("hasRole('ROLE_ADMIN')")
-public class AdminController {
+public class AdminProfileController {
 
-    private final AdminService adminService;
+    private final AdminProfileService adminService;
     private final PasswordEncoder passwordEncoder;
 
     @GetMapping()
@@ -56,53 +53,6 @@ public class AdminController {
                 .message("Admin has been fetched successfully")
                 .status(HttpStatus.OK)
                 .payload(admin)
-                .build();
-        return ResponseEntity.status(HttpStatus.OK).body(response);
-    }
-
-    @GetMapping("/museum")
-    public ResponseEntity<ApiResponse<List<MuseumOwner>>> getAllMuseumOwners() {
-        List<MuseumOwner> museums = adminService.getAllMuseum();
-        ApiResponse<List<MuseumOwner>> response = ApiResponse.<List<MuseumOwner>>builder()
-                .success(true)
-                .message("Museums has been fetched successfully")
-                .status(HttpStatus.OK)
-                .payload(museums)
-                .build();
-        return ResponseEntity.status(HttpStatus.OK).body(response);
-    }
-
-    @GetMapping("/museum/approved")
-    public ResponseEntity<ApiResponse<List<MuseumOwner>>> getAllApprovedMuseumOwners() {
-        List<MuseumOwner> museums = adminService.getAllApprovedMuseum();
-        ApiResponse<List<MuseumOwner>> response = ApiResponse.<List<MuseumOwner>>builder()
-                .success(true)
-                .message("Approved Museums has been fetched successfully")
-                .status(HttpStatus.OK)
-                .payload(museums)
-                .build();
-        return ResponseEntity.status(HttpStatus.OK).body(response);
-    }
-
-    @GetMapping("/museum/request")
-    public ResponseEntity<ApiResponse<List<MuseumOwner>>> viewRequestMuseum() {
-        List<MuseumOwner> requestMuseums = adminService.getAllRequestMuseum();
-        ApiResponse<List<MuseumOwner>> response = ApiResponse.<List<MuseumOwner>>builder()
-                .success(true)
-                .message("Request Museums has been fetched successfully")
-                .status(HttpStatus.OK)
-                .payload(requestMuseums)
-                .build();
-        return ResponseEntity.status(HttpStatus.OK).body(response);
-    }
-
-    @PatchMapping("/museum/approve/{museum-id}")
-    public ResponseEntity<ApiResponse<Void>> approveMuseum(@PathVariable("museum-id") @NotNull UUID museumId) {
-        adminService.approveMuseum(museumId);
-        ApiResponse<Void> response = ApiResponse.<Void>builder()
-                .success(true)
-                .message("Approve museum successfully")
-                .status(HttpStatus.OK)
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
