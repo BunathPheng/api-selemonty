@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -18,6 +19,8 @@ public class MuseumZone {
     private String description;
     private String pictureLink;
     private String videoLink;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
     private boolean isDeleted;
     private List<MuseumArtifact> artifacts;
 }

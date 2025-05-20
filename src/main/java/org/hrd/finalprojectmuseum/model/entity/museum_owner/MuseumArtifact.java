@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.security.Timestamp;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
@@ -16,6 +17,8 @@ public class MuseumArtifact {
     private String title;
     private String description;
     private String thirdDModelLink;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
     private boolean isDeleted;
 
 }
