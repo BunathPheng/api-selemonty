@@ -38,8 +38,8 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/v1/auths/**",
                                 "/api/v1/oauth2/**",
-                                "api/v1/museum/categories/**",
-                                "api/v1/file/**",
+                                "/api/v1/museum/categories/**",
+                                "/api/v1/file/**",
                                 "/auth/**", // Added for Google OAuth redirect
                                 "/oauth2/**", // Added for Google OAuth callback
                                 "/api/v1/files/**",
@@ -47,6 +47,9 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/swagger-ui.html"
                         ).permitAll()
+                        .requestMatchers("/api/v1/admin").hasRole("ADMIN")
+                        .requestMatchers("/api/v1/museum-onwer").hasRole("MUSEUM_OWNER")
+                        .requestMatchers("/api/v1/visitor").hasRole("VISITOR")
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

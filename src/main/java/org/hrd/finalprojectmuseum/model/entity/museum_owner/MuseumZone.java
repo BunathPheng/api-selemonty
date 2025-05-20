@@ -1,16 +1,16 @@
-package org.hrd.finalprojectmuseum.model.entity.museum;
+package org.hrd.finalprojectmuseum.model.entity.museum_owner;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.security.Timestamp;
+import java.util.List;
 import java.util.UUID;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Zone {
+public class MuseumZone {
     private UUID zoneId;
     private UUID museumId;
     private UUID zoneCategoryId;
@@ -18,7 +18,6 @@ public class Zone {
     private String description;
     private String pictureLink;
     private String videoLink;
-    private Timestamp createdAt;
-    private Timestamp updatedAt;
     private boolean isDeleted;
+    private List<MuseumArtifact> artifacts;
 }

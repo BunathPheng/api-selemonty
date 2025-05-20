@@ -1,4 +1,4 @@
-package org.hrd.finalprojectmuseum.model.entity.museum;
+package org.hrd.finalprojectmuseum.model.entity.museum_owner;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -10,14 +10,12 @@ import java.util.UUID;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Artifact {
+public class MuseumArtifact {
     private UUID id;
     private UUID zoneId;
     private String title;
     private String description;
     private String thirdDModelLink;
-    private Timestamp createdAt;
-    private Timestamp updatedAt;
     private boolean isDeleted;
 
 }
