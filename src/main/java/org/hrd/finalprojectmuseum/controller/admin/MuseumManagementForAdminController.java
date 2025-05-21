@@ -6,7 +6,8 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.hrd.finalprojectmuseum.model.dto.response.ApiResponse;
-import org.hrd.finalprojectmuseum.model.dto.response.ListMuseumResponse;
+import org.hrd.finalprojectmuseum.model.dto.response.ListResponse;
+import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumShortInfo;
 import org.hrd.finalprojectmuseum.service.MuseumManagementForAdminService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,9 +27,9 @@ public class MuseumManagementForAdminController {
 
     @Operation(summary = "For get all museum and can add museumCategoryId to get museum", description = "Note for category we can leave it as null if we to get all museum by not filter by category")
     @GetMapping("/museum")
-    public ResponseEntity<ApiResponse<ListMuseumResponse>> getAllMuseumOwners(@RequestParam(required = false) UUID museumCategoryId, @RequestParam(defaultValue = "1") @Min(value = 1, message = "must be greater than 0") Integer page, @RequestParam(defaultValue = "10") @Min(value = 1, message = "must be greater than 0") Integer size) {
-        ListMuseumResponse museums = museumManagementForAdminService.getAllMuseum(museumCategoryId, page, size);
-        ApiResponse<ListMuseumResponse> response = ApiResponse.<ListMuseumResponse>builder()
+    public ResponseEntity<ApiResponse<ListResponse<MuseumShortInfo>>> getAllMuseumOwners(@RequestParam(required = false) UUID museumCategoryId, @RequestParam(defaultValue = "1") @Min(value = 1, message = "must be greater than 0") Integer page, @RequestParam(defaultValue = "10") @Min(value = 1, message = "must be greater than 0") Integer size) {
+        ListResponse<MuseumShortInfo> museums = museumManagementForAdminService.getAllMuseum(museumCategoryId, page, size);
+        ApiResponse<ListResponse<MuseumShortInfo>> response = ApiResponse.<ListResponse<MuseumShortInfo>>builder()
                 .success(true)
                 .message("Museums has been fetched successfully")
                 .status(HttpStatus.OK)
@@ -39,9 +40,9 @@ public class MuseumManagementForAdminController {
 
     @Operation(summary = "For get all approved museums and can add museumCategoryId to get museum", description = "Note for category we can leave it as null if we to get all approved museums by not filter by category")
     @GetMapping("/museum/approved")
-    public ResponseEntity<ApiResponse<ListMuseumResponse>> getAllApprovedMuseumOwners(@RequestParam(required = false) UUID museumCategoryId, @RequestParam(defaultValue = "1") @Min(value = 1, message = "must be greater than 0") Integer page, @RequestParam(defaultValue = "10") @Min(value = 1, message = "must be greater than 0") Integer size) {
-        ListMuseumResponse museums = museumManagementForAdminService.getAllApprovedMuseum(museumCategoryId, page, size);
-        ApiResponse<ListMuseumResponse> response = ApiResponse.<ListMuseumResponse>builder()
+    public ResponseEntity<ApiResponse<ListResponse<MuseumShortInfo>>> getAllApprovedMuseumOwners(@RequestParam(required = false) UUID museumCategoryId, @RequestParam(defaultValue = "1") @Min(value = 1, message = "must be greater than 0") Integer page, @RequestParam(defaultValue = "10") @Min(value = 1, message = "must be greater than 0") Integer size) {
+        ListResponse<MuseumShortInfo> museums = museumManagementForAdminService.getAllApprovedMuseum(museumCategoryId, page, size);
+        ApiResponse<ListResponse<MuseumShortInfo>> response = ApiResponse.<ListResponse<MuseumShortInfo>>builder()
                 .success(true)
                 .message("Approved Museums has been fetched successfully")
                 .status(HttpStatus.OK)
@@ -52,9 +53,9 @@ public class MuseumManagementForAdminController {
 
     @Operation(summary = "For get all request museums and can add museumCategoryId to get museum", description = "Note for category we can leave it as null if we to get all request museums by not filter by category")
     @GetMapping("/museum/request")
-    public ResponseEntity<ApiResponse<ListMuseumResponse>> viewRequestMuseum(@RequestParam(required = false) UUID museumCategoryId, @RequestParam(defaultValue = "1") @Min(value = 1, message = "must be greater than 0") Integer page, @RequestParam(defaultValue = "10") @Min(value = 1, message = "must be greater than 0") Integer size) {
-        ListMuseumResponse requestMuseums = museumManagementForAdminService.getAllRequestMuseum(museumCategoryId, page, size);
-        ApiResponse<ListMuseumResponse> response = ApiResponse.<ListMuseumResponse>builder()
+    public ResponseEntity<ApiResponse<ListResponse<MuseumShortInfo>>> viewRequestMuseum(@RequestParam(required = false) UUID museumCategoryId, @RequestParam(defaultValue = "1") @Min(value = 1, message = "must be greater than 0") Integer page, @RequestParam(defaultValue = "10") @Min(value = 1, message = "must be greater than 0") Integer size) {
+        ListResponse<MuseumShortInfo> requestMuseums = museumManagementForAdminService.getAllRequestMuseum(museumCategoryId, page, size);
+        ApiResponse<ListResponse<MuseumShortInfo>> response = ApiResponse.<ListResponse<MuseumShortInfo>>builder()
                 .success(true)
                 .message("Request Museums has been fetched successfully")
                 .status(HttpStatus.OK)

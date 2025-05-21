@@ -60,9 +60,16 @@ public class GlobleExceptionHandler {
         ProblemDetail detail = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
         detail.setProperty("timestamp", LocalDateTime.now());
 
+        // Field errors (field-level validations)
         for (FieldError fieldError : e.getBindingResult().getFieldErrors()) {
             errors.put(fieldError.getField(), fieldError.getDefaultMessage());
         }
+
+        // Global errors (class-level validations)
+        for (org.springframework.validation.ObjectError error : e.getBindingResult().getGlobalErrors()) {
+            errors.put(error.getObjectName(), error.getDefaultMessage());
+        }
+
         detail.setDetail("BAD REQUEST");
         detail.setProperty("errors", errors);
 

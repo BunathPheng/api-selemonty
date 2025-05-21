@@ -4,7 +4,7 @@ package org.hrd.finalprojectmuseum.service.impl;
 import lombok.RequiredArgsConstructor;
 import org.hrd.finalprojectmuseum.exception.AppBadRequestException;
 import org.hrd.finalprojectmuseum.exception.AppNotFoundException;
-import org.hrd.finalprojectmuseum.model.dto.response.ListMuseumResponse;
+import org.hrd.finalprojectmuseum.model.dto.response.ListResponse;
 import org.hrd.finalprojectmuseum.model.entity.Pagination;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumShortInfo;
@@ -24,7 +24,7 @@ public class MuseumManagementForAdminServiceImpl implements MuseumManagementForA
     private final MuseumOwnerRepository museumOwnerRepository;
 
     @Override
-    public ListMuseumResponse getAllRequestMuseum(UUID museumCategoryId, Integer page, Integer size) {
+    public ListResponse<MuseumShortInfo> getAllRequestMuseum(UUID museumCategoryId, Integer page, Integer size) {
         List<MuseumShortInfo> museums;
         if (museumCategoryId == null){
             museums = museumManagementForAdminRepository.getAllRequestMuseums(page, size);
@@ -36,8 +36,8 @@ public class MuseumManagementForAdminServiceImpl implements MuseumManagementForA
         Pagination pagination = new Pagination();
         pagination = pagination.calculatePagination(totalItems, page, size);
 
-        ListMuseumResponse listMuseumResponse = new ListMuseumResponse();
-        listMuseumResponse.setMuseums(museums);
+        ListResponse<MuseumShortInfo> listMuseumResponse = new ListResponse<>();
+        listMuseumResponse.setItems(museums);
         listMuseumResponse.setPagination(pagination);
         return listMuseumResponse;
     }
@@ -56,7 +56,7 @@ public class MuseumManagementForAdminServiceImpl implements MuseumManagementForA
     }
 
     @Override
-    public ListMuseumResponse getAllMuseum(UUID museumCategoryId, Integer page, Integer size) {
+    public ListResponse<MuseumShortInfo> getAllMuseum(UUID museumCategoryId, Integer page, Integer size) {
         List<MuseumShortInfo> museums;
         if (museumCategoryId == null){
             museums = museumManagementForAdminRepository.getAllMuseums(page, size);
@@ -69,14 +69,14 @@ public class MuseumManagementForAdminServiceImpl implements MuseumManagementForA
         Pagination pagination = new Pagination();
         pagination = pagination.calculatePagination(totalItems, page, size);
 
-        ListMuseumResponse listMuseumResponse = new ListMuseumResponse();
-        listMuseumResponse.setMuseums(museums);
+        ListResponse<MuseumShortInfo> listMuseumResponse = new ListResponse<>();
+        listMuseumResponse.setItems(museums);
         listMuseumResponse.setPagination(pagination);
         return listMuseumResponse;
     }
 
     @Override
-    public ListMuseumResponse getAllApprovedMuseum(UUID museumCategoryId, Integer page, Integer size) {
+    public ListResponse<MuseumShortInfo> getAllApprovedMuseum(UUID museumCategoryId, Integer page, Integer size) {
         List<MuseumShortInfo> museums;
         if (museumCategoryId == null){
             museums = museumManagementForAdminRepository.getAllApprovedMuseums(page, size);
@@ -89,8 +89,8 @@ public class MuseumManagementForAdminServiceImpl implements MuseumManagementForA
         Pagination pagination = new Pagination();
         pagination = pagination.calculatePagination(totalItems, page, size);
 
-        ListMuseumResponse listMuseumResponse = new ListMuseumResponse();
-        listMuseumResponse.setMuseums(museums);
+        ListResponse<MuseumShortInfo> listMuseumResponse = new ListResponse<MuseumShortInfo>();
+        listMuseumResponse.setItems(museums);
         listMuseumResponse.setPagination(pagination);
         return listMuseumResponse;
     }
