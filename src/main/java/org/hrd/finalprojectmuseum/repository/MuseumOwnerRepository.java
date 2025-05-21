@@ -4,7 +4,6 @@ import com.alibaba.fastjson2.JSONObject;
 import org.apache.ibatis.annotations.*;
 import org.apache.ibatis.type.JdbcType;
 import org.hrd.finalprojectmuseum.model.dto.request.museum_owner.MuseumOwnerRequest;
-import org.hrd.finalprojectmuseum.model.dto.response.ListMuseumResponse;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumCategory;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumShortInfo;
@@ -61,6 +60,22 @@ public interface MuseumOwnerRepository {
         SELECT * FROM museum_owners WHERE museum_id = #{museumId}::UUID;
     """)
     MuseumOwner findMuseumOwnerByMuseumId(UUID museumId);
+
+    @Results(id = "shortMuseumMapper", value = {
+            @Result(property = "museumId", column = "museum_id", javaType = UUID.class, jdbcType = JdbcType.VARCHAR),
+            @Result(property = "museumCategory", column = "museum_category_id", javaType = UUID.class, jdbcType = JdbcType.VARCHAR,
+                    many = @Many(select = "org.hrd.finalprojectmuseum.repository.MuseumOwnerRepository.findMuseumCategoryById")),
+            @Result(property = "name", column = "name"),
+            @Result(property = "contactNumber", column = "contact_number"),
+            @Result(property = "logoLink", column = "logo_link"),
+            @Result(property = "description", column = "description"),
+            @Result(property = "isApproved", column = "is_approved"),
+    })
+    @Select("""
+        SELECT museum_id, museum_category_id, name, contact_number, logo_link,
+               description, is_approved FROM museum_owners WHERE museum_id = #{museumId}::UUID;
+    """)
+    MuseumShortInfo findMuseumByMuseumId(UUID museumId);
 
     @Result(property = "museumCategoryId", column = "museum_category_id")
     @Select("""
