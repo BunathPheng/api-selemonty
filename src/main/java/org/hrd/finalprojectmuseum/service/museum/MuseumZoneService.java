@@ -14,5 +14,7 @@ public interface MuseumZoneService {
     void createMuseumZone(MuseumZoneRequest museumZoneRequest, UUID museumId);
     UUID getMuseumIdByUserId(UUID userId);
     MuseumArtifact createMuseumArtifact(List<MuseumArtifactRequest> museumArtifactRequests, UUID museumZoneId);
+    List<MuseumZoneCategory> getAllZonesCategoriesByMuseumId(UUID museumId);
+    MuseumZone getMuseumZoneDetailByZoneId(UUID museumId);
 
 }

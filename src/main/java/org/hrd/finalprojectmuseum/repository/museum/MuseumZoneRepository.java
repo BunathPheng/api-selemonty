@@ -40,9 +40,54 @@ public interface MuseumZoneRepository {
     """)
     UUID createMuseumZone(@Param("museum") MuseumZoneRequest museumZoneRequest, UUID museumId, LocalDateTime updatedAt);
 
-    @Select("""
+    @Insert("""
         INSERT INTO artifacts(museum_zone_id, title, description, third_d_model_link, updated_at)
         VALUES (#{museumZoneId}::UUID, #{artifact.title}, #{artifact.description}, #{artifact.thirdDModelLink}, #{updatedAt})
     """)
     void createMuseumArtifact(@Param("artifact")MuseumArtifactRequest museumArtifactRequest, UUID museumZoneId, LocalDateTime updatedAt);
+
+    @Select("""
+        SELECT zc.* FROM museum_zones mz
+        LEFT JOIN zone_categories zc ON zc.zone_category_id = mz.zone_category_id
+        WHERE museum_id = #{museumId}::UUID;
+    """)
+    @ResultMap("zoneCategory")
+    List<MuseumZoneCategory> retrieveAllZonesCategoriesByMuseumID(UUID museumId);
+
+    @Select("""
+        SELECT * FROM museum_zones
+        WHERE museum_zone_id = #{zoneID}::UUID;
+    """)
+    @Results(id = "zoneDetail", value = {
+            @Result(property = "zoneId", column = "museum_zone_id"),
+            @Result(property = "museumId", column = "museum_id"),
+            @Result(property = "zoneCategoryId", column = "zone_category_id"),
+            @Result(property = "zoneName", column = "name"),
+            @Result(property = "description", column = "description"),
+            @Result(property = "pictureLink", column = "picture_link"),
+            @Result(property = "videoLink", column = "video_link"),
+            @Result(property = "createdAt", column = "created_at"),
+            @Result(property = "updatedAt", column = "updated_at"),
+            @Result(property = "isDeleted", column = "is_deleted"),
+            @Result(property = "artifacts", column = "museum_zone_id",
+                    many = @Many(select = "retrieveMuseumArtifactByZoneId")
+            )
+    })
+    MuseumZone retrieveMuseumZoneDetailByZoneId(UUID zoneID);
+
+    @Select("""
+        SELECT * FROM artifacts
+        WHERE museum_zone_id = #{zoneID}::UUID;
+    """)
+    @Results(id = "artifact", value = {
+            @Result(property = "id", column = "artifact_id"),
+            @Result(property = "zoneId", column = "museum_zone_id"),
+            @Result(property = "title", column = "title"),
+            @Result(property = "description", column = "description"),
+            @Result(property = "thirdDModelLink", column = "third_d_model_link"),
+            @Result(property = "createdAt", column = "created_at"),
+            @Result(property = "updatedAt", column = "updated_at"),
+            @Result(property = "isDeleted", column = "is_deleted")
+    })
+    MuseumArtifact retrieveMuseumArtifactByZoneId(UUID zoneID);
 }
