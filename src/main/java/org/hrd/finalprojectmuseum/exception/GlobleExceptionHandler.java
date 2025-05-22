@@ -86,7 +86,6 @@ public class GlobleExceptionHandler {
         detail.setDetail("BAD REQUEST");
         detail.setProperty("timestamp", LocalDateTime.now());
         detail.setProperty("errors", errors);
-
         return detail;
     }
 }

@@ -44,10 +44,13 @@ public class AppUserServiceImpl implements AppUserService {
     @Override
     public AppUserRegister registerUser(String email, String password, Role role) {
         AppUserRegister findUser = appUserRepository.findUserByEmail(email);
-        if (findUser != null) {
+        if (findUser != null && findUser.getIsVerified()) {
             throw new ThrowFieldException("email", "Email has already taken");
         }
-
+        //remove user if email is already registered before but not verify yet
+        else if(findUser != null) {
+            appUserRepository.deleteUser(findUser.getUserId());
+        }
         String encodedPass = passwordEncoder.encode(password);
         AppUserRegister appUser = appUserRepository.registerUser(email, encodedPass, role, false);
         return mapper.map(appUserRepository.getUserById(appUser.getUserId()), AppUserRegister.class);

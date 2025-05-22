@@ -10,6 +10,8 @@ import org.hrd.finalprojectmuseum.repository.OtpRepository;
 import org.hrd.finalprojectmuseum.service.OtpCacheService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+
+import java.time.Duration;
 import java.time.LocalDateTime;
 
 @Service
@@ -44,18 +46,32 @@ public class OtpCacheServiceImpl implements OtpCacheService {
     @Override
     public void removeOtp(String email) {
         AppUserRegister appUser = appUserRepository.findUserByEmail(email);
+        if (appUser == null) {
+            throw new UsernameNotFoundException("Email is not register yet");
+        }
         otpRepository.removeOptByUserId(appUser.getUserId());
     }
 
     @Override
-    public LocalDateTime getExpirationByOtpId(String email) {
+    public Long getExpirationByOtpId(String email) {
         AppUserRegister appUser = appUserRepository.findUserByEmail(email);
-        return otpRepository.getExpirationByUserId(appUser.getUserId());
+        if (appUser == null) {
+            throw new UsernameNotFoundException("Email is not register yet");
+        }
+        LocalDateTime expiration = otpRepository.getExpirationByUserId(appUser.getUserId());
+        LocalDateTime now = LocalDateTime.now();
+        if (expiration.isBefore(now)) {
+            throw new InvalidOptException("Otp is expired");
+        }
+        return Duration.between(now, expiration).getSeconds();
     }
 
     @Override
     public Otps getOtpByUserId(String email) {
         AppUserRegister appUser = appUserRepository.findUserByEmail(email);
+        if (appUser == null) {
+            throw new UsernameNotFoundException("Email is not register yet");
+        }
         return otpRepository.getOptByUserId(appUser.getUserId());
     }
 }

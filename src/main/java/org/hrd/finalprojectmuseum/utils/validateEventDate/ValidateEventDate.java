@@ -6,7 +6,7 @@ import jakarta.validation.Payload;
 import java.lang.annotation.*;
 
 @Documented
-@Constraint(validatedBy = org.hrd.finalprojectmuseum.utils.validateDate.EventDatesValidator.class)
+@Constraint(validatedBy = org.hrd.finalprojectmuseum.utils.validateEventDate.EventDatesValidator.class)
 @Target({ ElementType.TYPE })
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ValidateEventDate {

@@ -1,4 +1,4 @@
-package org.hrd.finalprojectmuseum.utils.validateDate;
+package org.hrd.finalprojectmuseum.utils.validateEventDate;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;

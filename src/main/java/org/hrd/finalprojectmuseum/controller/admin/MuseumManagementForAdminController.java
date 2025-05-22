@@ -9,6 +9,7 @@ import org.hrd.finalprojectmuseum.model.dto.response.ApiResponse;
 import org.hrd.finalprojectmuseum.model.dto.response.ListResponse;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumShortInfo;
 import org.hrd.finalprojectmuseum.service.MuseumManagementForAdminService;
+import org.hrd.finalprojectmuseum.service.TicketInfoService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -24,6 +25,7 @@ import java.util.UUID;
 public class MuseumManagementForAdminController {
 
     private final MuseumManagementForAdminService museumManagementForAdminService;
+    private final TicketInfoService ticketInfoService;
 
     @Operation(summary = "For get all museum and can add museumCategoryId to get museum", description = "Note for category we can leave it as null if we to get all museum by not filter by category")
     @GetMapping("/museum")
@@ -67,6 +69,8 @@ public class MuseumManagementForAdminController {
     @PatchMapping("/museum/approve/{museum-id}")
     public ResponseEntity<ApiResponse<Void>> approveMuseum(@PathVariable("museum-id") @NotNull UUID museumId) {
         museumManagementForAdminService.approveMuseum(museumId);
+        //create ticket info but not set value data yet
+        ticketInfoService.addTicketInfo(museumId);
         ApiResponse<Void> response = ApiResponse.<Void>builder()
                 .success(true)
                 .message("Approve museum successfully")

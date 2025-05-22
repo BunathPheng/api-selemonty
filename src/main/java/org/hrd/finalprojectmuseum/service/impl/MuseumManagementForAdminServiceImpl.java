@@ -10,6 +10,7 @@ import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumShortInfo;
 import org.hrd.finalprojectmuseum.repository.MuseumManagementForAdminRepository;
 import org.hrd.finalprojectmuseum.repository.MuseumOwnerRepository;
+import org.hrd.finalprojectmuseum.repository.TicketInfoRepository;
 import org.hrd.finalprojectmuseum.service.MuseumManagementForAdminService;
 import org.springframework.stereotype.Service;
 
@@ -53,6 +54,7 @@ public class MuseumManagementForAdminServiceImpl implements MuseumManagementForA
             throw new AppBadRequestException("Museum is already approved.");
         }
         museumManagementForAdminRepository.udpateIsApprovedStatus(museumId);
+
     }
 
     @Override

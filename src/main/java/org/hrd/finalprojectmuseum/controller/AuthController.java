@@ -240,9 +240,9 @@ public class AuthController {
     }
 
     @GetMapping("/otp-expiration")
-    public ResponseEntity<ApiResponse<LocalDateTime>> otpExpiration(@RequestParam @Email(message = "Email form is incorrect") @NotBlank(message = "Email is required") String email) {
-        LocalDateTime expiration = otpService.getExpirationByOtpId(email);
-        ApiResponse<LocalDateTime> response = ApiResponse.<LocalDateTime>builder()
+    public ResponseEntity<ApiResponse<Long>> otpExpiration(@RequestParam @Email(message = "Email form is incorrect") @NotBlank(message = "Email is required") String email) {
+        Long expiration = otpService.getExpirationByOtpId(email);
+        ApiResponse<Long> response = ApiResponse.<Long>builder()
                 .success(true)
                 .message("Successfully get the expiration datetime")
                 .status(HttpStatus.OK)
@@ -276,6 +276,7 @@ public class AuthController {
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
+
 
 }
 

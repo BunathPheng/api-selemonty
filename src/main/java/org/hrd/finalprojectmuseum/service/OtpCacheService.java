@@ -12,7 +12,7 @@ public interface OtpCacheService {
 
     void removeOtp(String email);
 
-    LocalDateTime getExpirationByOtpId(String email);
+    Long getExpirationByOtpId(String email);
 
     Otps getOtpByUserId(String email);
 }
