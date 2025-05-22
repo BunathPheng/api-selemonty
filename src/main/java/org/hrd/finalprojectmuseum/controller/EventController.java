@@ -15,6 +15,7 @@ import org.hrd.finalprojectmuseum.service.EventService;
 import org.hrd.finalprojectmuseum.service.MuseumOwnerService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -26,6 +27,7 @@ import java.util.UUID;
 @RequestMapping("api/v1/event")
 @SecurityRequirement(name = "bearerAuth")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
 public class EventController {
 
     private final EventService eventService;
@@ -36,6 +38,7 @@ public class EventController {
             description = "Use to get all event with pagination"
     )
     @GetMapping()
+    @PreAuthorize("hasRole('ROLE_VISITOR')")
     public ResponseEntity<ApiResponse<ListResponse<Event>>> getAllEvents(@RequestParam(defaultValue = "1") @Min(value = 1, message = "must be greater than 0") Integer page, @RequestParam(defaultValue = "10") @Min(value = 1, message = "must be greater than 0") Integer size) {
         ListResponse<Event> listEventResponse = eventService.findAllEvents(page, size);
         ApiResponse<ListResponse<Event>> response = ApiResponse.<ListResponse<Event>>builder()
@@ -52,6 +55,7 @@ public class EventController {
             description = "Use to get all event of museum with pagination. Required museumId"
     )
     @GetMapping("museum/{museum-id}")
+    @PreAuthorize("hasRole('ROLE_VISITOR')")
     public ResponseEntity<ApiResponse<ListResponse<Event>>> getAllEventsByMuseumId(@PathVariable("museum-id") @NotNull UUID museumId, @RequestParam(defaultValue = "1") @Min(value = 1, message = "must be greater than 0") Integer page, @RequestParam(defaultValue = "10") @Min(value = 1, message = "must be greater than 0") Integer size) {
         ListResponse<Event> listEventResponse = eventService.findAllEventsByMuseumId(museumId, page, size);
         ApiResponse<ListResponse<Event>> response = ApiResponse.<ListResponse<Event>>builder()
@@ -63,7 +67,9 @@ public class EventController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    @Operation(summary = "Use to get event by using eventId. For visitor and museum owner role")
     @GetMapping("/{event-id}")
+    @PreAuthorize("hasRole('ROLE_VISITOR')")
     public ResponseEntity<ApiResponse<Event>> getEventsByEventId(@PathVariable("event-id") @NotNull UUID eventId) {
         Event event = eventService.findEventsByEventId(eventId);
         ApiResponse<Event> response = ApiResponse.<Event>builder()
@@ -75,6 +81,7 @@ public class EventController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    @Operation(summary = "Use to create new event. For museum owner role only")
     @PostMapping()
     public ResponseEntity<ApiResponse<Event>> createNewEvent(@RequestBody @Valid EventRequest eventRequest) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -90,7 +97,7 @@ public class EventController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-
+    @Operation(summary = "Use to update event. For museum owner role only")
     @PutMapping("/{event-id}")
     public ResponseEntity<ApiResponse<Event>> updateEventByEventId(@RequestBody @Valid EventRequest eventRequest, @PathVariable("event-id") @NotNull UUID eventId) {
         Event event = eventService.updateEventByEventId(eventId, eventRequest);
@@ -103,6 +110,7 @@ public class EventController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    @Operation(summary = "Use to delete event by update delete status to true new event. For museum owner role only")
     @PatchMapping("/{event-id}")
     public ResponseEntity<ApiResponse<Event>> updateDeleteStatus(@PathVariable("event-id") @NotNull UUID eventId) {
         eventService.updateDeleteStatus(eventId);
