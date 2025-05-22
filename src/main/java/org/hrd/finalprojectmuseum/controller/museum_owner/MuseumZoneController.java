@@ -3,14 +3,19 @@ package org.hrd.finalprojectmuseum.controller.museum_owner;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
+import org.hrd.finalprojectmuseum.model.dto.request.museum_owner.MuseumArtifactRequest;
 import org.hrd.finalprojectmuseum.model.dto.request.museum_owner.MuseumZoneRequest;
+import org.hrd.finalprojectmuseum.model.dto.request.museum_owner.MuseumZoneUpdateRequest;
 import org.hrd.finalprojectmuseum.model.dto.response.ApiResponse;
+import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumArtifact;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumZone;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumZoneCategory;
 import org.hrd.finalprojectmuseum.service.museum.MuseumZoneService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -22,6 +27,7 @@ import java.util.UUID;
 @RestController
 @SecurityRequirement(name = "bearerAuth")
 @RequestMapping("/api/v1/museum-owner/zone")
+@PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
 @RequiredArgsConstructor
 public class MuseumZoneController {
 
@@ -96,10 +102,43 @@ public class MuseumZoneController {
         return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
     }
 
-//    @PostMapping("/zone-id")
-//    public ResponseEntity<ApiResponse<MuseumArtifact>> addMuseumArtifactByZoneId(@RequestBody @Valid MuseumArtifactRequest museumArtifactRequest) {
-//
-//        return null;
-//    }
+    @PostMapping("/{zone-id}")
+    @Operation(summary = "Add artifact by zone Id")
+    public ResponseEntity<ApiResponse<MuseumArtifact>> addMuseumArtifactByZoneId(
+            @RequestBody @Valid MuseumArtifactRequest museumArtifactRequest,
+            @PathVariable("zone-id") UUID zoneId) {
+
+        MuseumArtifact museumArtifactByZoneId = museumZoneService.createMuseumArtifactByZoneId(museumArtifactRequest, zoneId);
+
+        ApiResponse<MuseumArtifact> apiResponse = ApiResponse.<MuseumArtifact>builder()
+                .success(true)
+                .message("Museum zone details retrieved successfully.")
+                .payload(museumArtifactByZoneId)
+                .status(HttpStatus.OK)
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
+    }
+
+    @PutMapping("/{zone-id}")
+    @Operation(summary = "Add artifact by zone Id")
+    public ResponseEntity<ApiResponse<MuseumZone>> updateMuseumZoneDetailByZoneId(
+            @PathVariable("zone-id") UUID zoneId,
+            @RequestBody @Valid MuseumZoneUpdateRequest  museumZoneUpdateRequest) {
+
+        museumZoneService.updateMuseumZoneDetailByZoneId(zoneId, museumZoneUpdateRequest);
+
+        ApiResponse<MuseumZone> apiResponse = ApiResponse.<MuseumZone>builder()
+                .success(true)
+                .message("Museum zone details updated successfully.")
+                .status(HttpStatus.OK)
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
+    }
+
+
 
 }

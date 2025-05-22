@@ -3,6 +3,7 @@ package org.hrd.finalprojectmuseum.repository.museum;
 import org.apache.ibatis.annotations.*;
 import org.hrd.finalprojectmuseum.model.dto.request.museum_owner.MuseumArtifactRequest;
 import org.hrd.finalprojectmuseum.model.dto.request.museum_owner.MuseumZoneRequest;
+import org.hrd.finalprojectmuseum.model.dto.request.museum_owner.MuseumZoneUpdateRequest;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumArtifact;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumZone;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumZoneCategory;
@@ -40,11 +41,13 @@ public interface MuseumZoneRepository {
     """)
     UUID createMuseumZone(@Param("museum") MuseumZoneRequest museumZoneRequest, UUID museumId, LocalDateTime updatedAt);
 
-    @Insert("""
+    @Select("""
         INSERT INTO artifacts(museum_zone_id, title, description, third_d_model_link, updated_at)
         VALUES (#{museumZoneId}::UUID, #{artifact.title}, #{artifact.description}, #{artifact.thirdDModelLink}, #{updatedAt})
+        RETURNING *;
     """)
-    void createMuseumArtifact(@Param("artifact")MuseumArtifactRequest museumArtifactRequest, UUID museumZoneId, LocalDateTime updatedAt);
+    @ResultMap("artifact")
+    MuseumArtifact createMuseumArtifact(@Param("artifact") MuseumArtifactRequest museumArtifactRequest, UUID museumZoneId, LocalDateTime updatedAt);
 
     @Select("""
         SELECT zc.* FROM museum_zones mz
@@ -90,4 +93,15 @@ public interface MuseumZoneRepository {
             @Result(property = "isDeleted", column = "is_deleted")
     })
     MuseumArtifact retrieveMuseumArtifactByZoneId(UUID zoneID);
+
+    @Select("""
+        UPDATE museum_zones 
+        SET zone_category_id = #{museumZone.categoryId}::UUID, name = #{museumZone.name}, description = #{museumZone.description}, 
+            picture_link = #{museumZone.pictureLink}, video_link = #{museumZone.videoLink}, updated_at = #{updatedAt}
+        WHERE museum_zone_id = #{zoneId}::UUID;
+    """)
+    void updateMuseumZoneDetailByZoneId(UUID zoneId, @Param("museumZone") MuseumZoneUpdateRequest museumZoneUpdateRequest, LocalDateTime updatedAt);
+
+    @Select("SELECT ")
+    UUID retrieveMuseumZoneId(@Param("zoneId") UUID zoneId);
 }
