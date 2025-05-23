@@ -3,7 +3,6 @@ package org.hrd.finalprojectmuseum.controller.museum_owner;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.hrd.finalprojectmuseum.model.dto.request.museum_owner.MuseumArtifactRequest;
 import org.hrd.finalprojectmuseum.model.dto.request.museum_owner.MuseumZoneRequest;
@@ -34,7 +33,7 @@ public class MuseumZoneController {
     private final MuseumZoneService museumZoneService;
 
     @GetMapping("/category")
-    @Operation(summary = "Get all zone categories")
+    @Operation(summary = "Get all museum zone categories")
     public ResponseEntity<ApiResponse<List<MuseumZoneCategory>>> getAllZoneCategories() {
         List<MuseumZoneCategory> museumZoneCategory = museumZoneService.getAllZonesCategories();
         ApiResponse<List<MuseumZoneCategory>> apiResponse = ApiResponse.<List<MuseumZoneCategory>>builder()
@@ -67,7 +66,7 @@ public class MuseumZoneController {
     }
 
     @GetMapping
-    @Operation(summary = "Get all zone categories by Museum Id")
+    @Operation(summary = "Get all museum zone categories by museum Id")
     public ResponseEntity<ApiResponse<List<MuseumZoneCategory>>> getAllZoneCategoriesByMuseumId() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UUID userId = UUID.fromString((String) auth.getCredentials());
@@ -103,7 +102,7 @@ public class MuseumZoneController {
     }
 
     @PostMapping("/{zone-id}")
-    @Operation(summary = "Add artifact by zone Id")
+    @Operation(summary = "Add museum artifact by zone Id")
     public ResponseEntity<ApiResponse<MuseumArtifact>> addMuseumArtifactByZoneId(
             @RequestBody @Valid MuseumArtifactRequest museumArtifactRequest,
             @PathVariable("zone-id") UUID zoneId) {
@@ -122,7 +121,7 @@ public class MuseumZoneController {
     }
 
     @PutMapping("/{zone-id}")
-    @Operation(summary = "Add artifact by zone Id")
+    @Operation(summary = "Update museum zone by zone Id")
     public ResponseEntity<ApiResponse<MuseumZone>> updateMuseumZoneDetailByZoneId(
             @PathVariable("zone-id") UUID zoneId,
             @RequestBody @Valid MuseumZoneUpdateRequest  museumZoneUpdateRequest) {
@@ -139,6 +138,21 @@ public class MuseumZoneController {
         return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
     }
 
+    @PutMapping("/artifact/{artifact-id}")
+    @Operation(summary = "Update museum artifact by artifact Id")
+    public ResponseEntity<ApiResponse<MuseumArtifact>> updateMuseumArtifactByArtifactId(
+            @PathVariable("artifact-id") UUID artifactId,
+            MuseumArtifactRequest museumArtifactRequest) {
 
+        museumZoneService.updateMuseumArtifactByArtifactId(artifactId, museumArtifactRequest);
 
+        ApiResponse<MuseumArtifact> apiResponse = ApiResponse.<MuseumArtifact>builder()
+                .success(true)
+                .message("Museum artifact updated successfully.")
+                .status(HttpStatus.OK)
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
+    }
 }

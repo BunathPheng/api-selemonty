@@ -18,5 +18,6 @@ public interface MuseumZoneService {
     List<MuseumZoneCategory> getAllZonesCategoriesByMuseumId(UUID museumId);
     MuseumZone getMuseumZoneDetailByZoneId(UUID museumId);
     void updateMuseumZoneDetailByZoneId(UUID museumZoneId, MuseumZoneUpdateRequest museumZoneUpdateRequest);
+    void updateMuseumArtifactByArtifactId(UUID artifactId, MuseumArtifactRequest museumArtifactRequest);
 
 }

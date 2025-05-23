@@ -94,7 +94,7 @@ public interface MuseumZoneRepository {
     })
     MuseumArtifact retrieveMuseumArtifactByZoneId(UUID zoneID);
 
-    @Select("""
+    @Update("""
         UPDATE museum_zones 
         SET zone_category_id = #{museumZone.categoryId}::UUID, name = #{museumZone.name}, description = #{museumZone.description}, 
             picture_link = #{museumZone.pictureLink}, video_link = #{museumZone.videoLink}, updated_at = #{updatedAt}
@@ -102,6 +102,40 @@ public interface MuseumZoneRepository {
     """)
     void updateMuseumZoneDetailByZoneId(UUID zoneId, @Param("museumZone") MuseumZoneUpdateRequest museumZoneUpdateRequest, LocalDateTime updatedAt);
 
-    @Select("SELECT ")
-    UUID retrieveMuseumZoneId(@Param("zoneId") UUID zoneId);
+    @Update("""
+        UPDATE artifacts
+        SET title = #{artifact.title}, description = #{artifact.description}, 
+            third_d_model_link = #{artifact.thirdDModelLink}, updated_at = #{updatedAt}
+        WHERE artifact_id = #{artifactId}::UUID;
+    """)
+    void updateMuseumArtifactByArtifactId(UUID artifactId, @Param("artifact") MuseumArtifactRequest museumArtifactRequest, LocalDateTime updatedAt);
+
+    @Select("""
+        SELECT EXISTS(
+        SELECT 1
+        FROM artifacts
+        WHERE artifact_id = #{artifactId}::UUID
+    );
+    """)
+    boolean retrieveMuseumArtifactId(UUID artifactId);
+
+
+    @Select("""
+        SELECT EXISTS(
+        SELECT 1
+        FROM zone_categories
+        WHERE zone_category_id = #{zoneCategoryId}::UUID
+    );
+    """)
+    boolean retrieveMuseumZoneCategoryId(UUID zoneCategoryId);
+
+    @Select("""
+        SELECT EXISTS(
+        SELECT 1
+        FROM museum_zones
+        WHERE museum_zone_id = #{museumZoneId}::UUID
+    );
+    """)
+    boolean retrieveMuseumZoneId(UUID museumZoneId);
+
 }

@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -37,23 +36,15 @@ public class MuseumZoneServiceImpl implements MuseumZoneService {
     @Transactional
     @Override
     public void createMuseumZone(MuseumZoneRequest museumZoneRequest, UUID museumId) {
-        boolean categoryExists = false;
-        List<MuseumZoneCategory> categories = getAllZonesCategories();
-        for (MuseumZoneCategory category : categories) {
-            if (category.getMuseumZoneCategoryId().equals(museumZoneRequest.getCategoryId())) {
-                categoryExists = true;
-                break;
-            }
+        boolean zoneCategoryId = museumZoneRepository.retrieveMuseumZoneCategoryId(museumZoneRequest.getCategoryId());
+        if (!zoneCategoryId) {
+            throw new AppNotFoundException("Museum zone category Id Not Found");
         }
-        System.out.println(categoryExists);
-        if (!categoryExists) {
-            throw new AppNotFoundException("Museum Zone Category Not Found");
-        }
+
         UUID museumZoneId = museumZoneRepository.createMuseumZone(museumZoneRequest, museumId, LocalDateTime.now());
         if(museumZoneId == null) {
             throw new AppNotFoundException("Museum Zone Id Not Found");
         }
-        LocalDateTime updatedAt = LocalDateTime.now();
 
         if (museumZoneRequest.getArtifacts() != null && !museumZoneRequest.getArtifacts().isEmpty()) {
             for (MuseumArtifactRequest artifact : museumZoneRequest.getArtifacts()) {
@@ -64,17 +55,11 @@ public class MuseumZoneServiceImpl implements MuseumZoneService {
 
     @Override
     public MuseumArtifact createMuseumArtifactByZoneId(MuseumArtifactRequest museumArtifactRequest, UUID museumZoneId) {
-        if(museumZoneId == null) {
-            throw new AppNotFoundException("Museum Zone ID Not Found");
+        boolean zoneId = museumZoneRepository.retrieveMuseumZoneId(museumZoneId);
+        if (!zoneId) {
+            throw new AppNotFoundException("Museum zone Id Not Found");
         }
-        LocalDateTime updatedAt = LocalDateTime.now();
-
-        MuseumArtifact museumArtifact = museumZoneRepository.createMuseumArtifact(museumArtifactRequest, museumZoneId, updatedAt);
-
-        if (museumArtifact == null) {
-            throw new AppNotFoundException("Museum zone ID not found");
-        }
-        return museumArtifact;
+        return museumZoneRepository.createMuseumArtifact(museumArtifactRequest, museumZoneId, updatedAt);
     }
 
     @Override
@@ -93,19 +78,27 @@ public class MuseumZoneServiceImpl implements MuseumZoneService {
 
     @Override
     public void updateMuseumZoneDetailByZoneId(UUID museumZoneId, MuseumZoneUpdateRequest museumZoneUpdateRequest) {
-        boolean categoryExists = false;
-        List<MuseumZoneCategory> categories = getAllZonesCategories();
-        for (MuseumZoneCategory category : categories) {
-            if (category.getMuseumZoneCategoryId().equals(museumZoneUpdateRequest.getCategoryId())) {
-                categoryExists = true;
-                break;
-            }
+        boolean zoneId = museumZoneRepository.retrieveMuseumZoneId(museumZoneId);
+        if (!zoneId) {
+            throw new AppNotFoundException("Museum zone Id Not Found");
         }
-        System.out.println(categoryExists);
-        if (!categoryExists) {
-            throw new AppNotFoundException("Museum Zone Category Not Found");
+
+        boolean zoneCategoryId = museumZoneRepository.retrieveMuseumZoneCategoryId(museumZoneUpdateRequest.getCategoryId());
+        if (!zoneCategoryId) {
+            throw new AppNotFoundException("Museum zone category Id Not Found");
         }
+
         museumZoneRepository.updateMuseumZoneDetailByZoneId(museumZoneId, museumZoneUpdateRequest, updatedAt);
+    }
+
+    @Override
+    public void updateMuseumArtifactByArtifactId(UUID artifactId, MuseumArtifactRequest museumArtifactRequest) {
+        boolean exist = museumZoneRepository.retrieveMuseumArtifactId(artifactId);
+        if (!exist) {
+            throw new AppNotFoundException("Museum artifact Id Not Found");
+        }
+
+        museumZoneRepository.updateMuseumArtifactByArtifactId(artifactId, museumArtifactRequest, updatedAt);
     }
 
     @Override
