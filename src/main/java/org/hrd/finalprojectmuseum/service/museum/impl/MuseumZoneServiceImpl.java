@@ -87,7 +87,6 @@ public class MuseumZoneServiceImpl implements MuseumZoneService {
         if (!zoneCategoryId) {
             throw new AppNotFoundException("Museum zone category Id Not Found");
         }
-
         museumZoneRepository.updateMuseumZoneDetailByZoneId(museumZoneId, museumZoneUpdateRequest, updatedAt);
     }
 
@@ -97,8 +96,25 @@ public class MuseumZoneServiceImpl implements MuseumZoneService {
         if (!exist) {
             throw new AppNotFoundException("Museum artifact Id Not Found");
         }
-
         museumZoneRepository.updateMuseumArtifactByArtifactId(artifactId, museumArtifactRequest, updatedAt);
+    }
+
+    @Override
+    public void deleteMuseumArtifactByArtifactId(UUID artifactId) {
+        boolean exist = museumZoneRepository.retrieveMuseumArtifactId(artifactId);
+        if (!exist) {
+            throw new AppNotFoundException("Museum artifact Id Not Found");
+        }
+        museumZoneRepository.deleteMuseumArtifactByArtifactId(artifactId, updatedAt);
+    }
+
+    @Override
+    public void deleteMuseumZoneByZoneId(UUID museumZoneId) {
+        boolean zoneId = museumZoneRepository.retrieveMuseumZoneId(museumZoneId);
+        if (!zoneId) {
+            throw new AppNotFoundException("Museum zone Id Not Found");
+        }
+        museumZoneRepository.deleteMuseumZoneByZoneId(museumZoneId);
     }
 
     @Override

@@ -155,4 +155,35 @@ public class MuseumZoneController {
 
         return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
     }
+
+    @DeleteMapping("/artifact/{artifact-id}")
+    @Operation(summary = "Update museum artifact by artifact Id")
+    public ResponseEntity<ApiResponse<MuseumArtifact>> deleteMuseumArtifactByArtifactId(@PathVariable("artifact-id") UUID artifactId){
+        museumZoneService.deleteMuseumArtifactByArtifactId(artifactId);
+
+        ApiResponse<MuseumArtifact> apiResponse = ApiResponse.<MuseumArtifact>builder()
+                .success(true)
+                .message("Museum artifact deleted successfully.")
+                .status(HttpStatus.OK)
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
+    }
+
+    @DeleteMapping("/{zone-id}")
+    @Operation(summary = "Delete museum zone zone Id")
+    public ResponseEntity<ApiResponse<MuseumZone>> deleteMuseumZoneByZoneId(@PathVariable("zone-id") UUID zoneId) {
+
+        museumZoneService.deleteMuseumZoneByZoneId(zoneId);
+
+        ApiResponse<MuseumZone> apiResponse = ApiResponse.<MuseumZone>builder()
+                .success(true)
+                .message("Museum zone deleted successfully.")
+                .status(HttpStatus.OK)
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
+    }
 }

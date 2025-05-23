@@ -138,4 +138,16 @@ public interface MuseumZoneRepository {
     """)
     boolean retrieveMuseumZoneId(UUID museumZoneId);
 
+    @Delete("""
+        DELETE FROM artifacts
+        WHERE artifact_id = #{artifactId}::UUID;
+    """)
+    void deleteMuseumArtifactByArtifactId(UUID artifactId, LocalDateTime updatedAt);
+
+    @Delete("""
+        DELETE FROM museum_zones
+        WHERE museum_zone_id = #{zoneId}::UUID;
+    """)
+    void deleteMuseumZoneByZoneId(UUID zoneId);
+
 }

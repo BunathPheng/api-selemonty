@@ -19,5 +19,7 @@ public interface MuseumZoneService {
     MuseumZone getMuseumZoneDetailByZoneId(UUID museumId);
     void updateMuseumZoneDetailByZoneId(UUID museumZoneId, MuseumZoneUpdateRequest museumZoneUpdateRequest);
     void updateMuseumArtifactByArtifactId(UUID artifactId, MuseumArtifactRequest museumArtifactRequest);
+    void deleteMuseumArtifactByArtifactId(UUID artifactId);
+    void deleteMuseumZoneByZoneId(UUID zoneId);
 
 }
