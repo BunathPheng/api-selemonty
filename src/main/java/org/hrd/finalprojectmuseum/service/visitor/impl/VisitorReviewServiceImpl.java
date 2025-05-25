@@ -10,6 +10,7 @@ import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -34,5 +35,13 @@ public class VisitorReviewServiceImpl implements VisitorReviewService {
             throw new AppNotFoundException("Museum ID Not Found");
         }
         return visitorReviewRepository.createVisitorReview(museumId, visitorId, visitorReviewRequest, updatedAt);
+    }
+
+    @Override
+    public List<VisitorReview> getAllVisitorReviews(UUID museumId) {
+        if (!visitorReviewRepository.retrieveMuseumId(museumId)){
+            throw new AppNotFoundException("Museum ID Not Found");
+        }
+        return visitorReviewRepository.retrieveAllVisitorReviews(museumId);
     }
 }

@@ -5,6 +5,7 @@ import org.hrd.finalprojectmuseum.model.dto.request.visitor.VisitorReviewRequest
 import org.hrd.finalprojectmuseum.model.entity.visitor.VisitorReview;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Mapper
@@ -40,4 +41,11 @@ public interface VisitorReviewRepository {
             @Result(property = "updatedAt", column = "updated_at")
     })
     VisitorReview createVisitorReview(UUID museumId, UUID visitorId, @Param("visitorReview") VisitorReviewRequest visitorReview, LocalDateTime updatedAt);
+
+    @Select("""
+        SELECT * FROM reviews
+        WHERE museum_id = #{museumId}::UUID;
+    """)
+    @ResultMap("visitorReview")
+    List<VisitorReview> retrieveAllVisitorReviews(UUID museumId);
 }
