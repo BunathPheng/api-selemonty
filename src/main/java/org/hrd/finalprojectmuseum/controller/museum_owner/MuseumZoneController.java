@@ -121,7 +121,7 @@ public class MuseumZoneController {
     }
 
     @PutMapping("/{zone-id}")
-    @Operation(summary = "Update museum zone by zone Id")
+    @Operation(summary = "Update museum zone detail by zone Id")
     public ResponseEntity<ApiResponse<MuseumZone>> updateMuseumZoneDetailByZoneId(
             @PathVariable("zone-id") UUID zoneId,
             @RequestBody @Valid MuseumZoneUpdateRequest  museumZoneUpdateRequest) {
@@ -186,4 +186,6 @@ public class MuseumZoneController {
 
         return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
     }
+
+//    public ResponseEntity<ApiResponse<>>
 }

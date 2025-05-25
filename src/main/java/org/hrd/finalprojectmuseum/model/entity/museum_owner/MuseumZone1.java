@@ -1,20 +1,12 @@
 package org.hrd.finalprojectmuseum.model.entity.museum_owner;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-public class MuseumZone {
+public class MuseumZone1 {
     private UUID zoneId;
     private UUID museumId;
-//    private UUID zoneCategoryId;
     private String zoneCategoryName;
     private String zoneName;
     private String description;
