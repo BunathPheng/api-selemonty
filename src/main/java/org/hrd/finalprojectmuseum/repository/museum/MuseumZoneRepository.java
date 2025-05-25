@@ -34,7 +34,7 @@ public interface MuseumZoneRepository {
 
     @Select("""
         INSERT INTO museum_zones(museum_id, zone_category_id, name, description, picture_link, video_link, updated_at)
-        VALUES (#{museumId}::UUID, #{museum.categoryId}::UUID, #{museum.name}, #{museum.description}, #{museum.pictureLink}, 
+        VALUES (#{museumId}::UUID, #{museum.categoryId}::UUID, #{museum.name}, #{museum.description}, #{museum.pictureLink},
                 #{museum.videoLink}, #{updatedAt})
         RETURNING museum_zone_id;
     """)
@@ -79,7 +79,7 @@ public interface MuseumZoneRepository {
 
     @Update("""
         UPDATE museum_zones
-        SET zone_category_id = #{museumZone.categoryId}::UUID, name = #{museumZone.name}, description = #{museumZone.description}, 
+        SET zone_category_id = #{museumZone.categoryId}::UUID, name = #{museumZone.name}, description = #{museumZone.description},
             picture_link = #{museumZone.pictureLink}, video_link = #{museumZone.videoLink}, updated_at = #{updatedAt}
         WHERE museum_zone_id = #{zoneId}::UUID;
     """)
@@ -130,9 +130,9 @@ public interface MuseumZoneRepository {
     List<MuseumZoneResponse> retrieveMuseumZoneByMuseumId(@Param("museumId") UUID museumId, @Param("size") Integer size, @Param("offset") Integer offset);
 
     @Select("""
-        SELECT COUNT(*) 
+        SELECT COUNT(*)
         FROM museum_zones mz
-        WHERE mz.museum_id = #{museumId}::UUID 
+        WHERE mz.museum_id = #{museumId}::UUID
         AND mz.is_deleted = false;
     """)
     Integer countMuseumZonesByMuseumId(UUID museumId);
