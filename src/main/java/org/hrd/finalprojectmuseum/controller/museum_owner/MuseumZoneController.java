@@ -2,13 +2,16 @@ package org.hrd.finalprojectmuseum.controller.museum_owner;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
-import org.hrd.finalprojectmuseum.model.dto.request.museum_owner.MuseumArtifactRequest;
 import org.hrd.finalprojectmuseum.model.dto.request.museum_owner.MuseumZoneRequest;
 import org.hrd.finalprojectmuseum.model.dto.request.museum_owner.MuseumZoneUpdateRequest;
 import org.hrd.finalprojectmuseum.model.dto.response.ApiResponse;
-import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumArtifact;
+import org.hrd.finalprojectmuseum.model.dto.response.MuseumZoneResponse;
+import org.hrd.finalprojectmuseum.model.entity.Pagination;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumZone;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumZoneCategory;
 import org.hrd.finalprojectmuseum.service.museum.MuseumZoneService;
@@ -28,11 +31,19 @@ import java.util.UUID;
 @RequestMapping("/api/v1/museum-owner/zone")
 @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
 @RequiredArgsConstructor
+@Tag(name = "museum-owner-zone-controller")
 public class MuseumZoneController {
 
     private final MuseumZoneService museumZoneService;
 
-    @GetMapping("/category")
+    private UUID getMuseumIdByUserId(){
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        UUID userId = UUID.fromString((String) auth.getCredentials());
+
+        return museumZoneService.getMuseumIdByUserId(userId);
+    }
+
+    @GetMapping("/all-zone-category")
     @Operation(summary = "Get all museum zone categories")
     public ResponseEntity<ApiResponse<List<MuseumZoneCategory>>> getAllZoneCategories() {
         List<MuseumZoneCategory> museumZoneCategory = museumZoneService.getAllZonesCategories();
@@ -49,10 +60,8 @@ public class MuseumZoneController {
     @PostMapping
     @Operation(summary = "Create museum zone")
     public ResponseEntity<ApiResponse<MuseumZone>> addMuseumZone(@RequestBody @Valid MuseumZoneRequest museumZoneRequest) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        UUID userId = UUID.fromString((String) auth.getCredentials());
 
-        UUID museumId = museumZoneService.getMuseumIdByUserId(userId);
+        UUID museumId = getMuseumIdByUserId();
 
         museumZoneService.createMuseumZone(museumZoneRequest, museumId);
 
@@ -65,13 +74,11 @@ public class MuseumZoneController {
         return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
     }
 
-    @GetMapping
-    @Operation(summary = "Get all museum zone categories by museum Id")
+    @GetMapping("/zone-category")
+    @Operation(summary = "Get all museum zone categories belong to museum")
     public ResponseEntity<ApiResponse<List<MuseumZoneCategory>>> getAllZoneCategoriesByMuseumId() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        UUID userId = UUID.fromString((String) auth.getCredentials());
 
-        UUID museumId = museumZoneService.getMuseumIdByUserId(userId);
+        UUID museumId = getMuseumIdByUserId();
 
         List<MuseumZoneCategory> museumZoneCategory = museumZoneService.getAllZonesCategoriesByMuseumId(museumId);
         ApiResponse<List<MuseumZoneCategory>> apiResponse = ApiResponse.<List<MuseumZoneCategory>>builder()
@@ -101,25 +108,6 @@ public class MuseumZoneController {
         return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
     }
 
-    @PostMapping("/{zone-id}")
-    @Operation(summary = "Add museum artifact by zone Id")
-    public ResponseEntity<ApiResponse<MuseumArtifact>> addMuseumArtifactByZoneId(
-            @RequestBody @Valid MuseumArtifactRequest museumArtifactRequest,
-            @PathVariable("zone-id") UUID zoneId) {
-
-        MuseumArtifact museumArtifactByZoneId = museumZoneService.createMuseumArtifactByZoneId(museumArtifactRequest, zoneId);
-
-        ApiResponse<MuseumArtifact> apiResponse = ApiResponse.<MuseumArtifact>builder()
-                .success(true)
-                .message("Museum zone details retrieved successfully.")
-                .payload(museumArtifactByZoneId)
-                .status(HttpStatus.OK)
-                .timestamp(LocalDateTime.now())
-                .build();
-
-        return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
-    }
-
     @PutMapping("/{zone-id}")
     @Operation(summary = "Update museum zone detail by zone Id")
     public ResponseEntity<ApiResponse<MuseumZone>> updateMuseumZoneDetailByZoneId(
@@ -131,39 +119,6 @@ public class MuseumZoneController {
         ApiResponse<MuseumZone> apiResponse = ApiResponse.<MuseumZone>builder()
                 .success(true)
                 .message("Museum zone details updated successfully.")
-                .status(HttpStatus.OK)
-                .timestamp(LocalDateTime.now())
-                .build();
-
-        return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
-    }
-
-    @PutMapping("/artifact/{artifact-id}")
-    @Operation(summary = "Update museum artifact by artifact Id")
-    public ResponseEntity<ApiResponse<MuseumArtifact>> updateMuseumArtifactByArtifactId(
-            @PathVariable("artifact-id") UUID artifactId,
-            MuseumArtifactRequest museumArtifactRequest) {
-
-        museumZoneService.updateMuseumArtifactByArtifactId(artifactId, museumArtifactRequest);
-
-        ApiResponse<MuseumArtifact> apiResponse = ApiResponse.<MuseumArtifact>builder()
-                .success(true)
-                .message("Museum artifact updated successfully.")
-                .status(HttpStatus.OK)
-                .timestamp(LocalDateTime.now())
-                .build();
-
-        return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
-    }
-
-    @DeleteMapping("/artifact/{artifact-id}")
-    @Operation(summary = "Update museum artifact by artifact Id")
-    public ResponseEntity<ApiResponse<MuseumArtifact>> deleteMuseumArtifactByArtifactId(@PathVariable("artifact-id") UUID artifactId){
-        museumZoneService.deleteMuseumArtifactByArtifactId(artifactId);
-
-        ApiResponse<MuseumArtifact> apiResponse = ApiResponse.<MuseumArtifact>builder()
-                .success(true)
-                .message("Museum artifact deleted successfully.")
                 .status(HttpStatus.OK)
                 .timestamp(LocalDateTime.now())
                 .build();
@@ -187,5 +142,31 @@ public class MuseumZoneController {
         return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
     }
 
-//    public ResponseEntity<ApiResponse<>>
+    @GetMapping
+    @Operation(summary = "Get all museum zone")
+    public ResponseEntity<ApiResponse<List<MuseumZoneResponse>>> getAllMuseumZonesByMuseumId(
+            @RequestParam(defaultValue = "1") @Positive @Min(value = 1, message = "must greater than 0") Integer page,
+            @RequestParam(defaultValue = "3") @Positive @Min(value = 1, message = "must greater than 0") Integer size) {
+
+        UUID museumId = getMuseumIdByUserId();
+
+        List<MuseumZoneResponse> allMuseumZonesByMuseumId = museumZoneService.getAllMuseumZonesByMuseumId(museumId, page, size);
+
+        Integer totalItems = museumZoneService.getTotalMuseumZonesByMuseumId(museumId);
+
+        Pagination pagination = new Pagination();
+        pagination = pagination.calculatePagination(totalItems, page, size);
+
+        ApiResponse<List<MuseumZoneResponse>> apiResponse = ApiResponse.<List<MuseumZoneResponse>>builder()
+                .success(true)
+                .message("Museum zone deleted successfully.")
+                .payload(allMuseumZonesByMuseumId)
+                .pagination(pagination)
+                .status(HttpStatus.OK)
+                .timestamp(LocalDateTime.now())
+
+                .build();
+
+        return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
+    }
 }

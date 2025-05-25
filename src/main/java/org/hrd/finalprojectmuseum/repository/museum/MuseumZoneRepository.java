@@ -1,10 +1,9 @@
 package org.hrd.finalprojectmuseum.repository.museum;
 
 import org.apache.ibatis.annotations.*;
-import org.hrd.finalprojectmuseum.model.dto.request.museum_owner.MuseumArtifactRequest;
 import org.hrd.finalprojectmuseum.model.dto.request.museum_owner.MuseumZoneRequest;
 import org.hrd.finalprojectmuseum.model.dto.request.museum_owner.MuseumZoneUpdateRequest;
-import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumArtifact;
+import org.hrd.finalprojectmuseum.model.dto.response.MuseumZoneResponse;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumZone;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumZoneCategory;
 
@@ -42,14 +41,6 @@ public interface MuseumZoneRepository {
     UUID createMuseumZone(@Param("museum") MuseumZoneRequest museumZoneRequest, UUID museumId, LocalDateTime updatedAt);
 
     @Select("""
-        INSERT INTO artifacts(museum_zone_id, title, description, third_d_model_link, updated_at)
-        VALUES (#{museumZoneId}::UUID, #{artifact.title}, #{artifact.description}, #{artifact.thirdDModelLink}, #{updatedAt})
-        RETURNING *;
-    """)
-    @ResultMap("artifact")
-    MuseumArtifact createMuseumArtifact(@Param("artifact") MuseumArtifactRequest museumArtifactRequest, UUID museumZoneId, LocalDateTime updatedAt);
-
-    @Select("""
         SELECT zc.* FROM museum_zones mz
         LEFT JOIN zone_categories zc ON zc.zone_category_id = mz.zone_category_id
         WHERE museum_id = #{museumId}::UUID;
@@ -75,7 +66,7 @@ public interface MuseumZoneRepository {
             @Result(property = "updatedAt", column = "updated_at"),
             @Result(property = "isDeleted", column = "is_deleted"),
             @Result(property = "artifacts", column = "museum_zone_id",
-                    many = @Many(select = "retrieveMuseumArtifactByZoneId")
+                    many = @Many(select = "org.hrd.finalprojectmuseum.repository.museum.MuseumArtifactRepository.retrieveMuseumArtifactByZoneId")
             )
     })
     MuseumZone retrieveMuseumZoneDetailByZoneId(UUID zoneID);
@@ -86,47 +77,13 @@ public interface MuseumZoneRepository {
     """)
     String retrieveZoneCategoryNameByCategoryId(UUID categoryId);
 
-    @Select("""
-        SELECT * FROM artifacts
-        WHERE museum_zone_id = #{zoneID}::UUID;
-    """)
-    @Results(id = "artifact", value = {
-            @Result(property = "id", column = "artifact_id"),
-            @Result(property = "zoneId", column = "museum_zone_id"),
-            @Result(property = "title", column = "title"),
-            @Result(property = "description", column = "description"),
-            @Result(property = "thirdDModelLink", column = "third_d_model_link"),
-            @Result(property = "createdAt", column = "created_at"),
-            @Result(property = "updatedAt", column = "updated_at"),
-            @Result(property = "isDeleted", column = "is_deleted")
-    })
-    MuseumArtifact retrieveMuseumArtifactByZoneId(UUID zoneID);
-
     @Update("""
-        UPDATE museum_zones 
+        UPDATE museum_zones
         SET zone_category_id = #{museumZone.categoryId}::UUID, name = #{museumZone.name}, description = #{museumZone.description}, 
             picture_link = #{museumZone.pictureLink}, video_link = #{museumZone.videoLink}, updated_at = #{updatedAt}
         WHERE museum_zone_id = #{zoneId}::UUID;
     """)
     void updateMuseumZoneDetailByZoneId(UUID zoneId, @Param("museumZone") MuseumZoneUpdateRequest museumZoneUpdateRequest, LocalDateTime updatedAt);
-
-    @Update("""
-        UPDATE artifacts
-        SET title = #{artifact.title}, description = #{artifact.description}, 
-            third_d_model_link = #{artifact.thirdDModelLink}, updated_at = #{updatedAt}
-        WHERE artifact_id = #{artifactId}::UUID;
-    """)
-    void updateMuseumArtifactByArtifactId(UUID artifactId, @Param("artifact") MuseumArtifactRequest museumArtifactRequest, LocalDateTime updatedAt);
-
-    @Select("""
-        SELECT EXISTS(
-        SELECT 1
-        FROM artifacts
-        WHERE artifact_id = #{artifactId}::UUID
-    );
-    """)
-    boolean retrieveMuseumArtifactId(UUID artifactId);
-
 
     @Select("""
         SELECT EXISTS(
@@ -147,15 +104,36 @@ public interface MuseumZoneRepository {
     boolean retrieveMuseumZoneId(UUID museumZoneId);
 
     @Delete("""
-        DELETE FROM artifacts
-        WHERE artifact_id = #{artifactId}::UUID;
-    """)
-    void deleteMuseumArtifactByArtifactId(UUID artifactId, LocalDateTime updatedAt);
-
-    @Delete("""
         DELETE FROM museum_zones
         WHERE museum_zone_id = #{zoneId}::UUID;
     """)
     void deleteMuseumZoneByZoneId(UUID zoneId);
 
+    @Select("""
+        SELECT mz.museum_zone_id, mz.museum_id, mz.name, mz.description, mz.picture_link, mz.zone_category_id
+        FROM museum_zones mz
+        WHERE mz.museum_id = #{museumId}::UUID
+        AND mz.is_deleted = false
+        ORDER BY mz.created_at DESC
+        LIMIT #{size} OFFSET #{offset};
+    """)
+    @Results(id = "zoneListMapping", value = {
+            @Result(property = "zoneId", column = "museum_zone_id"),
+            @Result(property = "museumId", column = "museum_id"),
+            @Result(property = "zoneCategoryName", column = "zone_category_id",
+                    one = @One(select = "retrieveZoneCategoryNameByCategoryId")
+            ),
+            @Result(property = "zoneName", column = "name"),
+            @Result(property = "description", column = "description"),
+            @Result(property = "pictureLink", column = "picture_link")
+    })
+    List<MuseumZoneResponse> retrieveMuseumZoneByMuseumId(@Param("museumId") UUID museumId, @Param("size") Integer size, @Param("offset") Integer offset);
+
+    @Select("""
+        SELECT COUNT(*) 
+        FROM museum_zones mz
+        WHERE mz.museum_id = #{museumId}::UUID 
+        AND mz.is_deleted = false;
+    """)
+    Integer countMuseumZonesByMuseumId(UUID museumId);
 }

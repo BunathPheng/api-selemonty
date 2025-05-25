@@ -1,0 +1,15 @@
+package org.hrd.finalprojectmuseum.model.dto.response;
+
+import lombok.Data;
+
+import java.util.UUID;
+
+@Data
+public class MuseumZoneResponse {
+    private UUID zoneId;
+    private UUID museumId;
+    private String zoneCategoryName;
+    private String zoneName;
+    private String description;
+    private String pictureLink;
+}

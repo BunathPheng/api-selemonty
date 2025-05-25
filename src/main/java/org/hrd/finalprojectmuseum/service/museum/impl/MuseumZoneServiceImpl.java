@@ -5,9 +5,11 @@ import org.hrd.finalprojectmuseum.exception.AppNotFoundException;
 import org.hrd.finalprojectmuseum.model.dto.request.museum_owner.MuseumArtifactRequest;
 import org.hrd.finalprojectmuseum.model.dto.request.museum_owner.MuseumZoneRequest;
 import org.hrd.finalprojectmuseum.model.dto.request.museum_owner.MuseumZoneUpdateRequest;
+import org.hrd.finalprojectmuseum.model.dto.response.MuseumZoneResponse;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumArtifact;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumZone;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumZoneCategory;
+import org.hrd.finalprojectmuseum.repository.museum.MuseumArtifactRepository;
 import org.hrd.finalprojectmuseum.repository.museum.MuseumZoneRepository;
 import org.hrd.finalprojectmuseum.service.museum.MuseumZoneService;
 import org.springframework.stereotype.Service;
@@ -22,6 +24,7 @@ import java.util.UUID;
 public class MuseumZoneServiceImpl implements MuseumZoneService {
 
     private final MuseumZoneRepository museumZoneRepository;
+    private final MuseumArtifactRepository museumArtifactRepository;
     LocalDateTime updatedAt = LocalDateTime.now();
 
     @Override
@@ -48,18 +51,9 @@ public class MuseumZoneServiceImpl implements MuseumZoneService {
 
         if (museumZoneRequest.getArtifacts() != null && !museumZoneRequest.getArtifacts().isEmpty()) {
             for (MuseumArtifactRequest artifact : museumZoneRequest.getArtifacts()) {
-                museumZoneRepository.createMuseumArtifact(artifact, museumZoneId, updatedAt);
+                museumArtifactRepository.createMuseumArtifact(artifact, museumZoneId, updatedAt);
             }
         }
-    }
-
-    @Override
-    public MuseumArtifact createMuseumArtifactByZoneId(MuseumArtifactRequest museumArtifactRequest, UUID museumZoneId) {
-        boolean zoneId = museumZoneRepository.retrieveMuseumZoneId(museumZoneId);
-        if (!zoneId) {
-            throw new AppNotFoundException("Museum zone Id Not Found");
-        }
-        return museumZoneRepository.createMuseumArtifact(museumArtifactRequest, museumZoneId, updatedAt);
     }
 
     @Override
@@ -74,7 +68,7 @@ public class MuseumZoneServiceImpl implements MuseumZoneService {
             throw new AppNotFoundException("Museum zone ID not found");
         }
         return museumZone;
-    }
+    };
 
     @Override
     public void updateMuseumZoneDetailByZoneId(UUID museumZoneId, MuseumZoneUpdateRequest museumZoneUpdateRequest) {
@@ -91,30 +85,26 @@ public class MuseumZoneServiceImpl implements MuseumZoneService {
     }
 
     @Override
-    public void updateMuseumArtifactByArtifactId(UUID artifactId, MuseumArtifactRequest museumArtifactRequest) {
-        boolean exist = museumZoneRepository.retrieveMuseumArtifactId(artifactId);
-        if (!exist) {
-            throw new AppNotFoundException("Museum artifact Id Not Found");
-        }
-        museumZoneRepository.updateMuseumArtifactByArtifactId(artifactId, museumArtifactRequest, updatedAt);
-    }
-
-    @Override
-    public void deleteMuseumArtifactByArtifactId(UUID artifactId) {
-        boolean exist = museumZoneRepository.retrieveMuseumArtifactId(artifactId);
-        if (!exist) {
-            throw new AppNotFoundException("Museum artifact Id Not Found");
-        }
-        museumZoneRepository.deleteMuseumArtifactByArtifactId(artifactId, updatedAt);
-    }
-
-    @Override
     public void deleteMuseumZoneByZoneId(UUID museumZoneId) {
         boolean zoneId = museumZoneRepository.retrieveMuseumZoneId(museumZoneId);
         if (!zoneId) {
             throw new AppNotFoundException("Museum zone Id Not Found");
         }
         museumZoneRepository.deleteMuseumZoneByZoneId(museumZoneId);
+    }
+
+    @Override
+    public List<MuseumZoneResponse> getAllMuseumZonesByMuseumId(UUID museumId, Integer page, Integer size) {
+        List<MuseumZoneResponse> museumZoneResponses = museumZoneRepository.retrieveMuseumZoneByMuseumId(museumId, page, size);
+        if (museumZoneResponses == null) {
+            throw new AppNotFoundException("Museum Zone Not Found");
+        }
+        return museumZoneResponses;
+    }
+
+    @Override
+    public Integer getTotalMuseumZonesByMuseumId(UUID museumId) {
+        return museumZoneRepository.countMuseumZonesByMuseumId(museumId);
     }
 
     @Override

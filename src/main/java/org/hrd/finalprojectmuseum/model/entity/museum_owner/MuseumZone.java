@@ -14,7 +14,6 @@ import java.util.UUID;
 public class MuseumZone {
     private UUID zoneId;
     private UUID museumId;
-//    private UUID zoneCategoryId;
     private String zoneCategoryName;
     private String zoneName;
     private String description;
