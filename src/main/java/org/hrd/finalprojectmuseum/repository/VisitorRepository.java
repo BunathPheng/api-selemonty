@@ -22,7 +22,7 @@ public interface VisitorRepository {
             @Result(property = "updatedAt", column = "updated_at")
     })
     @Select("""
-        SELECT * FROM visitors WHERE user_id = #{userId}::uuid
+        SELECT * FROM visitors WHERE user_id = #{userId}::UUID
     """)
     Visitor findVisitor(UUID userId);
 
@@ -33,4 +33,10 @@ public interface VisitorRepository {
                             RETURNING *;
     """)
     Visitor modifyVisitorByVisitorId(UUID userId, @Param("visitor") VisitorRequest visitorRequest, LocalDateTime updatedAt);
+
+    @ResultMap("visitorMapper")
+    @Select("""
+        SELECT * FROM visitors WHERE visitor_id = #{visitorId}::UUID
+    """)
+    Visitor findVisitorById(UUID visitorId);
 }

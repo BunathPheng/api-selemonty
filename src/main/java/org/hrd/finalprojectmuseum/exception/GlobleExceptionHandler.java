@@ -1,6 +1,7 @@
 package org.hrd.finalprojectmuseum.exception;
 
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
+import org.hrd.finalprojectmuseum.model.enums.DayOfWeek;
 import org.springframework.context.MessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -13,11 +14,9 @@ import org.springframework.web.method.annotation.HandlerMethodValidationExceptio
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.time.LocalTime;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobleExceptionHandler {
@@ -83,32 +82,101 @@ public class GlobleExceptionHandler {
     }
 
 
-    // Handle UUID format errors in request body (JSON deserialization)
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ProblemDetail handleHttpMessageNotReadableException(HttpMessageNotReadableException e) {
         ProblemDetail detail = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
         detail.setProperty("timestamp", LocalDateTime.now());
 
-        // Check if it's a UUID format error
+        // Log the actual error for debugging
+        System.err.println("JSON parsing error: " + e.getMessage());
+        if (e.getCause() != null) {
+            System.err.println("Root cause: " + e.getCause().getMessage());
+            e.getCause().printStackTrace();
+        }
+
+        // Check if it's an InvalidFormatException
         if (e.getCause() instanceof InvalidFormatException) {
             InvalidFormatException ife = (InvalidFormatException) e.getCause();
-            if (ife.getTargetType() != null && ife.getTargetType().equals(UUID.class)) {
-                String fieldName = "unknown";
-                if (!ife.getPath().isEmpty()) {
-                    fieldName = ife.getPath().get(ife.getPath().size() - 1).getFieldName();
-                }
 
+            // Handle UUID format errors
+            if (ife.getTargetType() != null && ife.getTargetType().equals(UUID.class)) {
+                String fieldName = getFieldName(ife);
                 detail.setDetail("Invalid UUID format in request body");
                 Map<String, String> errors = new HashMap<>();
                 errors.put(fieldName, "Invalid UUID format. Expected format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx");
                 detail.setProperty("errors", errors);
                 return detail;
             }
+
+            // Handle your custom DayOfWeek enum errors
+            if (ife.getTargetType() != null && ife.getTargetType().equals(org.hrd.finalprojectmuseum.model.enums.DayOfWeek.class)) {
+                String fieldName = getFieldName(ife);
+                detail.setDetail("Invalid day of week in request body");
+                Map<String, String> errors = new HashMap<>();
+                errors.put(fieldName, "Invalid day of week. Valid values: Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday (case insensitive)");
+                detail.setProperty("errors", errors);
+                return detail;
+            }
+
+            // Handle LocalTime format errors
+            if (ife.getTargetType() != null && ife.getTargetType().equals(LocalTime.class)) {
+                String fieldName = getFieldName(ife);
+                detail.setDetail("Invalid time format in request body");
+                Map<String, String> errors = new HashMap<>();
+                errors.put(fieldName, "Invalid time format. Expected format: HH:mm (e.g., 09:30, 14:00)");
+                detail.setProperty("errors", errors);
+                return detail;
+            }
+            // Add this to your handleHttpMessageNotReadableException method
+            if (ife.getTargetType() != null && ife.getTargetType().isEnum()) {
+                String fieldName = getFieldName(ife);
+                detail.setDetail("Invalid enum value in request body");
+                Map<String, String> errors = new HashMap<>();
+
+                // Get valid enum values
+                Object[] enumConstants = ife.getTargetType().getEnumConstants();
+                String validValues = Arrays.stream(enumConstants)
+                        .map(Object::toString)
+                        .collect(Collectors.joining(", "));
+
+                errors.put(fieldName, "Invalid value. Valid values: " + validValues);
+                detail.setProperty("errors", errors);
+                return detail;
+            }
+
+            // Handle other format errors
+            String fieldName = getFieldName(ife);
+            detail.setDetail("Invalid format for field: " + fieldName);
+            Map<String, String> errors = new HashMap<>();
+            errors.put(fieldName, "Invalid value format for type: " + ife.getTargetType().getSimpleName());
+            detail.setProperty("errors", errors);
+            return detail;
         }
 
-        // Handle other JSON parsing errors
-        detail.setDetail("Invalid JSON format or malformed request body");
+        // Check if it's a JsonParseException (malformed JSON)
+        if (e.getCause() instanceof com.fasterxml.jackson.core.JsonParseException) {
+            detail.setDetail("Malformed JSON: " + e.getCause().getMessage());
+            return detail;
+        }
+
+        // Check if it's a JsonMappingException
+        if (e.getCause() instanceof com.fasterxml.jackson.databind.JsonMappingException) {
+            com.fasterxml.jackson.databind.JsonMappingException jme = (com.fasterxml.jackson.databind.JsonMappingException) e.getCause();
+            detail.setDetail("JSON mapping error: " + jme.getOriginalMessage());
+            return detail;
+        }
+
+
+        // Generic JSON error
+        detail.setDetail("Invalid JSON format or malformed request body: " + e.getMessage());
         return detail;
+    }
+
+    private String getFieldName(InvalidFormatException ife) {
+        if (!ife.getPath().isEmpty()) {
+            return ife.getPath().get(ife.getPath().size() - 1).getFieldName();
+        }
+        return "unknown";
     }
 
     // Handle general IllegalArgumentException (includes UUID.fromString errors)

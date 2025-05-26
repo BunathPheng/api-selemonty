@@ -1,5 +1,6 @@
 package org.hrd.finalprojectmuseum.model.entity;
 
+import lombok.Builder;
 import lombok.Data;
 
 @Data

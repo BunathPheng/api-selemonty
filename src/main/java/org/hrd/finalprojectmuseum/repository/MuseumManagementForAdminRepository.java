@@ -17,11 +17,13 @@ public interface MuseumManagementForAdminRepository {
             @Result(property = "name", column = "name"),
             @Result(property = "contactNumber", column = "contact_number"),
             @Result(property = "logoLink", column = "logo_link"),
+            @Result(property = "lng", column = "lat"),
+            @Result(property = "lat", column = "lat"),
             @Result(property = "description", column = "description"),
             @Result(property = "isApproved", column = "is_approved"),
     })
     @Select("""
-        SELECT museum_id, museum_category_id, name, contact_number, logo_link,
+        SELECT museum_id, museum_category_id, name, contact_number, logo_link, lng, lat,
                description, is_approved FROM museum_owners
         INNER JOIN user_info on user_info.user_id = museum_owners.user_id WHERE is_approved = false AND is_verified = true
         offset (#{page}-1)* #{size} limit #{size};
@@ -29,7 +31,7 @@ public interface MuseumManagementForAdminRepository {
     List<MuseumShortInfo> getAllRequestMuseums(Integer page, Integer size);
 
     @Select("""
-        SELECT museum_id, museum_category_id, name, contact_number, logo_link,
+        SELECT museum_id, museum_category_id, name, contact_number, logo_link, lng, lat,
                description, is_approved FROM museum_owners
         INNER JOIN user_info on user_info.user_id = museum_owners.user_id WHERE is_approved = false AND is_verified = true AND museum_category_id = #{museumCategoryId}::UUID
         offset (#{page}-1)* #{size} limit #{size};
@@ -48,7 +50,7 @@ public interface MuseumManagementForAdminRepository {
 
     @ResultMap("shortMuseumMapper")
     @Select("""
-        SELECT museum_id, museum_category_id, name, contact_number, logo_link,
+        SELECT museum_id, museum_category_id, name, contact_number, logo_link, lng, lat,
                description, is_approved FROM museum_owners
         INNER JOIN user_info on user_info.user_id = museum_owners.user_id WHERE is_verified = true
         offset (#{page}-1)* #{size} limit #{size};
@@ -57,7 +59,7 @@ public interface MuseumManagementForAdminRepository {
 
     @ResultMap("shortMuseumMapper")
     @Select("""
-        SELECT museum_id, museum_category_id, name, contact_number, logo_link,
+        SELECT museum_id, museum_category_id, name, contact_number, logo_link, lng, lat,
                description, is_approved FROM museum_owners
         INNER JOIN user_info on user_info.user_id = museum_owners.user_id WHERE is_verified = true AND museum_category_id = #{museumCategoryId}::UUID
         offset (#{page}-1)* #{size} limit #{size};
@@ -71,7 +73,7 @@ public interface MuseumManagementForAdminRepository {
 
     @ResultMap("shortMuseumMapper")
     @Select("""
-        SELECT museum_id, museum_category_id, name, contact_number, logo_link,
+        SELECT museum_id, museum_category_id, name, contact_number, logo_link, lng, lat,
                description, is_approved FROM museum_owners
         INNER JOIN user_info on user_info.user_id = museum_owners.user_id WHERE is_approved = true AND is_verified = true
         offset (#{page}-1)* #{size} limit #{size};
@@ -80,7 +82,7 @@ public interface MuseumManagementForAdminRepository {
 
     @ResultMap("shortMuseumMapper")
     @Select("""
-        SELECT museum_id, museum_category_id, name, contact_number, logo_link,
+        SELECT museum_id, museum_category_id, name, contact_number, logo_link, lng, lat,
                description, is_approved FROM museum_owners
         INNER JOIN user_info on user_info.user_id = museum_owners.user_id WHERE is_approved = true AND is_verified = true AND museum_category_id = #{museumCategoryId}::UUID
         offset (#{page}-1)* #{size} limit #{size};

@@ -42,7 +42,7 @@ public interface EventRepository {
 
     @ResultMap("eventMapper")
     @Select("""
-        SELECT * FROM events WHERE museum_id = #{museumId}::UUID AND is_deleted = false offset (#{page}-1)* #{size} limit #{size};;
+        SELECT * FROM events WHERE museum_id = #{museumId}::UUID AND is_deleted = false offset (#{page}-1)* #{size} limit #{size};
     """)
     List<Event> findAllEventsByMuseumId(UUID museumId, Integer page, Integer size);
 

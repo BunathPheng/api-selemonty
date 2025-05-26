@@ -37,9 +37,10 @@ public class MuseumManagementForAdminServiceImpl implements MuseumManagementForA
         Pagination pagination = new Pagination();
         pagination = pagination.calculatePagination(totalItems, page, size);
 
-        ListResponse<MuseumShortInfo> listMuseumResponse = new ListResponse<>();
-        listMuseumResponse.setItems(museums);
-        listMuseumResponse.setPagination(pagination);
+        ListResponse<MuseumShortInfo> listMuseumResponse = ListResponse.<MuseumShortInfo>builder()
+                .items(museums)
+                .pagination(pagination)
+                .build();
         return listMuseumResponse;
     }
 
@@ -71,7 +72,10 @@ public class MuseumManagementForAdminServiceImpl implements MuseumManagementForA
         Pagination pagination = new Pagination();
         pagination = pagination.calculatePagination(totalItems, page, size);
 
-        ListResponse<MuseumShortInfo> listMuseumResponse = new ListResponse<>();
+        ListResponse<MuseumShortInfo> listMuseumResponse = ListResponse.<MuseumShortInfo>builder()
+                .items(museums)
+                .pagination(pagination)
+                .build();
         listMuseumResponse.setItems(museums);
         listMuseumResponse.setPagination(pagination);
         return listMuseumResponse;
@@ -91,7 +95,10 @@ public class MuseumManagementForAdminServiceImpl implements MuseumManagementForA
         Pagination pagination = new Pagination();
         pagination = pagination.calculatePagination(totalItems, page, size);
 
-        ListResponse<MuseumShortInfo> listMuseumResponse = new ListResponse<MuseumShortInfo>();
+        ListResponse<MuseumShortInfo> listMuseumResponse = ListResponse.<MuseumShortInfo>builder()
+                .items(museums)
+                .pagination(pagination)
+                .build();
         listMuseumResponse.setItems(museums);
         listMuseumResponse.setPagination(pagination);
         return listMuseumResponse;

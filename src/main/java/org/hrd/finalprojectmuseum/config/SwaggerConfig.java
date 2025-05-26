@@ -9,9 +9,9 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @OpenAPIDefinition(
         info = @Info(
-                title = "Seila Munty API",
+                title = "Sela Monty API",
                 version = "1.0.0",
-                description = "API documentation for the Seila Munty application",
+                description = "API documentation for the Sela Monty application",
                 contact = @Contact(
                         name = "GitHub",
                         url = "https://github.com/13-Generation-Basic-Course-Projects"
