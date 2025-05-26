@@ -110,7 +110,8 @@ public interface MuseumZoneRepository {
     void deleteMuseumZoneByZoneId(UUID zoneId);
 
     @Select("""
-        SELECT mz.museum_zone_id, mz.museum_id, mz.name, mz.description, mz.picture_link, mz.zone_category_id
+        SELECT mz.museum_zone_id, mz.museum_id, mz.name, mz.description, mz.picture_link, mz.zone_category_id,
+               mz.created_at, mz.updated_at
         FROM museum_zones mz
         WHERE mz.museum_id = #{museumId}::UUID
         AND mz.is_deleted = false
@@ -125,7 +126,9 @@ public interface MuseumZoneRepository {
             ),
             @Result(property = "zoneName", column = "name"),
             @Result(property = "description", column = "description"),
-            @Result(property = "pictureLink", column = "picture_link")
+            @Result(property = "pictureLink", column = "picture_link"),
+            @Result(property = "createdAt", column = "created_at"),
+            @Result(property = "updatedAt", column = "updated_at")
     })
     List<MuseumZoneResponse> retrieveMuseumZoneByMuseumId(@Param("museumId") UUID museumId, @Param("size") Integer size, @Param("offset") Integer offset);
 

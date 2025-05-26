@@ -150,7 +150,7 @@ public class MuseumZoneController {
 
         UUID museumId = getMuseumIdByUserId();
 
-        List<MuseumZoneResponse> allMuseumZonesByMuseumId = museumZoneService.getAllMuseumZonesByMuseumId(museumId, page, size);
+        List<MuseumZoneResponse> allMuseumZonesByMuseumId = museumZoneService.getAllMuseumZonesByMuseumId(museumId, size, page);
 
         Integer totalItems = museumZoneService.getTotalMuseumZonesByMuseumId(museumId);
 
@@ -159,7 +159,7 @@ public class MuseumZoneController {
 
         ApiResponse<List<MuseumZoneResponse>> apiResponse = ApiResponse.<List<MuseumZoneResponse>>builder()
                 .success(true)
-                .message("Museum zone deleted successfully.")
+                .message("All Museum zones fetched successfully.")
                 .payload(allMuseumZonesByMuseumId)
                 .pagination(pagination)
                 .status(HttpStatus.OK)

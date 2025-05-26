@@ -5,11 +5,13 @@ import org.hrd.finalprojectmuseum.exception.AppBadRequestException;
 import org.hrd.finalprojectmuseum.exception.AppNotFoundException;
 import org.hrd.finalprojectmuseum.model.dto.request.visitor.VisitorReviewRequest;
 import org.hrd.finalprojectmuseum.model.entity.visitor.VisitorReview;
+import org.hrd.finalprojectmuseum.model.enums.ReviewType;
 import org.hrd.finalprojectmuseum.repository.visitor.VisitorReviewRepository;
 import org.hrd.finalprojectmuseum.service.visitor.VisitorReviewService;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -43,13 +45,29 @@ public class VisitorReviewServiceImpl implements VisitorReviewService {
     }
 
     @Override
-    public List<VisitorReview> getAllVisitorReviews(UUID museumId) {
+    public List<VisitorReview> getAllVisitorReviews(UUID museumId, Integer page, Integer size, ReviewType reviewType) {
         if (!visitorReviewRepository.retrieveMuseumId(museumId)){
             throw new AppNotFoundException("Museum ID Not Found");
         }
-        List<VisitorReview> visitorReviews = visitorReviewRepository.retrieveAllVisitorReviews(museumId);
-        for(VisitorReview visitorReview : visitorReviews){
-            visitorReview.setIsReviewed(true);
+
+        int offset = (page - 1) * size;
+        List<VisitorReview> visitorReviews = new ArrayList<>();
+
+        if (reviewType == ReviewType.MOST_RECENTLY){
+            visitorReviews = visitorReviewRepository.retrieveAllVisitorReviewsRecently(museumId, size, offset);
+            for(VisitorReview visitorReview : visitorReviews){
+                visitorReview.setIsReviewed(true);
+            }
+        }else if (reviewType == ReviewType.HIGHEST_RATE){
+            visitorReviews = visitorReviewRepository.retrieveAllVisitorReviewsHighest(museumId, size, offset);
+            for(VisitorReview visitorReview : visitorReviews){
+                visitorReview.setIsReviewed(true);
+            }
+        } else if (reviewType == ReviewType.LOWEST_RATE) {
+            visitorReviews = visitorReviewRepository.retrieveAllVisitorReviewsLowest(museumId, size, offset);
+            for(VisitorReview visitorReview : visitorReviews){
+                visitorReview.setIsReviewed(true);
+            }
         }
         return visitorReviews;
     }
@@ -59,8 +77,23 @@ public class VisitorReviewServiceImpl implements VisitorReviewService {
         if (!visitorReviewRepository.retrieveReviewId(reviewId)){
             throw new AppNotFoundException("Review ID Not Found");
         }
-        System.out.println(visitorReviewRepository.retrieveReviewId(reviewId));
-        return visitorReviewRepository.updateVisitorReview(reviewId, visitorId, visitorReviewRequest, updatedAt);
+        VisitorReview updateVisitorReview = visitorReviewRepository.updateVisitorReview(reviewId, visitorId, visitorReviewRequest, updatedAt);
+        updateVisitorReview.setIsReviewed(true);
+        return updateVisitorReview;
     }
+
+    @Override
+    public Integer getAllVisitorReviews(UUID museumId) {
+        return visitorReviewRepository.countAllVisitorReviews(museumId);
+    }
+
+    @Override
+    public void deleteVisitorReview(UUID reviewId, UUID visitorId) {
+        if (!visitorReviewRepository.retrieveReviewId(reviewId)){
+            throw new AppNotFoundException("Review ID Not Found");
+        }
+        visitorReviewRepository.deleteVisitorReview(reviewId, visitorId);
+    }
+
 
 }

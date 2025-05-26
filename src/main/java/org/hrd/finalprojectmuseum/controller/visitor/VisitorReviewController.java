@@ -4,10 +4,14 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.hrd.finalprojectmuseum.model.dto.request.visitor.VisitorReviewRequest;
 import org.hrd.finalprojectmuseum.model.dto.response.ApiResponse;
+import org.hrd.finalprojectmuseum.model.entity.Pagination;
 import org.hrd.finalprojectmuseum.model.entity.visitor.VisitorReview;
+import org.hrd.finalprojectmuseum.model.enums.ReviewType;
 import org.hrd.finalprojectmuseum.service.visitor.VisitorReviewService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -35,10 +39,10 @@ public class VisitorReviewController {
         return visitorReviewService.getVisitorIdByUserId(userId);
     }
 
-    @PostMapping("/museum/{museumId}")
+    @PostMapping("/museum/{museum-id}")
     @Operation(summary = "Create a review for a museum")
     public ResponseEntity<ApiResponse<VisitorReview>> addVisitorReview(
-            @PathVariable UUID museumId,
+            @PathVariable("museum-id") UUID museumId,
             @Valid @RequestBody VisitorReviewRequest visitorReviewRequest) {
 
         UUID visitorId = getVisitorIdByUserId();
@@ -55,19 +59,30 @@ public class VisitorReviewController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @GetMapping("/museum/{museumId}")
+    @GetMapping("/museum/{museum-id}")
     @Operation(summary = "Get all reviews of a museum")
-    public ResponseEntity<ApiResponse<List<VisitorReview>>> getVisitorReview(@PathVariable UUID museumId){
-        List<VisitorReview> reviews = visitorReviewService.getAllVisitorReviews(museumId);
+    public ResponseEntity<ApiResponse<List<VisitorReview>>> getVisitorReview(
+            @PathVariable("museum-id") UUID museumId,
+            @RequestParam(defaultValue = "1") @Positive @Min(value = 1, message = "must greater than 0") Integer page,
+            @RequestParam(defaultValue = "3") @Positive @Min(value = 1, message = "must greater than 0") Integer size,
+            @RequestParam("reviewType") ReviewType reviewType){
+
+        List<VisitorReview> reviews = visitorReviewService.getAllVisitorReviews(museumId, page, size, reviewType);
+
+        Integer totalReviews = visitorReviewService.getAllVisitorReviews(museumId);
+
+        Pagination pagination = new Pagination();
+        pagination = pagination.calculatePagination(totalReviews, page, size);
 
         ApiResponse<List<VisitorReview>> response = ApiResponse.<List<VisitorReview>>builder()
                 .success(true)
-                .message("Review created successfully")
+                .message("Review retrieve successfully")
                 .payload(reviews)
+                .pagination(pagination)
                 .status(HttpStatus.OK)
                 .build();
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @PutMapping("/{review-Id}")
@@ -84,9 +99,24 @@ public class VisitorReviewController {
                 .success(true)
                 .message("Visitor review updated successfully")
                 .payload(updateVisitorReview)
-                .status(HttpStatus.CREATED)
+                .status(HttpStatus.OK)
                 .build();
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @DeleteMapping("/{review-Id}")
+    @Operation(summary = "Delete visitor review for a museum")
+    public ResponseEntity<ApiResponse<VisitorReview>> deleteVisitorReviewById(@PathVariable("review-Id") UUID reviewId) {
+        UUID visitorId = getVisitorIdByUserId();
+        visitorReviewService.deleteVisitorReview(reviewId, visitorId);
+
+        ApiResponse<VisitorReview> response = ApiResponse.<VisitorReview>builder()
+                .success(true)
+                .message("Visitor review deleted successfully")
+                .status(HttpStatus.OK)
+                .build();
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 }

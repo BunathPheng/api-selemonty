@@ -94,7 +94,8 @@ public class MuseumZoneServiceImpl implements MuseumZoneService {
 
     @Override
     public List<MuseumZoneResponse> getAllMuseumZonesByMuseumId(UUID museumId, Integer page, Integer size) {
-        List<MuseumZoneResponse> museumZoneResponses = museumZoneRepository.retrieveMuseumZoneByMuseumId(museumId, page, size);
+        int offset = (page - 1) * size;
+        List<MuseumZoneResponse> museumZoneResponses = museumZoneRepository.retrieveMuseumZoneByMuseumId(museumId, page, offset);
         if (museumZoneResponses == null) {
             throw new AppNotFoundException("Museum Zone Not Found");
         }
