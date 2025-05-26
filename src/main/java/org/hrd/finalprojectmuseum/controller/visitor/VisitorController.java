@@ -1,10 +1,9 @@
-package org.hrd.finalprojectmuseum.controller;
+package org.hrd.finalprojectmuseum.controller.visitor;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.checkerframework.checker.units.qual.A;
 import org.hrd.finalprojectmuseum.model.dto.request.visitor.VisitorRequest;
 import org.hrd.finalprojectmuseum.model.dto.response.ApiResponse;
 import org.hrd.finalprojectmuseum.model.entity.visitor.Visitor;
