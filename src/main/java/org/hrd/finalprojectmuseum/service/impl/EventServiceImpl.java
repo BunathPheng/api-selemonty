@@ -8,6 +8,7 @@ import org.hrd.finalprojectmuseum.model.dto.response.ListResponse;
 import org.hrd.finalprojectmuseum.model.entity.Event;
 import org.hrd.finalprojectmuseum.model.entity.Pagination;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
+import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumShortInfo;
 import org.hrd.finalprojectmuseum.repository.EventRepository;
 import org.hrd.finalprojectmuseum.service.EventService;
 import org.springframework.stereotype.Service;
@@ -33,10 +34,11 @@ public class EventServiceImpl implements EventService {
         Pagination pagination = new Pagination();
         pagination = pagination.calculatePagination(totalItems, page, size);
 
-        ListResponse<Event> listEventResponse = new ListResponse<>();
-        listEventResponse.setItems(events);
-        listEventResponse.setPagination(pagination);
-        return listEventResponse;
+
+        return ListResponse.<Event>builder()
+                .items(events)
+                .pagination(pagination)
+                .build();
     }
 
     @Override
@@ -50,10 +52,10 @@ public class EventServiceImpl implements EventService {
         Pagination pagination = new Pagination();
         pagination = pagination.calculatePagination(totalItems, page, size);
 
-        ListResponse<Event> listEventResponse = new ListResponse<>();
-        listEventResponse.setItems(events);
-        listEventResponse.setPagination(pagination);
-        return listEventResponse;
+        return ListResponse.<Event>builder()
+                .items(events)
+                .pagination(pagination)
+                .build();
     }
 
     @Override

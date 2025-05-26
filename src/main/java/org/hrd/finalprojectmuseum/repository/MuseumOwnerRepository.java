@@ -72,7 +72,7 @@ public interface MuseumOwnerRepository {
             @Result(property = "isApproved", column = "is_approved"),
     })
     @Select("""
-        SELECT museum_id, museum_category_id, name, contact_number, logo_link,
+        SELECT museum_id, museum_category_id, name, contact_number, logo_link, lng, lat,
                description, is_approved FROM museum_owners WHERE museum_id = #{museumId}::UUID;
     """)
     MuseumShortInfo findMuseumByMuseumId(UUID museumId);
