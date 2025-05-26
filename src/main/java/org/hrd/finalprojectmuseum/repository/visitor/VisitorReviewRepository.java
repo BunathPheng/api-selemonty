@@ -29,6 +29,7 @@ public interface VisitorReviewRepository {
     @Select("""
        INSERT INTO reviews(museum_id, visitor_id, comment, rating, updated_at)
        VALUES (#{museumId}::UUID, #{visitorId}::UUID, #{visitorReview.comment}, #{visitorReview.rating}, #{updatedAt})
+       
        RETURNING *;
    """)
     @Results(id = "visitorReview", value = {
@@ -40,7 +41,11 @@ public interface VisitorReviewRepository {
             @Result(property = "createdAt", column = "created_at"),
             @Result(property = "updatedAt", column = "updated_at")
     })
-    VisitorReview createVisitorReview(UUID museumId, UUID visitorId, @Param("visitorReview") VisitorReviewRequest visitorReview, LocalDateTime updatedAt);
+    VisitorReview createVisitorReview(
+            UUID museumId,
+            UUID visitorId,
+            @Param("visitorReview") VisitorReviewRequest visitorReview,
+            LocalDateTime updatedAt);
 
     @Select("""
         SELECT * FROM reviews
@@ -48,4 +53,37 @@ public interface VisitorReviewRepository {
     """)
     @ResultMap("visitorReview")
     List<VisitorReview> retrieveAllVisitorReviews(UUID museumId);
+
+    @Select("""
+        SELECT EXISTS(
+        SELECT 1
+        FROM reviews
+        WHERE review_id = #{reviewId}::UUID
+    );
+    """)
+    boolean retrieveReviewId(UUID reviewId);
+
+    @Select("""
+        SELECT EXISTS(
+        SELECT 1
+        FROM reviews
+        WHERE visitor_id = #{visitorId}::UUID
+    );
+    """)
+    boolean retrieveVisitorId(UUID visitorId);
+
+    @Select("""
+        UPDATE reviews
+        SET comment = #{visitorReview.comment}, rating = #{visitorReview.rating}, updated_at = #{updatedAt}
+        WHERE review_id = #{reviewId}::UUID and visitor_id = #{visitorId}::UUID
+        RETURNING *;
+    """)
+    @ResultMap("visitorReview")
+    VisitorReview updateVisitorReview(
+            @Param("reviewId") UUID reviewId,
+            @Param("visitorId") UUID visitorId,
+            @Param("visitorReview") VisitorReviewRequest visitorReviewRequest,
+            @Param("updatedAt") LocalDateTime updatedAt
+    );
+
 }

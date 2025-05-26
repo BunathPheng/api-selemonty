@@ -8,6 +8,8 @@ import java.util.UUID;
 
 public interface VisitorReviewService {
     UUID getVisitorIdByUserId(UUID userId);
-    VisitorReview addVisitorReview(UUID userId, UUID visitorId, VisitorReviewRequest visitorReviewRequest);
+    VisitorReview addVisitorReview(UUID museumId, UUID visitorId, VisitorReviewRequest visitorReviewRequest);
     List<VisitorReview> getAllVisitorReviews(UUID museumId);
+    VisitorReview updateVisitorReview(UUID reviewId, UUID visitorId, VisitorReviewRequest visitorReviewRequest);
+
 }

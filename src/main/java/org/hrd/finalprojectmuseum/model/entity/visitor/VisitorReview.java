@@ -15,4 +15,5 @@ public class VisitorReview {
     private BigDecimal rating;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private Boolean isReviewed;
 }

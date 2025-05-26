@@ -28,7 +28,7 @@ import java.util.UUID;
 public class VisitorReviewController {
     private final VisitorReviewService visitorReviewService;
 
-    private UUID getMuseumIdByUserId(){
+    private UUID getVisitorIdByUserId(){
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UUID userId = UUID.fromString((String) auth.getCredentials());
 
@@ -41,14 +41,14 @@ public class VisitorReviewController {
             @PathVariable UUID museumId,
             @Valid @RequestBody VisitorReviewRequest visitorReviewRequest) {
 
-        UUID visitorId = getMuseumIdByUserId();
+        UUID visitorId = getVisitorIdByUserId();
 
-        VisitorReview review = visitorReviewService.addVisitorReview(museumId, visitorId, visitorReviewRequest);
+        VisitorReview newReview = visitorReviewService.addVisitorReview(museumId, visitorId, visitorReviewRequest);
 
         ApiResponse<VisitorReview> response = ApiResponse.<VisitorReview>builder()
                 .success(true)
                 .message("Visitor review created successfully")
-                .payload(review)
+                .payload(newReview)
                 .status(HttpStatus.CREATED)
                 .build();
 
@@ -65,6 +65,26 @@ public class VisitorReviewController {
                 .message("Review created successfully")
                 .payload(reviews)
                 .status(HttpStatus.OK)
+                .build();
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PutMapping("/{review-Id}")
+    @Operation(summary = "Update a review of a museum")
+    public ResponseEntity<ApiResponse<VisitorReview>> updateVisitorReview(
+            @PathVariable("review-Id") UUID reviewId,
+            @Valid @RequestBody VisitorReviewRequest visitorReviewRequest) {
+
+        UUID visitorId = getVisitorIdByUserId();
+
+        VisitorReview updateVisitorReview = visitorReviewService.updateVisitorReview(reviewId, visitorId, visitorReviewRequest);
+
+        ApiResponse<VisitorReview> response = ApiResponse.<VisitorReview>builder()
+                .success(true)
+                .message("Visitor review updated successfully")
+                .payload(updateVisitorReview)
+                .status(HttpStatus.CREATED)
                 .build();
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);

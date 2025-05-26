@@ -1,12 +1,12 @@
 package org.hrd.finalprojectmuseum.service.visitor.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.hrd.finalprojectmuseum.exception.AppBadRequestException;
 import org.hrd.finalprojectmuseum.exception.AppNotFoundException;
 import org.hrd.finalprojectmuseum.model.dto.request.visitor.VisitorReviewRequest;
 import org.hrd.finalprojectmuseum.model.entity.visitor.VisitorReview;
 import org.hrd.finalprojectmuseum.repository.visitor.VisitorReviewRepository;
 import org.hrd.finalprojectmuseum.service.visitor.VisitorReviewService;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -34,7 +34,12 @@ public class VisitorReviewServiceImpl implements VisitorReviewService {
         if (!visitorReviewRepository.retrieveMuseumId(museumId)){
             throw new AppNotFoundException("Museum ID Not Found");
         }
-        return visitorReviewRepository.createVisitorReview(museumId, visitorId, visitorReviewRequest, updatedAt);
+        if (visitorReviewRepository.retrieveVisitorId(visitorId)) {
+            throw new AppBadRequestException("Visitor ID Already Exists");
+        }
+        VisitorReview visitorReview = visitorReviewRepository.createVisitorReview(museumId, visitorId, visitorReviewRequest, updatedAt);
+        visitorReview.setIsReviewed(true);
+        return visitorReview;
     }
 
     @Override
@@ -42,6 +47,20 @@ public class VisitorReviewServiceImpl implements VisitorReviewService {
         if (!visitorReviewRepository.retrieveMuseumId(museumId)){
             throw new AppNotFoundException("Museum ID Not Found");
         }
-        return visitorReviewRepository.retrieveAllVisitorReviews(museumId);
+        List<VisitorReview> visitorReviews = visitorReviewRepository.retrieveAllVisitorReviews(museumId);
+        for(VisitorReview visitorReview : visitorReviews){
+            visitorReview.setIsReviewed(true);
+        }
+        return visitorReviews;
     }
+
+    @Override
+    public VisitorReview updateVisitorReview(UUID reviewId, UUID visitorId, VisitorReviewRequest visitorReviewRequest) {
+        if (!visitorReviewRepository.retrieveReviewId(reviewId)){
+            throw new AppNotFoundException("Review ID Not Found");
+        }
+        System.out.println(visitorReviewRepository.retrieveReviewId(reviewId));
+        return visitorReviewRepository.updateVisitorReview(reviewId, visitorId, visitorReviewRequest, updatedAt);
+    }
+
 }
