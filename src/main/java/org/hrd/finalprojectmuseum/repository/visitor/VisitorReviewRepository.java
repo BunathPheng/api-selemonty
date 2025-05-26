@@ -3,6 +3,7 @@ package org.hrd.finalprojectmuseum.repository.visitor;
 import org.apache.ibatis.annotations.*;
 import org.hrd.finalprojectmuseum.model.dto.request.visitor.VisitorReviewRequest;
 import org.hrd.finalprojectmuseum.model.entity.visitor.VisitorReview;
+import org.hrd.finalprojectmuseum.model.entity.visitor.VisitorReviewStatistics;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -143,6 +144,29 @@ public interface VisitorReviewRepository {
         WHERE review_id = #{reviewId}::UUID AND visitor_id = #{visitorId}::UUID;
     """)
     void deleteVisitorReview(UUID reviewId, UUID visitorId);
+
+    @Select("""
+        SELECT
+            COALESCE(ROUND(AVG(rating), 1), 0) as average_rating,
+            COUNT(*) as total_reviews,
+            COUNT(CASE WHEN rating >= 5.0 THEN 1 END) as five_stars,
+            COUNT(CASE WHEN rating >= 4.0 AND rating < 5.0 THEN 1 END) as four_stars,
+            COUNT(CASE WHEN rating >= 3.0 AND rating < 4.0 THEN 1 END) as three_stars,
+            COUNT(CASE WHEN rating >= 2.0 AND rating < 3.0 THEN 1 END) as two_stars,
+            COUNT(CASE WHEN rating >= 1.0 AND rating < 2.0 THEN 1 END) as one_star
+        FROM reviews
+        WHERE museum_id = #{museumId}::UUID
+    """)
+    @Results({
+            @Result(property = "averageRating", column = "average_rating"),
+            @Result(property = "totalReviews", column = "total_reviews"),
+            @Result(property = "fiveStars", column = "five_stars"),
+            @Result(property = "fourStars", column = "four_stars"),
+            @Result(property = "threeStars", column = "three_stars"),
+            @Result(property = "twoStars", column = "two_stars"),
+            @Result(property = "oneStar", column = "one_star")
+    })
+    VisitorReviewStatistics retriveVisitorReviewStatistics (@Param("museumId") UUID museumId);
 
 
 

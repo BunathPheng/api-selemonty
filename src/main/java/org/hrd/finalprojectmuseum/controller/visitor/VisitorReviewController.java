@@ -11,6 +11,7 @@ import org.hrd.finalprojectmuseum.model.dto.request.visitor.VisitorReviewRequest
 import org.hrd.finalprojectmuseum.model.dto.response.ApiResponse;
 import org.hrd.finalprojectmuseum.model.entity.Pagination;
 import org.hrd.finalprojectmuseum.model.entity.visitor.VisitorReview;
+import org.hrd.finalprojectmuseum.model.entity.visitor.VisitorReviewStatistics;
 import org.hrd.finalprojectmuseum.model.enums.ReviewType;
 import org.hrd.finalprojectmuseum.service.visitor.VisitorReviewService;
 import org.springframework.http.HttpStatus;
@@ -118,5 +119,22 @@ public class VisitorReviewController {
                 .build();
 
         return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @GetMapping("/museum/{museum-id}/statistics")
+    @Operation(summary = "Get review statistics for a museum")
+    public ResponseEntity<ApiResponse<VisitorReviewStatistics>> getReviewStatistics(
+            @PathVariable("museum-id") UUID museumId) {
+
+        VisitorReviewStatistics statistics = visitorReviewService.getVisitorReviewStatistics(museumId);
+
+        ApiResponse<VisitorReviewStatistics> response = ApiResponse.<VisitorReviewStatistics>builder()
+                .success(true)
+                .message("Review statistics retrieved successfully")
+                .payload(statistics)
+                .status(HttpStatus.OK)
+                .build();
+
+        return ResponseEntity.ok(response);
     }
 }

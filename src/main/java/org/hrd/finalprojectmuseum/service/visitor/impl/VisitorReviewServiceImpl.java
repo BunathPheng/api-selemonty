@@ -5,11 +5,13 @@ import org.hrd.finalprojectmuseum.exception.AppBadRequestException;
 import org.hrd.finalprojectmuseum.exception.AppNotFoundException;
 import org.hrd.finalprojectmuseum.model.dto.request.visitor.VisitorReviewRequest;
 import org.hrd.finalprojectmuseum.model.entity.visitor.VisitorReview;
+import org.hrd.finalprojectmuseum.model.entity.visitor.VisitorReviewStatistics;
 import org.hrd.finalprojectmuseum.model.enums.ReviewType;
 import org.hrd.finalprojectmuseum.repository.visitor.VisitorReviewRepository;
 import org.hrd.finalprojectmuseum.service.visitor.VisitorReviewService;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -93,6 +95,29 @@ public class VisitorReviewServiceImpl implements VisitorReviewService {
             throw new AppNotFoundException("Review ID Not Found");
         }
         visitorReviewRepository.deleteVisitorReview(reviewId, visitorId);
+    }
+
+    @Override
+    public VisitorReviewStatistics getVisitorReviewStatistics(UUID museumId) {
+        if (!visitorReviewRepository.retrieveMuseumId(museumId)){
+            throw new AppNotFoundException("Museum ID Not Found");
+        }
+
+        VisitorReviewStatistics statistics = visitorReviewRepository.retriveVisitorReviewStatistics(museumId);
+
+        // Handle case when no reviews exist
+        if (statistics == null || statistics.getTotalReviews() == 0) {
+            statistics = new VisitorReviewStatistics();
+            statistics.setAverageRating(BigDecimal.ZERO);
+            statistics.setTotalReviews(0);
+            statistics.setFiveStars(0);
+            statistics.setFourStars(0);
+            statistics.setThreeStars(0);
+            statistics.setTwoStars(0);
+            statistics.setOneStar(0);
+        }
+
+        return statistics;
     }
 
 

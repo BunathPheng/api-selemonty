@@ -2,6 +2,7 @@ package org.hrd.finalprojectmuseum.service.visitor;
 
 import org.hrd.finalprojectmuseum.model.dto.request.visitor.VisitorReviewRequest;
 import org.hrd.finalprojectmuseum.model.entity.visitor.VisitorReview;
+import org.hrd.finalprojectmuseum.model.entity.visitor.VisitorReviewStatistics;
 import org.hrd.finalprojectmuseum.model.enums.ReviewType;
 
 import java.util.List;
@@ -14,4 +15,5 @@ public interface VisitorReviewService {
     VisitorReview updateVisitorReview(UUID reviewId, UUID visitorId, VisitorReviewRequest visitorReviewRequest);
     Integer getAllVisitorReviews(UUID museumId);
     void deleteVisitorReview(UUID reviewId, UUID visitorId);
+    VisitorReviewStatistics getVisitorReviewStatistics(UUID museumId);
 }
