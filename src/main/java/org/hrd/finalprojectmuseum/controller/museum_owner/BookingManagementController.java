@@ -105,7 +105,6 @@ public class BookingManagementController {
                 .status(HttpStatus.OK)
                 .payload(bookingDetail)
                 .build();
-
         return ResponseEntity.ok(response);
     }
 }

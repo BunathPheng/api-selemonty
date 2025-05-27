@@ -36,7 +36,7 @@ public interface EventRepository {
             @Result(property = "deleted", column = "is_deleted"),
     })
     @Select("""
-        SELECT * FROM events WHERE is_deleted = false offset (#{page}-1)* #{size} limit #{size};;
+        SELECT * FROM events WHERE is_deleted = false OFFSET (#{page}-1)* #{size} LIMIT #{size};
     """)
     List<Event> findAllEvents(Integer page, Integer size);
 
