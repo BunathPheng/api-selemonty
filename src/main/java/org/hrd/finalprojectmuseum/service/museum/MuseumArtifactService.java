@@ -9,4 +9,5 @@ public interface MuseumArtifactService {
     MuseumArtifact createMuseumArtifactByZoneId(MuseumArtifactRequest museumArtifactRequests, UUID museumZoneId);
     void updateMuseumArtifactByArtifactId(UUID artifactId, MuseumArtifactRequest museumArtifactRequest);
     void deleteMuseumArtifactByArtifactId(UUID artifactId);
+    MuseumArtifact getMuseumArtifactByArtifactId(UUID artifactId);
 }

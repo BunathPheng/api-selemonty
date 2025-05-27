@@ -45,6 +45,15 @@ public class MuseumArtifactServiceImpl implements MuseumArtifactService {
         if (!exist) {
             throw new AppNotFoundException("Museum artifact Id Not Found");
         }
-        museumArtifactRepository.deleteMuseumArtifactByArtifactId(artifactId, updatedAt);
+        museumArtifactRepository.deleteMuseumArtifactByArtifactId(artifactId, true);
+    }
+
+    @Override
+    public MuseumArtifact getMuseumArtifactByArtifactId(UUID artifactId) {
+        boolean exist = museumArtifactRepository.retrieveMuseumArtifactId(artifactId);
+        if (!exist) {
+            throw new AppNotFoundException("Museum artifact Id Not Found");
+        }
+        return museumArtifactRepository.retrieveMuseumArtifactByArtifactId(artifactId);
     }
 }

@@ -23,27 +23,40 @@ public interface MuseumArtifactRepository {
         SELECT 1
         FROM artifacts
         WHERE artifact_id = #{artifactId}::UUID
+        AND is_deleted = false
     );
     """)
     boolean retrieveMuseumArtifactId(UUID artifactId);
 
     @Update("""
         UPDATE artifacts
-        SET title = #{artifact.title}, description = #{artifact.description}, 
+        SET title = #{artifact.title}, description = #{artifact.description},
             third_d_model_link = #{artifact.thirdDModelLink}, updated_at = #{updatedAt}
-        WHERE artifact_id = #{artifactId}::UUID;
+        WHERE artifact_id = #{artifactId}::UUID
     """)
     void updateMuseumArtifactByArtifactId(UUID artifactId, @Param("artifact") MuseumArtifactRequest museumArtifactRequest, LocalDateTime updatedAt);
 
-    @Delete("""
-        DELETE FROM artifacts
-        WHERE artifact_id = #{artifactId}::UUID;
+    @Update("""
+        UPDATE artifacts
+        SET is_deleted = #{isDeleted}, updated_at = NOW()
+        WHERE artifact_id = #{artifactId}::UUID
     """)
-    void deleteMuseumArtifactByArtifactId(UUID artifactId, LocalDateTime updatedAt);
+    void deleteMuseumArtifactByArtifactId(UUID artifactId, Boolean isDeleted);
+
+    @Update("""
+        UPDATE artifacts
+        SET is_deleted = #{isDeleted}, updated_at = NOW()
+         WHERE museum_zone_id = #{museumZoneId}::UUID
+    """)
+    void deleteMuseumArtifactByMuseumId(
+            @Param("museumZoneId") UUID museumZoneId,
+            @Param("isDeleted") Boolean isDeleted
+    );
 
     @Select("""
         SELECT * FROM artifacts
-        WHERE museum_zone_id = #{zoneID}::UUID;
+        WHERE museum_zone_id = #{zoneID}::UUID
+        AND is_deleted = false;
     """)
     @Results(id = "artifact", value = {
             @Result(property = "id", column = "artifact_id"),
@@ -56,5 +69,13 @@ public interface MuseumArtifactRepository {
             @Result(property = "isDeleted", column = "is_deleted")
     })
     MuseumArtifact retrieveMuseumArtifactByZoneId(UUID zoneID);
+
+    @Select("""
+        SELECT * FROM artifacts
+        WHERE artifact_id = #{zoneID}::UUID
+        AND is_deleted = false;
+    """)
+    @ResultMap("artifact")
+    MuseumArtifact retrieveMuseumArtifactByArtifactId(UUID zoneID);
 
 }

@@ -107,10 +107,10 @@ public interface MuseumZoneRepository {
 
     @Update("""
         UPDATE museum_zones
-        SET is_deleted = #{isDeleted}
-        WHERE museum_zone_id = #{zoneId}::UUID;
+        SET is_deleted = #{isDeleted}, updated_at = NOW()
+        WHERE museum_zone_id = #{zoneId}::UUID
     """)
-    void deleteMuseumZoneByZoneId(UUID zoneId, Boolean isDeleted);
+    void deleteMuseumZoneByZoneId(@Param("zoneId") UUID zoneId, @Param("isDeleted") Boolean isDeleted);
 
     @Select("""
         SELECT mz.museum_zone_id, mz.museum_id, mz.name, mz.description, mz.picture_link, mz.zone_category_id,

@@ -90,6 +90,7 @@ public class MuseumZoneServiceImpl implements MuseumZoneService {
             throw new AppNotFoundException("Museum zone Id Not Found");
         }
         museumZoneRepository.deleteMuseumZoneByZoneId(museumZoneId, true);
+        museumArtifactRepository.deleteMuseumArtifactByMuseumId(museumZoneId, true);
     }
 
     @Override

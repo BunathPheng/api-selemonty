@@ -63,7 +63,7 @@ public class MuseumArtifactController {
         return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
     }
 
-    @DeleteMapping("/artifact/{artifact-id}")
+    @PatchMapping("/artifact/{artifact-id}")
     @Operation(summary = "Update museum artifact by artifact Id")
     public ResponseEntity<ApiResponse<MuseumArtifact>> deleteMuseumArtifactByArtifactId(@PathVariable("artifact-id") UUID artifactId){
         museumArtifactService.deleteMuseumArtifactByArtifactId(artifactId);
@@ -71,6 +71,22 @@ public class MuseumArtifactController {
         ApiResponse<MuseumArtifact> apiResponse = ApiResponse.<MuseumArtifact>builder()
                 .success(true)
                 .message("Museum artifact deleted successfully.")
+                .status(HttpStatus.OK)
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
+    }
+
+    @GetMapping("/artifact/{artifact-id}")
+    @Operation(summary = "Update museum artifact by artifact Id")
+    public ResponseEntity<ApiResponse<MuseumArtifact>> getMuseumArtifactByArtifactId(@PathVariable("artifact-id") UUID artifactId){
+        MuseumArtifact artifact = museumArtifactService.getMuseumArtifactByArtifactId(artifactId);
+
+        ApiResponse<MuseumArtifact> apiResponse = ApiResponse.<MuseumArtifact>builder()
+                .success(true)
+                .message("Museum artifact fetched successfully.")
+                .payload(artifact)
                 .status(HttpStatus.OK)
                 .timestamp(LocalDateTime.now())
                 .build();
