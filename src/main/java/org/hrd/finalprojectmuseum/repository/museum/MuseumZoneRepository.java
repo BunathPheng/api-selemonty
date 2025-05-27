@@ -50,7 +50,8 @@ public interface MuseumZoneRepository {
 
     @Select("""
         SELECT * FROM museum_zones
-        WHERE museum_zone_id = #{zoneID}::UUID;
+        WHERE museum_zone_id = #{zoneID}::UUID
+        AND is_deleted = false;
     """)
     @Results(id = "zoneDetail", value = {
             @Result(property = "zoneId", column = "museum_zone_id"),
@@ -99,15 +100,17 @@ public interface MuseumZoneRepository {
         SELECT 1
         FROM museum_zones
         WHERE museum_zone_id = #{museumZoneId}::UUID
+        AND is_deleted = false
     );
     """)
     boolean retrieveMuseumZoneId(UUID museumZoneId);
 
-    @Delete("""
-        DELETE FROM museum_zones
+    @Update("""
+        UPDATE museum_zones
+        SET is_deleted = #{isDeleted}
         WHERE museum_zone_id = #{zoneId}::UUID;
     """)
-    void deleteMuseumZoneByZoneId(UUID zoneId);
+    void deleteMuseumZoneByZoneId(UUID zoneId, Boolean isDeleted);
 
     @Select("""
         SELECT mz.museum_zone_id, mz.museum_id, mz.name, mz.description, mz.picture_link, mz.zone_category_id,
@@ -115,7 +118,7 @@ public interface MuseumZoneRepository {
         FROM museum_zones mz
         WHERE mz.museum_id = #{museumId}::UUID
         AND mz.is_deleted = false
-        ORDER BY mz.created_at DESC
+        ORDER BY mz.updated_at DESC
         LIMIT #{size} OFFSET #{offset};
     """)
     @Results(id = "zoneListMapping", value = {

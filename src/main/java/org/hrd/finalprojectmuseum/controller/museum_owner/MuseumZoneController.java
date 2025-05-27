@@ -126,7 +126,7 @@ public class MuseumZoneController {
         return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
     }
 
-    @DeleteMapping("/{zone-id}")
+    @PatchMapping("/{zone-id}")
     @Operation(summary = "Delete museum zone zone Id")
     public ResponseEntity<ApiResponse<MuseumZone>> deleteMuseumZoneByZoneId(@PathVariable("zone-id") UUID zoneId) {
 
