@@ -175,6 +175,18 @@ CREATE TABLE favorites (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE guides(
+    guide_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    museum_id UUID,
+    FOREIGN KEY (museum_id) REFERENCES museum_owners(museum_id) ON DELETE CASCADE,
+    guide_name VARCHAR(255),
+    contact_number VARCHAR(25),
+    static_qr_link VARCHAR(255),
+    is_available BOOLEAN,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP
+);
+
 CREATE TABLE tours (
     tour_id UUID PRIMARY KEY DEFAULT GEN_RANDOM_UUID(),
     booking_id UUID,
@@ -189,12 +201,10 @@ CREATE TABLE tour_guides (
     tour_guide_id UUID PRIMARY KEY DEFAULT GEN_RANDOM_UUID(),
     tour_id UUID,
     FOREIGN KEY (tour_id) REFERENCES tours(tour_id),
-    guide_name VARCHAR(255),
-    contact_number VARCHAR(25),
-    static_qr_link VARCHAR(255),
+    guide_id UUID,
+    FOREIGN KEY (guide_id) REFERENCES guides(guide_id),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP,
-    is_deleted BOOLEAN DEFAULT FALSE
+    updated_at TIMESTAMP
 );
 
 CREATE TABLE artifacts (
