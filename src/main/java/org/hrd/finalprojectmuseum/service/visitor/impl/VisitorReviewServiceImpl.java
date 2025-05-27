@@ -105,7 +105,6 @@ public class VisitorReviewServiceImpl implements VisitorReviewService {
 
         VisitorReviewStatistics statistics = visitorReviewRepository.retriveVisitorReviewStatistics(museumId);
 
-        // Handle case when no reviews exist
         if (statistics == null || statistics.getTotalReviews() == 0) {
             statistics = new VisitorReviewStatistics();
             statistics.setAverageRating(BigDecimal.ZERO);

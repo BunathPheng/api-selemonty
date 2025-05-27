@@ -150,7 +150,7 @@ public class MuseumZoneController {
 
         UUID museumId = getMuseumIdByUserId();
 
-        List<MuseumZoneResponse> allMuseumZonesByMuseumId = museumZoneService.getAllMuseumZonesByMuseumId(museumId, size, page);
+        List<MuseumZoneResponse> allMuseumZonesByMuseumId = museumZoneService.getAllMuseumZonesByMuseumId(museumId, page, size);
 
         Integer totalItems = museumZoneService.getTotalMuseumZonesByMuseumId(museumId);
 
