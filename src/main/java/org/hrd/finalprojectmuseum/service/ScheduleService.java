@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import org.hrd.finalprojectmuseum.model.dto.request.museum_owner.ScheduleRequest;
 import org.hrd.finalprojectmuseum.model.entity.Schedule;
+import org.hrd.finalprojectmuseum.model.enums.DayOfWeek;
 
 import java.util.List;
 import java.util.UUID;
@@ -18,4 +19,6 @@ public interface ScheduleService {
     Schedule getScheduleOfMuseumByScheduleId(@NotNull(message = "scheduleId is required") UUID scheduleId);
 
     List<Schedule> getShortSchedulesOfMuseum(UUID museumId);
+
+    Schedule getScheduleByDay(UUID museumId, String day);
 }

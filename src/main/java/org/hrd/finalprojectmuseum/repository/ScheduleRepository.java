@@ -58,7 +58,14 @@ public interface ScheduleRepository {
 
     @ResultMap("scheduleMapper")
     @Select("""
-        SELECT schedule_id, day, opening_time, closing_time, day_off, created_at, updated_at FROM schedules WHERE schedule_id = #{scheduleId};
+        SELECT schedule_id, day, opening_time, closing_time, day_off, created_at, updated_at FROM schedules WHERE schedule_id = #{scheduleId}::UUID;
     """)
     Schedule findScheduleOfMuseumByScheduleId(UUID scheduleId);
+
+    @ResultMap("scheduleMapper")
+    @Select("""
+        SELECT schedule_id, day, opening_time, closing_time, day_off, created_at, updated_at FROM schedules
+        WHERE museum_id = #{museumId}::UUID AND day = #{day};
+    """)
+    Schedule findScheduleOfMuseumByDay(UUID museumId, String day);
 }

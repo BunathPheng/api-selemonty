@@ -39,7 +39,10 @@ public class EventController {
     )
     @GetMapping()
     @PreAuthorize("hasRole('ROLE_VISITOR')")
-    public ResponseEntity<ApiResponse<ListResponse<Event>>> getAllEvents(@RequestParam(defaultValue = "1") @Min(value = 1, message = "must be greater than 0") Integer page, @RequestParam(defaultValue = "10") @Min(value = 1, message = "must be greater than 0") Integer size) {
+    public ResponseEntity<ApiResponse<ListResponse<Event>>> getAllEvents(
+            @RequestParam(defaultValue = "1") @Min(value = 1, message = "must be greater than 0") Integer page,
+            @RequestParam(defaultValue = "10") @Min(value = 1, message = "must be greater than 0") Integer size
+    ) {
         ListResponse<Event> listEventResponse = eventService.findAllEvents(page, size);
         ApiResponse<ListResponse<Event>> response = ApiResponse.<ListResponse<Event>>builder()
                 .success(true)
@@ -56,7 +59,11 @@ public class EventController {
     )
     @GetMapping("museum/{museum-id}")
     @PreAuthorize("hasRole('ROLE_VISITOR')")
-    public ResponseEntity<ApiResponse<ListResponse<Event>>> getAllEventsByMuseumId(@PathVariable("museum-id") @NotNull UUID museumId, @RequestParam(defaultValue = "1") @Min(value = 1, message = "must be greater than 0") Integer page, @RequestParam(defaultValue = "10") @Min(value = 1, message = "must be greater than 0") Integer size) {
+    public ResponseEntity<ApiResponse<ListResponse<Event>>> getAllEventsByMuseumId(
+            @PathVariable("museum-id") @NotNull UUID museumId,
+            @RequestParam(defaultValue = "1") @Min(value = 1, message = "must be greater than 0") Integer page,
+            @RequestParam(defaultValue = "10") @Min(value = 1, message = "must be greater than 0") Integer size
+    ) {
         ListResponse<Event> listEventResponse = eventService.findAllEventsByMuseumId(museumId, page, size);
         ApiResponse<ListResponse<Event>> response = ApiResponse.<ListResponse<Event>>builder()
                 .success(true)
@@ -99,7 +106,10 @@ public class EventController {
 
     @Operation(summary = "Use to update event. For museum owner role only")
     @PutMapping("/{event-id}")
-    public ResponseEntity<ApiResponse<Event>> updateEventByEventId(@RequestBody @Valid EventRequest eventRequest, @PathVariable("event-id") @NotNull UUID eventId) {
+    public ResponseEntity<ApiResponse<Event>> updateEventByEventId(
+            @RequestBody @Valid EventRequest eventRequest,
+            @PathVariable("event-id") @NotNull UUID eventId
+    ) {
         Event event = eventService.updateEventByEventId(eventId, eventRequest);
         ApiResponse<Event> response = ApiResponse.<Event>builder()
                 .success(true)

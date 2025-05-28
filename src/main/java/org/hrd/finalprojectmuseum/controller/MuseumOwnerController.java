@@ -10,6 +10,7 @@ import org.hrd.finalprojectmuseum.model.dto.request.museum_owner.MuseumOwnerRequ
 import org.hrd.finalprojectmuseum.model.dto.response.ApiResponse;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumCategory;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
+import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumShortInfo;
 import org.hrd.finalprojectmuseum.service.MuseumOwnerService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +23,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("api/v1/museum-owner/profile")
+@RequestMapping("api/v1/museum-owner/")
 @RequiredArgsConstructor
 @SecurityRequirement(name = "bearerAuth")
 @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
@@ -101,4 +102,5 @@ public class MuseumOwnerController {
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
+
 }

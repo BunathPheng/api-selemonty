@@ -95,6 +95,11 @@ public class ScheduleServiceImpl implements ScheduleService {
         return groupedSchedules;
     }
 
+    @Override
+    public Schedule getScheduleByDay(UUID museumId, String day) {
+        return scheduleRepository.findScheduleOfMuseumByDay(museumId, day);
+    }
+
     private boolean hasSameSchedule(Schedule s1, Schedule s2) {
         if (s1.getDayOff() && s2.getDayOff()) {
             return true;
