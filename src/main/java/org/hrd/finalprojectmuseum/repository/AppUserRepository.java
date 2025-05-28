@@ -80,7 +80,7 @@ public interface AppUserRepository {
         INSERT INTO museum_owners(user_id, name, lat, lng, logo_link, description)
         VALUES (#{userId}::uuid, #{name}, #{lat}, #{lng}, #{logoLink}, #{description})
     """)
-    void storeMeseumOwner(UUID userId, String name, String logoLink, BigDecimal lat, Double lng, String description);
+    void storeMeseumOwner(UUID userId, String name, String logoLink, BigDecimal lat, BigDecimal lng, String description);
 
     @Delete("""
         DELETE FROM user_info WHERE user_id = #{userId}::UUID

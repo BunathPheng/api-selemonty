@@ -35,8 +35,9 @@ public class BookingController {
 
     @Operation(summary = "For booking a ticket. Only visitor can use.")
     @PostMapping("/{museum-id}")
-    public ResponseEntity<ApiResponse<Booking>> makeABookingByMuseumId(@PathVariable("museum-id") @Valid UUID museumId,
-                                                                       @RequestBody @Valid BookingRequest bookingRequest
+    public ResponseEntity<ApiResponse<Booking>> bookingIndividualByMuseumId(
+            @PathVariable("museum-id") @Valid UUID museumId,
+            @RequestBody @Valid BookingRequest bookingRequest
     ) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UUID userId = UUID.fromString((String) auth.getCredentials());

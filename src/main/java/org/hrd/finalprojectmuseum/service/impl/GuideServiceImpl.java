@@ -27,12 +27,15 @@ public class GuideServiceImpl implements GuideService {
         search = (search == null) ? "" : search;
         Boolean isAvailable = statusType == GuideStatusType.AVAILABLE;
         List<Guide> guides;
+        Integer allItems;
         if (statusType == GuideStatusType.ALL){
             guides = guideRepository.findAllGuideByMuseumId(museumId, search, page, size);
+            allItems = guideRepository.countAllGuide(museumId, search);
         }else{
             guides = guideRepository.findAllGuideByMuseumIdWithType(museumId, search, page, size, isAvailable);
+            allItems = guideRepository.countAllGuideWithType(museumId, search, isAvailable);
         }
-        Integer allItems = guideRepository.countAllGuide(museumId, search);
+
         Pagination pagination = new Pagination();
         return ListResponse.<Guide>builder()
                 .items(guides)

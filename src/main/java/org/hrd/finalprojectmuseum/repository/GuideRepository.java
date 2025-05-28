@@ -71,4 +71,11 @@ public interface GuideRepository {
         OFFSET (#{page}-1)* #{size} LIMIT #{size};
     """)
     List<Guide> findAllGuideByMuseumIdWithType(UUID museumId, String search, Integer page, Integer size, Boolean isAvailable);
+
+    @Select("""
+        SELECT COUNT(*) FROM guides WHERE museum_id = #{museumId}::UUID
+        AND guide_name ILIKE CONCAT('%', #{search}, '%')
+        AND is_available = #{isAvailable}
+    """)
+    Integer countAllGuideWithType(UUID museumId, String search, Boolean isAvailable);
 }

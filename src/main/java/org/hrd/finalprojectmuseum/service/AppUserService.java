@@ -30,6 +30,6 @@ public interface AppUserService extends UserDetailsService {
 
     void storeVisitor(UUID userId, String fullName);
 
-    void storeMuseumOwner(UUID userId, String name, String logoLink, BigDecimal lat, Double lng, String description);
+    void storeMuseumOwner(UUID userId, String name, String logoLink, BigDecimal lat, BigDecimal lng, String description);
     void updatePassword(UUID userId, ChangePasswordRequest passwordRequest);
 }
