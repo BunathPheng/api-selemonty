@@ -8,6 +8,7 @@ import org.hrd.finalprojectmuseum.model.dto.request.admin.AdminRequest;
 import org.hrd.finalprojectmuseum.model.dto.request.museum_owner.MuseumOwnerRequest;
 import org.hrd.finalprojectmuseum.model.dto.request.visitor.VisitorRequest;
 import org.hrd.finalprojectmuseum.model.entity.AppUserRegister;
+import org.hrd.finalprojectmuseum.model.entity.Schedule;
 import org.hrd.finalprojectmuseum.model.entity.admin.Admin;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumCategory;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
@@ -31,12 +32,17 @@ public class ProfileServiceImpl implements ProfileService {
     private final MuseumRepository museumRepository;
     private final AppUserRepository appUserRepository;
     private final ReviewRepository reviewRepository;
+    private final ScheduleRepository scheduleRepository;
 
     @Override
     public MuseumOwner getMuseumOwnerByUserId(UUID userId) {
         MuseumOwner museumOwner = profileRepository.findMuseumOwnerByUserId(userId);
         VisitorReviewStatistics reviewStatistics = reviewRepository.retriveVisitorReviewStatistics(museumOwner.getMuseumId());
+        List<Schedule> schedules = scheduleRepository.findScheduleOfMuseum(museumOwner.getMuseumId());
+        Schedule todaySchedule = scheduleRepository.findScheduleOfMuseumByDay(museumOwner.getMuseumId(), LocalDateTime.now().getDayOfWeek().toString());
         museumOwner.setReview(reviewStatistics);
+        museumOwner.setSchedule(schedules);
+        museumOwner.setTodaySchedule(todaySchedule);
         if (museumOwner == null) {
             throw new AppNotFoundException("Museum Owner Not Found");
         }
@@ -46,24 +52,15 @@ public class ProfileServiceImpl implements ProfileService {
     @Override
     public MuseumOwner updateMuseumOwnerByUserId(UUID userId, MuseumOwnerRequest request) {
         MuseumOwner existing = getMuseumOwnerByUserId(userId);
-
-        MuseumOwnerRequest updatedRequest = new MuseumOwnerRequest();
-
-        updatedRequest.setName(getOrDefault(request.getName(), existing.getName()));
-        if (existing.getMuseumCategory() == null){
-            updatedRequest.setMuseumCategoryId(request.getMuseumCategoryId());
-        }else{
-            updatedRequest.setMuseumCategoryId(Optional.ofNullable(request.getMuseumCategoryId()).orElse(existing.getMuseumCategory().getMuseumCategoryId()));
-        }
-        updatedRequest.setContactNumber(getOrDefault(request.getContactNumber(), existing.getContactNumber()));
-        updatedRequest.setLat(Optional.ofNullable(request.getLat()).orElse(existing.getLat()));
-        updatedRequest.setLng(Optional.ofNullable(request.getLng()).orElse(existing.getLng()));
-        updatedRequest.setLogoLink(getOrDefault(request.getLogoLink(), existing.getLogoLink()));
-        updatedRequest.setBannerLink(getOrDefault(request.getBannerLink(), existing.getBannerLink()));
-        updatedRequest.setLandscapeLink(request.getLandscapeLink()!=null?request.getLandscapeLink():existing.getLandscapeLink());
-        updatedRequest.setDescription(getOrDefault(request.getDescription(), existing.getDescription()));
-        profileRepository.modifyMuseumOwnerById(existing.getMuseumId(), updatedRequest, LocalDateTime.now());
-        return getMuseumOwnerByUserId(userId);
+        profileRepository.modifyMuseumOwnerById(existing.getMuseumId(), request, LocalDateTime.now());
+        MuseumOwner updatedMuseum = getMuseumOwnerByUserId(userId);
+        VisitorReviewStatistics reviewStatistics = reviewRepository.retriveVisitorReviewStatistics(updatedMuseum.getMuseumId());
+        List<Schedule> schedules = scheduleRepository.findScheduleOfMuseum(updatedMuseum.getMuseumId());
+        Schedule todaySchedule = scheduleRepository.findScheduleOfMuseumByDay(updatedMuseum.getMuseumId(), LocalDateTime.now().getDayOfWeek().toString());
+        updatedMuseum.setReview(reviewStatistics);
+        updatedMuseum.setSchedule(schedules);
+        updatedMuseum.setTodaySchedule(todaySchedule);
+        return updatedMuseum;
     }
 
     @Override
@@ -111,7 +108,14 @@ public class ProfileServiceImpl implements ProfileService {
     @Override
     public MuseumOwner updateMuseumOwnerPaymentByUserId(UUID userId, PaymentAccountRequest paymentAccountRequest) {
         getMuseumOwnerByUserId(userId);
-        return profileRepository.updateMuseumPaymentByUserId(userId, paymentAccountRequest, LocalDateTime.now());
+        MuseumOwner updatedMuseum = profileRepository.updateMuseumPaymentByUserId(userId, paymentAccountRequest, LocalDateTime.now());
+        VisitorReviewStatistics reviewStatistics = reviewRepository.retriveVisitorReviewStatistics(updatedMuseum.getMuseumId());
+        List<Schedule> schedules = scheduleRepository.findScheduleOfMuseum(updatedMuseum.getMuseumId());
+        Schedule todaySchedule = scheduleRepository.findScheduleOfMuseumByDay(updatedMuseum.getMuseumId(), LocalDateTime.now().getDayOfWeek().toString());
+        updatedMuseum.setReview(reviewStatistics);
+        updatedMuseum.setSchedule(schedules);
+        updatedMuseum.setTodaySchedule(todaySchedule);
+        return updatedMuseum;
     }
     
     //For admin

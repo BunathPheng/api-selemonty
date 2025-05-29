@@ -8,10 +8,12 @@ import org.hrd.finalprojectmuseum.model.dto.response.MuseumWithDistanceResponse;
 import org.hrd.finalprojectmuseum.model.entity.Pagination;
 import org.hrd.finalprojectmuseum.model.entity.Schedule;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
-import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumShortInfo;
+import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
 import org.hrd.finalprojectmuseum.model.entity.visitor.VisitorReviewStatistics;
 
 import org.hrd.finalprojectmuseum.repository.MuseumRepository;
+import org.hrd.finalprojectmuseum.repository.ReviewRepository;
+import org.hrd.finalprojectmuseum.repository.ScheduleRepository;
 import org.hrd.finalprojectmuseum.service.MuseumService;
 import org.hrd.finalprojectmuseum.service.ScheduleService;
 import org.hrd.finalprojectmuseum.service.ReviewService;
@@ -28,21 +30,42 @@ public class MuseumServiceImpl implements MuseumService {
     private final MuseumRepository museumRepository;
     private final ScheduleService scheduleService;
     private final ReviewService reviewService;
+    private final ReviewRepository reviewRepository;
+    private final ScheduleRepository scheduleRepository;
+
 
     @Override
-    public ListResponse<MuseumShortInfo> getAllRequestMuseum(UUID museumCategoryId, Integer page, Integer size) {
-        List<MuseumShortInfo> museums;
+    public MuseumOwner setFullData(MuseumOwner museumOwner) {
+        VisitorReviewStatistics reviewStatistics = reviewRepository.retriveVisitorReviewStatistics(museumOwner.getMuseumId());
+        List<Schedule> schedules = scheduleRepository.findScheduleOfMuseum(museumOwner.getMuseumId());
+        Schedule todaySchedule = scheduleRepository.findScheduleOfMuseumByDay(museumOwner.getMuseumId(), LocalDateTime.now().getDayOfWeek().toString());
+        if (reviewStatistics != null) {
+            museumOwner.setReview(reviewStatistics);
+        }
+        if (schedules != null) {
+            museumOwner.setSchedule(schedules);
+            museumOwner.setTodaySchedule(todaySchedule);
+        }
+
+        return museumOwner;
+    }
+
+    @Override
+    public ListResponse<MuseumOwner> getAllRequestMuseum(UUID museumCategoryId, Integer page, Integer size) {
+        List<MuseumOwner> museums;
         if (museumCategoryId == null){
             museums = museumRepository.getAllRequestMuseums(page, size);
         }else {
             museums = museumRepository.getAllRequestMuseumsByCategoryId(museumCategoryId, page, size);
         }
         Integer totalItems = museumRepository.countAllRequestMuseums();
-
+        for (MuseumOwner museum : museums) {
+            setFullData(museum);
+        }
         Pagination pagination = new Pagination();
         pagination = pagination.calculatePagination(totalItems, page, size);
 
-        ListResponse<MuseumShortInfo> listMuseumResponse = ListResponse.<MuseumShortInfo>builder()
+        ListResponse<MuseumOwner> listMuseumResponse = ListResponse.<MuseumOwner>builder()
                 .items(museums)
                 .pagination(pagination)
                 .build();
@@ -59,13 +82,14 @@ public class MuseumServiceImpl implements MuseumService {
         if (museum.getIsApproved()) {
             throw new AppBadRequestException("Museum is already approved.");
         }
+        setFullData(museum);
         museumRepository.udpateIsApprovedStatus(museumId);
 
     }
 
     @Override
-    public ListResponse<MuseumShortInfo> getAllMuseum(String search, UUID museumCategoryId, Integer page, Integer size) {
-        List<MuseumShortInfo> museums;
+    public ListResponse<MuseumOwner> getAllMuseum(String search, UUID museumCategoryId, Integer page, Integer size) {
+        List<MuseumOwner> museums;
         Integer totalItems;
         search = search == null ? "" : search;
         if (museumCategoryId == null){
@@ -75,11 +99,14 @@ public class MuseumServiceImpl implements MuseumService {
             museums = museumRepository.getAllMuseumsByCategoryId(search, museumCategoryId, page, size);
             totalItems = museumRepository.countAllMuseumsByCategory(search, museumCategoryId);
         }
+        for (MuseumOwner museum : museums) {
+            setFullData(museum);
+        }
 
         Pagination pagination = new Pagination();
         pagination = pagination.calculatePagination(totalItems, page, size);
 
-        ListResponse<MuseumShortInfo> listMuseumResponse = ListResponse.<MuseumShortInfo>builder()
+        ListResponse<MuseumOwner> listMuseumResponse = ListResponse.<MuseumOwner>builder()
                 .items(museums)
                 .pagination(pagination)
                 .build();
@@ -89,12 +116,15 @@ public class MuseumServiceImpl implements MuseumService {
     }
 
     @Override
-    public ListResponse<MuseumShortInfo> getAllApprovedMuseum(UUID museumCategoryId, Integer page, Integer size) {
-        List<MuseumShortInfo> museums;
+    public ListResponse<MuseumOwner> getAllApprovedMuseum(UUID museumCategoryId, Integer page, Integer size) {
+        List<MuseumOwner> museums;
         if (museumCategoryId == null){
             museums = museumRepository.getAllApprovedMuseums(page, size);
         }else {
             museums = museumRepository.getAllApprovedMuseumsByCategoryId(museumCategoryId, page, size);
+        }
+        for (MuseumOwner museum : museums) {
+            setFullData(museum);
         }
 
         Integer totalItems = museumRepository.countAllApprovedMuseums();
@@ -102,7 +132,7 @@ public class MuseumServiceImpl implements MuseumService {
         Pagination pagination = new Pagination();
         pagination = pagination.calculatePagination(totalItems, page, size);
 
-        ListResponse<MuseumShortInfo> listMuseumResponse = ListResponse.<MuseumShortInfo>builder()
+        ListResponse<MuseumOwner> listMuseumResponse = ListResponse.<MuseumOwner>builder()
                 .items(museums)
                 .pagination(pagination)
                 .build();

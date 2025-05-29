@@ -77,7 +77,7 @@ public class ProfileController {
     }
 
     @Operation(summary = "For add landscape", description = "Landscape is using JSONB so this endpoint use for add landscape")
-    @PostMapping("/museum-owner/landscape")
+    @PutMapping("/museum-owner/landscape")
     public ResponseEntity<ApiResponse<JSONObject>> addLandscape(@RequestBody JSONObject landscapeRequest) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UUID userId = UUID.fromString((String) auth.getCredentials());

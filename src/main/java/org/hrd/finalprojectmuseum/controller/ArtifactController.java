@@ -20,7 +20,6 @@ import java.util.UUID;
 @RestController
 @SecurityRequirement(name = "bearerAuth")
 @RequestMapping("/api/v1/artifact")
-@PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
 @RequiredArgsConstructor
 public class ArtifactController {
     private final ArtifactService artifactService;
@@ -40,11 +39,10 @@ public class ArtifactController {
                 .status(HttpStatus.OK)
                 .timestamp(LocalDateTime.now())
                 .build();
-
         return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
     }
 
-    @PutMapping("/artifact/{artifact-id}")
+    @PutMapping("/{artifact-id}")
     @Operation(summary = "Update museum artifact by artifact Id")
     public ResponseEntity<ApiResponse<MuseumArtifact>> updateMuseumArtifactByArtifactId(
             @PathVariable("artifact-id") UUID artifactId,
@@ -62,7 +60,7 @@ public class ArtifactController {
         return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
     }
 
-    @PatchMapping("/artifact/{artifact-id}")
+    @PatchMapping("/{artifact-id}")
     @Operation(summary = "Update museum artifact by artifact Id")
     public ResponseEntity<ApiResponse<MuseumArtifact>> deleteMuseumArtifactByArtifactId(@PathVariable("artifact-id") UUID artifactId){
         artifactService.deleteMuseumArtifactByArtifactId(artifactId);
@@ -77,11 +75,10 @@ public class ArtifactController {
         return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
     }
 
-    @GetMapping("/artifact/{artifact-id}")
+    @GetMapping("/{artifact-id}")
     @Operation(summary = "Update museum artifact by artifact Id")
     public ResponseEntity<ApiResponse<MuseumArtifact>> getMuseumArtifactByArtifactId(@PathVariable("artifact-id") UUID artifactId){
         MuseumArtifact artifact = artifactService.getMuseumArtifactByArtifactId(artifactId);
-
         ApiResponse<MuseumArtifact> apiResponse = ApiResponse.<MuseumArtifact>builder()
                 .success(true)
                 .message("Museum artifact fetched successfully.")
@@ -89,7 +86,6 @@ public class ArtifactController {
                 .status(HttpStatus.OK)
                 .timestamp(LocalDateTime.now())
                 .build();
-
         return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
     }
 }

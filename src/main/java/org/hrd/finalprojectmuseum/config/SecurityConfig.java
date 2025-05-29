@@ -9,6 +9,7 @@ import org.hrd.finalprojectmuseum.jwt.JwtUtils;
 import org.hrd.finalprojectmuseum.security.OAuth2AuthenticationSuccessHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -49,6 +50,10 @@ public class SecurityConfig {
                                 "/api/v1/museum/all",
                                 "/api/v1/museum/by-location"
                         ).permitAll()
+                        .requestMatchers("/api/v1/artifact/**").hasRole("MUSEUM_OWNER")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/booking/*").hasRole("VISITOR")  // Only POST booking creation for visitors
+                        .requestMatchers(HttpMethod.GET, "/api/v1/booking").hasAnyRole("VISITOR", "MUSEUM_OWNER")  // GET booking history for both
+                        .requestMatchers(HttpMethod.GET, "/api/v1/booking/*").hasAnyRole("VISITOR", "MUSEUM_OWNER")
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

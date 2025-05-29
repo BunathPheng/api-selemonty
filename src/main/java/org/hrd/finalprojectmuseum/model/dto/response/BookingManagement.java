@@ -1,7 +1,6 @@
 package org.hrd.finalprojectmuseum.model.dto.response;
 
 import lombok.Data;
-import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumShortInfo;
 import org.hrd.finalprojectmuseum.model.entity.visitor.Visitor;
 
 import java.math.BigDecimal;

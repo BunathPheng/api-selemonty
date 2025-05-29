@@ -24,6 +24,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.view.RedirectView;
@@ -44,13 +45,15 @@ public class AuthController {
     private final OtpCacheService otpService;
     private final GoogleAuthService googleAuthService;
     private final EmailService emailService;
+    private final PasswordEncoder passwordEncoder;
 
     @Operation(summary = "Use for login for all role")
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<LoginToken>> login(@Valid @RequestBody LoginRequest loginRequest) {
         String email = loginRequest.getEmail();
         String password = loginRequest.getPassword();
-
+        String myPassword = passwordEncoder.encode("@M1nBtb007");
+        System.out.println(myPassword);
         AppUserRegister appUserRegister = appUserService.findUserByIdentifier(email, password);
         Authentication auth = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(appUserRegister.getEmail(), password)
@@ -138,7 +141,7 @@ public class AuthController {
     }
 
     @Operation(summary = "For send re-send otp to verify account", description = "This endpoint use for send otp to verify account if user request to resend again")
-    @PostMapping("/send-otp")
+    @PostMapping("/resend-otp")
     public ResponseEntity<ApiResponse<Otps>> sendOtp(@RequestParam @Email(message = "Email form is incorrect") @NotBlank(message = "Email is required") String email) {
         String otp = sendEmailService.generateOtp();
         appUserService.checkEmailBeforeOpt(email);

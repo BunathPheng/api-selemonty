@@ -5,7 +5,7 @@ import org.apache.ibatis.type.JdbcType;
 import org.hrd.finalprojectmuseum.model.dto.response.MuseumWithDistanceResponse;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumCategory;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
-import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumShortInfo;
+import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -37,21 +37,11 @@ public interface MuseumRepository {
     """)
     MuseumOwner findMuseumOwnerByMuseumId(UUID museumId);
 
-    @Results(id = "shortMuseumMapper", value = {
-            @Result(property = "museumId", column = "museum_id", javaType = UUID.class, jdbcType = JdbcType.VARCHAR),
-            @Result(property = "museumCategory", column = "museum_category_id", javaType = UUID.class, jdbcType = JdbcType.VARCHAR,
-                    many = @Many(select = "findMuseumCategoryById")),
-            @Result(property = "name", column = "name"),
-            @Result(property = "contactNumber", column = "contact_number"),
-            @Result(property = "logoLink", column = "logo_link"),
-            @Result(property = "description", column = "description"),
-            @Result(property = "isApproved", column = "is_approved"),
-    })
+    @ResultMap("museumMapper")
     @Select("""
-        SELECT museum_id, museum_category_id, name, contact_number, logo_link, lng, lat,
-               description, is_approved FROM museum_owners WHERE museum_id = #{museumId}::UUID;
+        SELECT * FROM museum_owners WHERE museum_id = #{museumId}::UUID;
     """)
-    MuseumShortInfo findMuseumByMuseumId(UUID museumId);
+    MuseumOwner findMuseumByMuseumId(UUID museumId);
 
     @Result(property = "museumCategoryId", column = "museum_category_id")
     @Select("""
@@ -65,33 +55,21 @@ public interface MuseumRepository {
     """)
     MuseumCategory findMuseumCategoryById(UUID museumCategoryId);
 
-    @Results(id = "shortDetailMuseumMapper", value = {
-            @Result(property = "museumId", column = "museum_id", javaType = UUID.class, jdbcType = JdbcType.VARCHAR),
-            @Result(property = "museumCategory", column = "museum_category_id", javaType = UUID.class, jdbcType = JdbcType.VARCHAR,
-                    many = @Many(select = "findMuseumCategoryById")),
-            @Result(property = "name", column = "name"),
-            @Result(property = "contactNumber", column = "contact_number"),
-            @Result(property = "logoLink", column = "logo_link"),
-            @Result(property = "lng", column = "lat"),
-            @Result(property = "lat", column = "lat"),
-            @Result(property = "description", column = "description"),
-            @Result(property = "isApproved", column = "is_approved"),
-    })
+    @ResultMap("museumMapper")
     @Select("""
-        SELECT museum_id, museum_category_id, name, contact_number, logo_link, lng, lat,
-               description, is_approved FROM museum_owners
+        SELECT * FROM museum_owners
         INNER JOIN user_info on user_info.user_id = museum_owners.user_id WHERE is_approved = false AND is_verified = true
         OFFSET (#{page}-1)* #{size} LIMIT #{size};
     """)
-    List<MuseumShortInfo> getAllRequestMuseums(Integer page, Integer size);
+    List<MuseumOwner> getAllRequestMuseums(Integer page, Integer size);
 
+    @ResultMap("museumMapper")
     @Select("""
-        SELECT museum_id, museum_category_id, name, contact_number, logo_link, lng, lat,
-               description, is_approved FROM museum_owners
+        SELECT * FROM museum_owners
         INNER JOIN user_info on user_info.user_id = museum_owners.user_id WHERE is_approved = false AND is_verified = true AND museum_category_id = #{museumCategoryId}::UUID
         offset (#{page}-1)* #{size} limit #{size};
     """)
-    List<MuseumShortInfo> getAllRequestMuseumsByCategoryId(UUID museumCategoryId, Integer page, Integer size);
+    List<MuseumOwner> getAllRequestMuseumsByCategoryId(UUID museumCategoryId, Integer page, Integer size);
 
     @Select("""
         SELECT COUNT(*) FROM museum_owners INNER JOIN user_info on user_info.user_id = museum_owners.user_id WHERE is_approved = false AND is_verified = true
@@ -103,25 +81,23 @@ public interface MuseumRepository {
     """)
     void udpateIsApprovedStatus(UUID museumId);
 
-    @ResultMap("shortDetailMuseumMapper")
+    @ResultMap("museumMapper")
     @Select("""
-        SELECT museum_id, museum_category_id, name, contact_number, logo_link, lng, lat,
-               description, is_approved FROM museum_owners
+        SELECT * FROM museum_owners
         INNER JOIN user_info on user_info.user_id = museum_owners.user_id
         WHERE is_verified = true AND name ILIKE CONCAT('%', #{search}, '%')
         offset (#{page}-1)* #{size} limit #{size};
     """)
-    List<MuseumShortInfo> getAllMuseums(String search, Integer page, Integer size);
+    List<MuseumOwner> getAllMuseums(String search, Integer page, Integer size);
 
-    @ResultMap("shortDetailMuseumMapper")
+    @ResultMap("museumMapper")
     @Select("""
-        SELECT museum_id, museum_category_id, name, contact_number, logo_link, lng, lat,
-               description, is_approved FROM museum_owners
+        SELECT * FROM museum_owners
         INNER JOIN user_info on user_info.user_id = museum_owners.user_id
         WHERE is_verified = true AND museum_category_id = #{museumCategoryId}::UUID AND name ILIKE CONCAT('%', #{search}, '%')
         offset (#{page}-1)* #{size} limit #{size};
     """)
-    List<MuseumShortInfo> getAllMuseumsByCategoryId(String search, UUID museumCategoryId, Integer page, Integer size);
+    List<MuseumOwner> getAllMuseumsByCategoryId(String search, UUID museumCategoryId, Integer page, Integer size);
 
     @Select("""
         SELECT COUNT(*) FROM museum_owners INNER JOIN user_info on user_info.user_id = museum_owners.user_id
@@ -129,23 +105,21 @@ public interface MuseumRepository {
     """)
     Integer countAllMuseums(String search);
 
-    @ResultMap("shortDetailMuseumMapper")
+    @ResultMap("museumMapper")
     @Select("""
-        SELECT museum_id, museum_category_id, name, contact_number, logo_link, lng, lat,
-               description, is_approved FROM museum_owners
+        SELECT * FROM museum_owners
         INNER JOIN user_info on user_info.user_id = museum_owners.user_id WHERE is_approved = true AND is_verified = true
         offset (#{page}-1)* #{size} limit #{size};
     """)
-    List<MuseumShortInfo> getAllApprovedMuseums(Integer page, Integer size);
+    List<MuseumOwner> getAllApprovedMuseums(Integer page, Integer size);
 
-    @ResultMap("shortDetailMuseumMapper")
+    @ResultMap("museumMapper")
     @Select("""
-        SELECT museum_id, museum_category_id, name, contact_number, logo_link, lng, lat,
-               description, is_approved FROM museum_owners
+        SELECT * FROM museum_owners
         INNER JOIN user_info on user_info.user_id = museum_owners.user_id WHERE is_approved = true AND is_verified = true AND museum_category_id = #{museumCategoryId}::UUID
         offset (#{page}-1)* #{size} limit #{size};
     """)
-    List<MuseumShortInfo> getAllApprovedMuseumsByCategoryId(UUID museumCategoryId, Integer page, Integer size);
+    List<MuseumOwner> getAllApprovedMuseumsByCategoryId(UUID museumCategoryId, Integer page, Integer size);
 
     @Select("""
         SELECT COUNT(*) FROM museum_owners INNER JOIN user_info on user_info.user_id = museum_owners.user_id WHERE is_approved = true AND is_verified = true
@@ -158,14 +132,14 @@ public interface MuseumRepository {
     """)
     Integer countAllMuseumsByCategory(String search, UUID museumCategoryId);
 
-        @Results(id = "MuseumWithDistanceMapper", value = {
-            @Result(property = "museumId", column = "museum_id"),
-            @Result(property = "name", column = "name"),
-            @Result(property = "address", column = "address"),
-            @Result(property = "imageUrl", column = "image_url"),
-            @Result(property = "lat", column = "lat"),
-            @Result(property = "lng", column = "lng"),
-            @Result(property = "distanceKm", column = "distance_km")
+    @Results(id = "MuseumWithDistanceMapper", value = {
+        @Result(property = "museumId", column = "museum_id"),
+        @Result(property = "name", column = "name"),
+        @Result(property = "address", column = "address"),
+        @Result(property = "imageUrl", column = "image_url"),
+        @Result(property = "lat", column = "lat"),
+        @Result(property = "lng", column = "lng"),
+        @Result(property = "distanceKm", column = "distance_km")
     })
     @Select("""
         SELECT m.museum_id, m.name, m.address, m.banner_link,

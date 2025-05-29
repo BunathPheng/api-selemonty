@@ -37,13 +37,13 @@ public class EventController {
             summary = "Get all event of all museums",
             description = "Use to get all event with pagination"
     )
-    @GetMapping()
-    @PreAuthorize("hasRole('ROLE_VISITOR')")
+    @GetMapping("/view")
     public ResponseEntity<ApiResponse<ListResponse<Event>>> getAllEvents(
+            @RequestParam(required = false) String search,
             @RequestParam(defaultValue = "1") @Min(value = 1, message = "must be greater than 0") Integer page,
             @RequestParam(defaultValue = "10") @Min(value = 1, message = "must be greater than 0") Integer size
     ) {
-        ListResponse<Event> listEventResponse = eventService.findAllEvents(page, size);
+        ListResponse<Event> listEventResponse = eventService.findAllEvents(search, page, size);
         ApiResponse<ListResponse<Event>> response = ApiResponse.<ListResponse<Event>>builder()
                 .success(true)
                 .message("All events have been fetched")
@@ -54,17 +54,17 @@ public class EventController {
     }
 
     @Operation(
-            summary = "Get all event of a museum",
+            summary = "Get all event of a museum. For visitor only",
             description = "Use to get all event of museum with pagination. Required museumId"
     )
-    @GetMapping("museum/{museum-id}")
-    @PreAuthorize("hasRole('ROLE_VISITOR')")
+    @GetMapping("/view/{museum-id}")
     public ResponseEntity<ApiResponse<ListResponse<Event>>> getAllEventsByMuseumId(
             @PathVariable("museum-id") @NotNull UUID museumId,
+            @RequestParam(required = false) String search,
             @RequestParam(defaultValue = "1") @Min(value = 1, message = "must be greater than 0") Integer page,
             @RequestParam(defaultValue = "10") @Min(value = 1, message = "must be greater than 0") Integer size
     ) {
-        ListResponse<Event> listEventResponse = eventService.findAllEventsByMuseumId(museumId, page, size);
+        ListResponse<Event> listEventResponse = eventService.findAllEventsByMuseumId(search, museumId, page, size);
         ApiResponse<ListResponse<Event>> response = ApiResponse.<ListResponse<Event>>builder()
                 .success(true)
                 .message("All events have been fetched")
@@ -75,8 +75,8 @@ public class EventController {
     }
 
     @Operation(summary = "Use to get event by using eventId. For visitor and museum owner role")
-    @GetMapping("/{event-id}")
-    @PreAuthorize("hasRole('ROLE_VISITOR')")
+    @GetMapping("/view/{event-id}")
+    @PreAuthorize("hasAnyRole('ROLE_VISITOR', 'ROLE_MUSEUM_OWNER')")
     public ResponseEntity<ApiResponse<Event>> getEventsByEventId(@PathVariable("event-id") @NotNull UUID eventId) {
         Event event = eventService.findEventsByEventId(eventId);
         ApiResponse<Event> response = ApiResponse.<Event>builder()
@@ -87,6 +87,27 @@ public class EventController {
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
+
+    @Operation(summary = "Use to get all event of museum. For museum owner role only")
+    @GetMapping()
+    public ResponseEntity<ApiResponse<ListResponse<Event>>> getAllEventForMuseumOwner(
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "1") @Min(value = 1, message = "must be greater than 0") Integer page,
+            @RequestParam(defaultValue = "10") @Min(value = 1, message = "must be greater than 0") Integer size
+    ) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        UUID userId = UUID.fromString((String) auth.getCredentials());
+        MuseumOwner museumOwner = profileService.getMuseumOwnerByUserId(userId);
+        ListResponse<Event> listEventResponse = eventService.findAllEventsByMuseumId(search, museumOwner.getMuseumId(), page, size);
+        ApiResponse<ListResponse<Event>> response = ApiResponse.<ListResponse<Event>>builder()
+                .success(true)
+                .message("All events have been fetched")
+                .status(HttpStatus.OK)
+                .payload(listEventResponse)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
 
     @Operation(summary = "Use to create new event. For museum owner role only")
     @PostMapping()

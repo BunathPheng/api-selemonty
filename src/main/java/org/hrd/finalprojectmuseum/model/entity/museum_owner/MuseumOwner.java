@@ -3,11 +3,13 @@ package org.hrd.finalprojectmuseum.model.entity.museum_owner;
 import com.alibaba.fastjson2.JSONObject;
 import lombok.Data;
 import org.hrd.finalprojectmuseum.model.entity.AppUserRegister;
+import org.hrd.finalprojectmuseum.model.entity.Schedule;
 import org.hrd.finalprojectmuseum.model.entity.visitor.VisitorReviewStatistics;
 
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -26,6 +28,8 @@ public class MuseumOwner {
     private JSONObject landscapeLink;
     private String description;
     private Boolean isApproved;
+    private List<Schedule> schedule;
+    private Schedule todaySchedule;
     private String clientId;
     private String clientSecret;
     private String accountName;

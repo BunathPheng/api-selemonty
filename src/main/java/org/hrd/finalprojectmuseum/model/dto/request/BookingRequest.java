@@ -23,10 +23,6 @@ public class BookingRequest {
     @Schema(description = "Type of ticket", example = "LOCAL")
     private TicketType ticketType;
 
-    @NotNull(message = "Booking type cannot be null")
-    @Schema(description = "How the booking was made", example = "INDIVIDUAL")
-    private BookingType bookingType;
-
     @NotNull(message = "Slot amount cannot be null")
     @Min(value = 1, message = "Slot amount must be at least 1")
     @Max(value = 50, message = "Slot amount cannot exceed 50 tickets per booking")

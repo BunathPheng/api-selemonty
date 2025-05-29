@@ -3,7 +3,7 @@ package org.hrd.finalprojectmuseum.model.entity;
 import com.alibaba.fastjson2.JSONObject;
 import lombok.Data;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
-import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumShortInfo;
+
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -11,7 +11,7 @@ import java.util.UUID;
 @Data
 public class Event {
     private UUID eventId;
-    private MuseumShortInfo museum;
+    private MuseumOwner museum;
     private String title;
     private String subTitle;
     private String content;

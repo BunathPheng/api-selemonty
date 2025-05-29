@@ -10,7 +10,6 @@ import org.hrd.finalprojectmuseum.model.dto.request.visitor.VisitorRequest;
 import org.hrd.finalprojectmuseum.model.entity.admin.Admin;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumCategory;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
-import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumShortInfo;
 import org.hrd.finalprojectmuseum.model.entity.visitor.Visitor;
 
 import java.time.LocalDateTime;

@@ -4,7 +4,6 @@ import org.apache.ibatis.annotations.*;
 import org.apache.ibatis.type.JdbcType;
 import org.hrd.finalprojectmuseum.model.dto.request.EventRequest;
 import org.hrd.finalprojectmuseum.model.entity.Event;
-import org.springframework.security.core.parameters.P;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -36,21 +35,26 @@ public interface EventRepository {
             @Result(property = "deleted", column = "is_deleted"),
     })
     @Select("""
-        SELECT * FROM events WHERE is_deleted = false OFFSET (#{page}-1)* #{size} LIMIT #{size};
+        SELECT * FROM events WHERE is_deleted = false
+                             AND title LIKE CONCAT('%', #{search}, '%')
+                             OFFSET (#{page}-1)* #{size} LIMIT #{size};
     """)
-    List<Event> findAllEvents(Integer page, Integer size);
+    List<Event> findAllEvents(String search, Integer page, Integer size);
 
     @ResultMap("eventMapper")
     @Select("""
-        SELECT * FROM events WHERE museum_id = #{museumId}::UUID AND is_deleted = false offset (#{page}-1)* #{size} limit #{size};
+        SELECT * FROM events WHERE museum_id = #{museumId}::UUID AND is_deleted = false
+                             AND title LIKE CONCAT('%', #{search}, '%')
+                             offset (#{page}-1)* #{size} limit #{size};
     """)
-    List<Event> findAllEventsByMuseumId(UUID museumId, Integer page, Integer size);
+    List<Event> findAllEventsByMuseumId(String search, UUID museumId, Integer page, Integer size);
 
 
     @Select("""
         SELECT count(*) FROM events WHERE museum_id = #{museumId}::UUID
+        AND is_deleted = false AND title LIKE CONCAT('%', #{search}, '%');
     """)
-    Integer countAllEventByMuseumId(UUID museumId);
+    Integer countAllEventByMuseumId(String search, UUID museumId);
 
     @ResultMap("eventMapper")
     @Select("""

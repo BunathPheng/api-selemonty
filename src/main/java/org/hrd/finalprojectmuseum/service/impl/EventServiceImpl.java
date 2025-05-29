@@ -8,7 +8,6 @@ import org.hrd.finalprojectmuseum.model.dto.response.ListResponse;
 import org.hrd.finalprojectmuseum.model.entity.Event;
 import org.hrd.finalprojectmuseum.model.entity.Pagination;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
-import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumShortInfo;
 import org.hrd.finalprojectmuseum.repository.EventRepository;
 import org.hrd.finalprojectmuseum.service.EventService;
 import org.springframework.stereotype.Service;
@@ -24,10 +23,10 @@ public class EventServiceImpl implements EventService {
     private final EventRepository eventRepository;
 
     @Override
-    public ListResponse<Event> findAllEvents(Integer page, Integer size) {
+    public ListResponse<Event> findAllEvents(String search, Integer page, Integer size) {
         Integer totalItems = eventRepository.countAllEvent();
 
-        List<Event> events = eventRepository.findAllEvents(page, size);
+        List<Event> events = eventRepository.findAllEvents(search, page, size);
         for (Event event : events) {
             event.updateStatus();
         }
@@ -42,10 +41,10 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public ListResponse<Event> findAllEventsByMuseumId(UUID museumId, Integer page, Integer size) {
-        Integer totalItems = eventRepository.countAllEventByMuseumId(museumId);
+    public ListResponse<Event> findAllEventsByMuseumId(String search, UUID museumId, Integer page, Integer size) {
+        Integer totalItems = eventRepository.countAllEventByMuseumId(search, museumId);
 
-        List<Event> events = eventRepository.findAllEventsByMuseumId(museumId, page, size);
+        List<Event> events = eventRepository.findAllEventsByMuseumId(search, museumId, page, size);
         for (Event event : events) {
             event.updateStatus();
         }

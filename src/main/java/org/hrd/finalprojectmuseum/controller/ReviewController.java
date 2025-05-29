@@ -39,7 +39,7 @@ public class ReviewController {
         return reviewService.getVisitorIdByUserId(userId);
     }
 
-    @PostMapping("/museum/{museum-id}")
+    @PostMapping("/{museum-id}")
     @Operation(summary = "Create a review for a museum")
     public ResponseEntity<ApiResponse<VisitorReview>> addVisitorReview(
             @PathVariable("museum-id") UUID museumId,
@@ -59,7 +59,7 @@ public class ReviewController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @GetMapping("/museum/{museum-id}")
+    @GetMapping("/{museum-id}")
     @Operation(summary = "Get all reviews of a museum")
     public ResponseEntity<ApiResponse<List<VisitorReview>>> getVisitorReview(
             @PathVariable("museum-id") UUID museumId,
@@ -120,7 +120,7 @@ public class ReviewController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    @GetMapping("/museum/{museum-id}/statistics")
+    @GetMapping("/{museum-id}/statistics")
     @Operation(summary = "Get review statistics for a museum")
     public ResponseEntity<ApiResponse<VisitorReviewStatistics>> getReviewStatistics(
             @PathVariable("museum-id") UUID museumId) {

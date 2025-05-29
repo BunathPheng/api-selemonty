@@ -1,7 +1,8 @@
 package org.hrd.finalprojectmuseum.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
-import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumShortInfo;
+import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -11,7 +12,9 @@ import java.util.UUID;
 @Data
 public class Booking {
     private UUID bookingId;
-    private MuseumShortInfo museum;
+    private MuseumOwner museum;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private Tour tour;
     private UUID visitorId;
     private BigDecimal ticketPrice;
     private String ticketType;

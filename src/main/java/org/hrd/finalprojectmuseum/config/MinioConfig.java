@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class MinioConfig {
 
-    private final String url = "http://34.142.191.106:9000";
+    private final String url = "http://34.129.192.53:9000";
     private final String accessKey = "admin";
     private final String secretKey = "admin123";
     @Bean
