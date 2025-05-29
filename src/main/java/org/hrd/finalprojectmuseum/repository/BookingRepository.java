@@ -19,7 +19,7 @@ public interface BookingRepository {
     @Results(id = "bookingMapper", value = {
             @Result(property = "bookingId", column = "booking_id"),
             @Result(property = "museum", column = "museum_id", javaType = UUID.class, jdbcType = JdbcType.VARCHAR,
-                    one = @One(select = "org.hrd.finalprojectmuseum.repository.MuseumOwnerRepository.findMuseumByMuseumId")
+                    one = @One(select = "org.hrd.finalprojectmuseum.repository.MuseumRepository.findMuseumByMuseumId")
             ),
             @Result(property = "visitorId", column = "visitor_id"),
             @Result(property = "ticketPrice", column = "ticket_price"),

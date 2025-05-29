@@ -12,6 +12,7 @@ import org.hrd.finalprojectmuseum.model.entity.admin.Admin;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumCategory;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
 import org.hrd.finalprojectmuseum.model.entity.visitor.Visitor;
+import org.hrd.finalprojectmuseum.model.entity.visitor.VisitorReviewStatistics;
 import org.hrd.finalprojectmuseum.repository.*;
 import org.hrd.finalprojectmuseum.service.ProfileService;
 import org.springframework.stereotype.Service;
@@ -29,10 +30,13 @@ public class ProfileServiceImpl implements ProfileService {
     private final ProfileRepository profileRepository;
     private final MuseumRepository museumRepository;
     private final AppUserRepository appUserRepository;
+    private final ReviewRepository reviewRepository;
 
     @Override
     public MuseumOwner getMuseumOwnerByUserId(UUID userId) {
         MuseumOwner museumOwner = profileRepository.findMuseumOwnerByUserId(userId);
+        VisitorReviewStatistics reviewStatistics = reviewRepository.retriveVisitorReviewStatistics(museumOwner.getMuseumId());
+        museumOwner.setReview(reviewStatistics);
         if (museumOwner == null) {
             throw new AppNotFoundException("Museum Owner Not Found");
         }
@@ -107,7 +111,7 @@ public class ProfileServiceImpl implements ProfileService {
     @Override
     public MuseumOwner updateMuseumOwnerPaymentByUserId(UUID userId, PaymentAccountRequest paymentAccountRequest) {
         getMuseumOwnerByUserId(userId);
-        return profileRepository.updateMuseumPaymentByUserId(userId, paymentAccountRequest);
+        return profileRepository.updateMuseumPaymentByUserId(userId, paymentAccountRequest, LocalDateTime.now());
     }
     
     //For admin

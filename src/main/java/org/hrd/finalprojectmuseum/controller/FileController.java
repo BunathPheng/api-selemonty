@@ -18,7 +18,6 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 @RestController
 @RequestMapping("api/v1/file")
 @RequiredArgsConstructor
-@SecurityRequirement(name = "bearerAuth")
 public class FileController {
     private final FileService fileService;
 

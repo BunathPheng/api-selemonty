@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.hrd.finalprojectmuseum.exception.AppNotFoundException;
 import org.hrd.finalprojectmuseum.model.dto.request.admin.AdminRequest;
 import org.hrd.finalprojectmuseum.model.entity.admin.Admin;
-import org.hrd.finalprojectmuseum.repository.AdminRepository;
 import org.hrd.finalprojectmuseum.repository.MuseumRepository;
 import org.hrd.finalprojectmuseum.service.AdminProfileService;
 import org.springframework.stereotype.Service;

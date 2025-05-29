@@ -12,7 +12,7 @@ public interface TicketInfoRepository {
     @Results(id = "ticketMapper", value = {
             @Result(property = "ticketInfoId", column = "ticket_info_id"),
             @Result(property = "museum", column = "museum_id",
-                    many = @Many(select = "org.hrd.finalprojectmuseum.repository.MuseumOwnerRepository.findMuseumByMuseumId")
+                    many = @Many(select = "org.hrd.finalprojectmuseum.repository.MuseumRepository.findMuseumByMuseumId")
             ),
             @Result(property = "localPrice", column = "local_price"),
             @Result(property = "foreignPrice", column = "foreign_price"),

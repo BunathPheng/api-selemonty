@@ -3,6 +3,7 @@ package org.hrd.finalprojectmuseum.model.entity.museum_owner;
 import com.alibaba.fastjson2.JSONObject;
 import lombok.Data;
 import org.hrd.finalprojectmuseum.model.entity.AppUserRegister;
+import org.hrd.finalprojectmuseum.model.entity.visitor.VisitorReviewStatistics;
 
 
 import java.math.BigDecimal;
@@ -14,7 +15,9 @@ public class MuseumOwner {
     private UUID museumId;
     private AppUserRegister appUserRegister;
     private MuseumCategory museumCategory;
+    private VisitorReviewStatistics review;
     private String name;
+    private String address;
     private String contactNumber;
     private BigDecimal lat;
     private BigDecimal lng;
@@ -23,7 +26,6 @@ public class MuseumOwner {
     private JSONObject landscapeLink;
     private String description;
     private Boolean isApproved;
-    private String address;
     private String clientId;
     private String clientSecret;
     private String accountName;

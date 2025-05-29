@@ -21,7 +21,7 @@ public interface EventRepository {
     @Results(id = "eventMapper", value = {
             @Result(property = "eventId", column = "event_id"),
             @Result(property = "museum", column = "museum_id", javaType = UUID.class, jdbcType = JdbcType.VARCHAR,
-                    one = @One(select = "org.hrd.finalprojectmuseum.repository.MuseumOwnerRepository.findMuseumByMuseumId")
+                    one = @One(select = "org.hrd.finalprojectmuseum.repository.MuseumRepository.findMuseumByMuseumId")
             ),
             @Result(property = "title", column = "title"),
             @Result(property = "subTitle", column = "sub_title"),

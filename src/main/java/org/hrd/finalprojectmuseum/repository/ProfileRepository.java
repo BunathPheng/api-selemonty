@@ -25,9 +25,10 @@ public interface ProfileRepository {
             @Result(property = "appUserRegister", column = "user_id",
                     one = @One(select = "org.hrd.finalprojectmuseum.repository.AppUserRepository.getUserById")),
             @Result(property = "museumCategory", column = "museum_category_id", javaType = UUID.class, jdbcType = JdbcType.VARCHAR,
-                    many = @Many(select = "findMuseumCategoryById")),
+                    many = @Many(select = "org.hrd.finalprojectmuseum.repository.MuseumRepository.findMuseumCategoryById")),
             @Result(property = "name", column = "name"),
             @Result(property = "contactNumber", column = "contact_number"),
+            @Result(property = "address", column = "address"),
             @Result(property = "lat", column = "lat"),
             @Result(property = "lng", column = "lng"),
             @Result(property = "logoLink", column = "logo_link"),
@@ -35,11 +36,16 @@ public interface ProfileRepository {
             @Result(property = "landscapeLink", column = "landscape_links"),
             @Result(property = "description", column = "description"),
             @Result(property = "isApproved", column = "is_approved"),
+            @Result(property = "clientId", column = "client_id"),
+            @Result(property = "clientSecret", column = "client_secret"),
+            @Result(property = "accountName", column = "account_name"),
+            @Result(property = "parentAccountNo", column = "client_account_no"),
             @Result(property = "createdAt", column = "created_at"),
             @Result(property = "updatedAt", column = "updated_at"),
     })
     @Select("""
-        SELECT * FROM museum_owners where user_id =#{userId}::UUID
+        SELECT m.* FROM museum_owners m
+        where user_id =#{userId}::UUID
     """)
     MuseumOwner findMuseumOwnerByUserId(UUID userId);
 
@@ -62,11 +68,11 @@ public interface ProfileRepository {
     JSONObject modifyLandscapeByMuseumId(UUID museumId, JSONObject existLandscape);
 
     @Select("""
-        UPDATE museum_owners SET client_id = #{museum.}, client_secret = #{museum.clientSecret},
+        UPDATE museum_owners SET client_id = #{museum.clientId}, client_secret = #{museum.clientSecret},
         account_name = #{museum.accountName}, parent_account_no = #{museum.parentAccountNo},
         updated_at = #{updatedAt} WHERE user_id = #{userId}::UUID RETURNING *;
     """)
-    MuseumOwner updateMuseumPaymentByUserId(UUID userId, @Param("museum") PaymentAccountRequest paymentAccountRequest);
+    MuseumOwner updateMuseumPaymentByUserId(UUID userId, @Param("museum") PaymentAccountRequest paymentAccountRequest, LocalDateTime updatedAt);
 
     // For admin
 
