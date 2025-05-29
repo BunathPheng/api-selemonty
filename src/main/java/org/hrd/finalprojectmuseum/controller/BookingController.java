@@ -22,6 +22,7 @@ import org.hrd.finalprojectmuseum.service.ProfileService;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -40,6 +41,7 @@ public class BookingController {
     private final AppUserService appUserService;
 
     @Operation(summary = "For booking a ticket. Only visitor can use.")
+    @PreAuthorize("hasRole('ROLE_VISITOR')")
     @PostMapping("/individual/{museum-id}")
     public ResponseEntity<ApiResponse<Booking>> bookingIndividualByMuseumId(
             @PathVariable("museum-id") @Valid UUID museumId,
@@ -58,6 +60,7 @@ public class BookingController {
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
+    @PreAuthorize("hasRole('ROLE_VISITOR')")
     @Operation(summary = "For RequestTour. Only visitor can use.")
     @PostMapping("/tour/{museum-id}")
     public ResponseEntity<ApiResponse<Booking>> requestTourByMuseumId(
@@ -77,6 +80,8 @@ public class BookingController {
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
+
+    @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER') or hasRole('ROLE_VISITOR')")
     @Operation(
             summary = "For get all booking history of a visitor with search, category and between of two date. MuseumOwner and Visitor can use.",
             description = "For Date must follow format (YYYY-MM-DD). If any filter dont want to use just leave it empty."
@@ -113,6 +118,7 @@ public class BookingController {
         return ResponseEntity.ok(response);
     }
 
+    @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER') or hasRole('ROLE_VISITOR')")
     @Operation(
             summary = "For get booking by Booking ID, category and between of two date. MuseumOwner and Visitor can use."
     )
@@ -123,11 +129,15 @@ public class BookingController {
         AppUserRegister appUserRegister = appUserService.findUserByUserId(userId);
         Booking booking = null;
         if (appUserRegister.getRole() == Role.ROLE_VISITOR){
+
             Visitor visitor = profileService.getProfile(userId);
             booking = bookingService.getBookingByVisitorId(bookingId, visitor.getVisitorId());
+
         } else if (appUserRegister.getRole() == Role.ROLE_MUSEUM_OWNER) {
+
             MuseumOwner museumOwner = profileService.getMuseumOwnerByUserId(userId);
             booking = bookingService.getBookingByMuseumId(bookingId, museumOwner.getMuseumId());
+
         }
 
         ApiResponse<Booking> response = ApiResponse.<Booking>builder()

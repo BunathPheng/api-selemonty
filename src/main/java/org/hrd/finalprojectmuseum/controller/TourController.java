@@ -20,6 +20,7 @@ import org.hrd.finalprojectmuseum.service.ProfileService;
 import org.hrd.finalprojectmuseum.service.TourService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -36,6 +37,7 @@ public class TourController {
     private final TourService tourService;
     private final AppUserService appUserService;
 
+    @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER') or hasRole('ROLE_VISITOR')")
     @Operation(summary = "Use for get all tour. For museum owner and visitor")
     @GetMapping()
     public ResponseEntity<ApiResponse<ListResponse<Tour>>> getAllTourById(
@@ -65,6 +67,7 @@ public class TourController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER') or hasRole('ROLE_VISITOR')")
     @Operation(summary = "Use for get tour by tour ID. For museum owner and visitor")
     @GetMapping("/{tour-id}")
     public ResponseEntity<ApiResponse<Tour>> getTourByTourId(@PathVariable("tour-id") @NotNull(message = "TourID can't be null") UUID tourId) {
@@ -88,6 +91,7 @@ public class TourController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
     @Operation(summary = "Use for accept request tour. For museum owner and visitor")
     @PutMapping("/{tour-id}")
     public ResponseEntity<ApiResponse<Tour>> acceptTour(@PathVariable("tour-id") @NotNull(message = "TourID can't be null") UUID tourId, @RequestBody @Valid AcceptTourRequest acceptTourRequest) {
@@ -101,6 +105,7 @@ public class TourController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER') or hasRole('ROLE_VISITOR')")
     @Operation(summary = "Use to update tour status to paid after visitor paid.")
     @PatchMapping("/{tour-id}")
     public ResponseEntity<ApiResponse<Void>> updateTourStatus(@PathVariable("tour-id") @NotNull(message = "TourID can't be null") UUID tourId) {

@@ -46,6 +46,7 @@ public class ProfileServiceImpl implements ProfileService {
         if (museumOwner == null) {
             throw new AppNotFoundException("Museum Owner Not Found");
         }
+        System.out.println("museum: "+museumOwner);
         return museumOwner;
     }
 

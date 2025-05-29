@@ -18,7 +18,7 @@ public interface TourRepository {
                     many = @Many(select = "getAllTourGuids")
             ),
             @Result(property = "visitor", column = "visitor_id",
-                    one = @One(select = "org.hrd.finalprojectmuseum.repository.VisitorRepository.findVisitorById")
+                    one = @One(select = "org.hrd.finalprojectmuseum.repository.ProfileRepository.findVisitorById")
             ),
             @Result(property = "slotAmount", column = "slot_amount"),
             @Result(property = "bookingDate", column = "booking_date"),
@@ -57,7 +57,7 @@ public interface TourRepository {
     List<TourGuide> getAllTourGuids(UUID tourId);
 
     @Insert("""
-        INSERT INTO tours(booking_id, status) VALUES (#{bookingId}, 'REQUEST')
+        INSERT INTO tours(booking_id, status) VALUES (#{bookingId}::UUID, 'REQUEST')
     """)
     void insertNewTourRequest(UUID bookingId);
 
@@ -73,7 +73,7 @@ public interface TourRepository {
     Tour findTourByTourId(UUID tourId);
 
     @Insert("""
-        INSERT INTO tour_guides(tour_id, guide_id) VALUES (#{tourId}, #{guideId})
+        INSERT INTO tour_guides(tour_id, guide_id) VALUES (#{tourId}::UUID, #{guideId}::UUID)
     """)
     void setTourGuys(UUID tourId, UUID guideId);
 
@@ -111,7 +111,6 @@ public interface TourRepository {
         INNER JOIN museum_owners m ON b.museum_id = m.museum_id
         WHERE b.museum_id = #{museumId}::UUID
         AND m.name ILIKE CONCAT('%', #{search}, '%')
-        OFFSET (#{page}-1)* #{size} LIMIT #{size};
     """)
     Integer countAllTour(UUID museumId, String search);
 
@@ -123,7 +122,6 @@ public interface TourRepository {
         WHERE b.museum_id = #{museumId}::UUID
         AND m.name ILIKE CONCAT('%', #{search}, '%')
         AND t.status = #{status}
-        OFFSET (#{page}-1)* #{size} LIMIT #{size};
     """)
     Integer countAllTourWithStatus(UUID museumId, String search, String status);
 
@@ -147,9 +145,8 @@ public interface TourRepository {
         INNER JOIN museum_owners m ON b.museum_id = m.museum_id
         WHERE b.visitor_id = #{visitorId}::UUID
         AND m.name ILIKE CONCAT('%', #{search}, '%')
-        OFFSET (#{page}-1)* #{size} LIMIT #{size};
     """)
-    Integer countAllTourByVisitorId(UUID id, String search);
+    Integer countAllTourByVisitorId(UUID visitorId, String search);
 
     @ResultMap("tourMapper")
     @Select("""
@@ -173,9 +170,8 @@ public interface TourRepository {
         WHERE b.visitor_id = #{visitorId}::UUID
         AND m.name ILIKE CONCAT('%', #{search}, '%')
         AND t.status = #{status}
-        OFFSET (#{page}-1)* #{size} LIMIT #{size};
     """)
-    Integer countAllTourWithStatusByVisitorId(UUID visitorId, String search, String string);
+    Integer countAllTourWithStatusByVisitorId(UUID visitorId, String search, String status);
 
     @Update("""
         UPDATE tours SET status = #{status}, updated_at = #{updatedAt} WHERE tour_id = #{tourId}::UUID RETURNING booking_id;

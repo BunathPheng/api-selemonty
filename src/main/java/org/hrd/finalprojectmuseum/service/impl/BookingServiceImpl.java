@@ -180,7 +180,9 @@ public class BookingServiceImpl implements BookingService {
         if (museumOwner == null) {
             throw new AppNotFoundException("Museum with id " + museumId + " not exists");
         }
-        return bookingRepository.findBookingByBookingIdAndMuseumId(bookingId, museumId);
+        Booking booking = bookingRepository.findBookingByBookingIdAndMuseumId(bookingId, museumId);
+        System.out.println(booking);
+        return booking;
     }
 
     @Transactional

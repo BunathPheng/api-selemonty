@@ -27,14 +27,13 @@ import java.util.UUID;
 @RequestMapping("api/v1/event")
 @SecurityRequirement(name = "bearerAuth")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
 public class EventController {
 
     private final EventService eventService;
     private final ProfileService profileService;
 
     @Operation(
-            summary = "Get all event of all museums",
+            summary = "Get all event of all museums. Can use without authorize",
             description = "Use to get all event with pagination"
     )
     @GetMapping("/view")
@@ -53,6 +52,7 @@ public class EventController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    @PreAuthorize("hasRole('ROLE_VISITOR')")
     @Operation(
             summary = "Get all event of a museum. For visitor only",
             description = "Use to get all event of museum with pagination. Required museumId"
@@ -74,9 +74,9 @@ public class EventController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER') or hasRole('ROLE_VISITOR')")
     @Operation(summary = "Use to get event by using eventId. For visitor and museum owner role")
     @GetMapping("/view/{event-id}")
-    @PreAuthorize("hasAnyRole('ROLE_VISITOR', 'ROLE_MUSEUM_OWNER')")
     public ResponseEntity<ApiResponse<Event>> getEventsByEventId(@PathVariable("event-id") @NotNull UUID eventId) {
         Event event = eventService.findEventsByEventId(eventId);
         ApiResponse<Event> response = ApiResponse.<Event>builder()
@@ -88,6 +88,7 @@ public class EventController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
     @Operation(summary = "Use to get all event of museum. For museum owner role only")
     @GetMapping()
     public ResponseEntity<ApiResponse<ListResponse<Event>>> getAllEventForMuseumOwner(
@@ -108,7 +109,7 @@ public class EventController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-
+    @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
     @Operation(summary = "Use to create new event. For museum owner role only")
     @PostMapping()
     public ResponseEntity<ApiResponse<Event>> createNewEvent(@RequestBody @Valid EventRequest eventRequest) {
@@ -125,6 +126,7 @@ public class EventController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
     @Operation(summary = "Use to update event. For museum owner role only")
     @PutMapping("/{event-id}")
     public ResponseEntity<ApiResponse<Event>> updateEventByEventId(
@@ -141,6 +143,7 @@ public class EventController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
     @Operation(summary = "Use to delete event by update delete status to true new event. For museum owner role only")
     @PatchMapping("/{event-id}")
     public ResponseEntity<ApiResponse<Event>> updateDeleteStatus(@PathVariable("event-id") @NotNull UUID eventId) {

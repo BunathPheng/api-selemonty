@@ -35,4 +35,10 @@ public class VisitorServiceImpl implements VisitorService {
                 .pagination(pagination.calculatePagination(allItem, page, size))
                 .build();
     }
+
+    @Override
+    public ListResponse<Visitor> getAllVisitor(String search, Integer page, Integer size) {
+        search = search == null ? "" : search;
+        return visitorRepository.findAllVisitor(search, page, size);
+    }
 }

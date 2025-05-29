@@ -17,6 +17,7 @@ import org.hrd.finalprojectmuseum.model.entity.visitor.Visitor;
 import org.hrd.finalprojectmuseum.service.ProfileService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -32,6 +33,7 @@ public class ProfileController {
     private final ProfileService profileService;
 
     // Museum Owner
+    @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
     @Operation(summary = "Use to get museum profile. For only museum owner")
     @GetMapping("/museum-owner")
     public ResponseEntity<ApiResponse<MuseumOwner>> getMuseumOwner() {
@@ -47,6 +49,7 @@ public class ProfileController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
     @PutMapping("/museum-owner")
     @Operation(summary = "Use to update museum profile. For only museum owner")
     public ResponseEntity<ApiResponse<MuseumOwner>> updateMuseumOwner(@RequestBody @Valid MuseumOwnerRequest museumOwnerRequest) {
@@ -62,6 +65,7 @@ public class ProfileController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
     @Operation(summary = "Use to delete museum account. For only museum owner")
     @DeleteMapping("/museum-owner")
     public ResponseEntity<ApiResponse<Void>> deleteMuseumOwner() {
@@ -76,6 +80,7 @@ public class ProfileController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
     @Operation(summary = "For add landscape", description = "Landscape is using JSONB so this endpoint use for add landscape")
     @PutMapping("/museum-owner/landscape")
     public ResponseEntity<ApiResponse<JSONObject>> addLandscape(@RequestBody JSONObject landscapeRequest) {
@@ -90,38 +95,10 @@ public class ProfileController {
                 .build();
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
-
-    @Operation(summary = "Delete any landscape by its key name", description = "Instead of delete all this endpoint use to delete any landscape by using key name")
-    @DeleteMapping("/profile/landscape")
-    public ResponseEntity<ApiResponse<Void>> deleteLandscape(@RequestParam("keyName") @NotBlank(message = "Landscape key name is required") String landscapeKey) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        UUID userId = UUID.fromString((String) auth.getCredentials());
-        profileService.deleteLandscapeByUserId(userId, landscapeKey);
-        ApiResponse<Void> response = ApiResponse.<Void>builder()
-                .success(true)
-                .message("Landscape has been delete successfully")
-                .status(HttpStatus.OK)
-                .build();
-        return ResponseEntity.status(HttpStatus.OK).body(response);
-    }
-
-    @PutMapping("/museum-owner/payment")
-    @Operation(summary = "Use to update museum payment. For only museum owner")
-    public ResponseEntity<ApiResponse<MuseumOwner>> updateMuseumOwnerPayment(@RequestBody @Valid PaymentAccountRequest paymentAccountRequest) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        UUID userId = UUID.fromString((String) auth.getCredentials());
-        MuseumOwner museumOwner = profileService.updateMuseumOwnerPaymentByUserId(userId, paymentAccountRequest);
-        ApiResponse<MuseumOwner> response = ApiResponse.<MuseumOwner>builder()
-                .success(true)
-                .message("Museum owner has been updated successfully")
-                .status(HttpStatus.OK)
-                .payload(museumOwner)
-                .build();
-        return ResponseEntity.status(HttpStatus.OK).body(response);
-    }
     
     // For admin
-    
+
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping("/admin")
     public ResponseEntity<ApiResponse<Admin>> getProfile() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -136,6 +113,7 @@ public class ProfileController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @Operation(summary = "Use for insert and update. Any field can be null if dont want to update", description = "this endpoint can be use for insert more detail and also update any field. so you dont need to worry about field that dont want to update just leave it empty or null.")
     @PutMapping("/admin")
     public ResponseEntity<ApiResponse<Admin>> updateProfile(@RequestBody @Valid AdminRequest adminRequest) {
@@ -152,7 +130,8 @@ public class ProfileController {
     }
     
     // visitor
-    
+
+    @PreAuthorize("hasRole('ROLE_VISITOR')")
     @GetMapping("/visitor")
     public ResponseEntity<ApiResponse<Visitor>> getVisitorProfile() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -167,6 +146,7 @@ public class ProfileController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    @PreAuthorize("hasRole('ROLE_VISITOR')")
     @Operation(summary = "Use for update. For only Visitor", description = "this endpoint can be use for insert more detail and also update any field. so you dont need to worry about field that dont want to update just leave it empty or null.")
     @PutMapping("/visitor")
     public ResponseEntity<ApiResponse<Visitor>> updateVisitorProfile(@RequestBody @Valid VisitorRequest visitorRequest) {
@@ -182,6 +162,7 @@ public class ProfileController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    @PreAuthorize("hasRole('ROLE_VISITOR')")
     @DeleteMapping("/visitor")
     public ResponseEntity<ApiResponse<Void>> deleteVisitor() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();

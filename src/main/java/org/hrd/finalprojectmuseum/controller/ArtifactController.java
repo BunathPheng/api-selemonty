@@ -25,6 +25,7 @@ public class ArtifactController {
     private final ArtifactService artifactService;
 
     @PostMapping("/{zone-id}")
+    @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
     @Operation(summary = "Add museum artifact by zone Id")
     public ResponseEntity<ApiResponse<MuseumArtifact>> addMuseumArtifactByZoneId(
             @RequestBody @Valid MuseumArtifactRequest museumArtifactRequest,
@@ -42,6 +43,7 @@ public class ArtifactController {
         return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
     }
 
+    @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
     @PutMapping("/{artifact-id}")
     @Operation(summary = "Update museum artifact by artifact Id")
     public ResponseEntity<ApiResponse<MuseumArtifact>> updateMuseumArtifactByArtifactId(
@@ -60,6 +62,7 @@ public class ArtifactController {
         return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
     }
 
+    @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
     @PatchMapping("/{artifact-id}")
     @Operation(summary = "Update museum artifact by artifact Id")
     public ResponseEntity<ApiResponse<MuseumArtifact>> deleteMuseumArtifactByArtifactId(@PathVariable("artifact-id") UUID artifactId){
@@ -75,6 +78,7 @@ public class ArtifactController {
         return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
     }
 
+    @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER') or hasRole('ROLE_VISITOR')")
     @GetMapping("/{artifact-id}")
     @Operation(summary = "Update museum artifact by artifact Id")
     public ResponseEntity<ApiResponse<MuseumArtifact>> getMuseumArtifactByArtifactId(@PathVariable("artifact-id") UUID artifactId){

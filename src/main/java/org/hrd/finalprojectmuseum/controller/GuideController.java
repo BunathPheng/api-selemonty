@@ -25,13 +25,13 @@ import java.util.UUID;
 @RestController
 @RequestMapping("api/v1/guide")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
 @SecurityRequirement(name = "bearerAuth")
 public class GuideController {
 
     private final GuideService guideService;
     private final ProfileService profileService;
 
+    @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
     @GetMapping()
     public ResponseEntity<ApiResponse<ListResponse<Guide>>> getAllTourGuideByMuseumId(
             @RequestParam(value = "search", required = false) String search,
@@ -52,6 +52,7 @@ public class GuideController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
     @PostMapping
     public ResponseEntity<ApiResponse<Guide>> addNewGuide(@RequestBody @Valid GuideRequest guideRequest) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -67,6 +68,7 @@ public class GuideController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
     @PutMapping("/{guide-id}")
     public ResponseEntity<ApiResponse<Guide>> updateGuideByGuideId(@PathVariable("guide-id") @NotNull UUID guideId, @RequestBody @Valid GuideRequest guideRequest) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();

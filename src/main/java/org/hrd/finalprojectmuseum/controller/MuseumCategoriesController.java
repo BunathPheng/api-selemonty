@@ -17,7 +17,6 @@ import java.util.List;
 @RestController
 @RequestMapping("api/v1/museum/categories")
 @RequiredArgsConstructor
-@SecurityRequirement(name = "bearerAuth")
 public class MuseumCategoriesController {
 
     private final MuseumRepository museumRepository;

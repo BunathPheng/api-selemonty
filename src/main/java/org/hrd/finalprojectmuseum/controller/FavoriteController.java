@@ -34,7 +34,8 @@ public class FavoriteController {
         return reviewService.getVisitorIdByUserId(userId);
     }
 
-    @PostMapping("/museum/{museum-id}")
+    @PreAuthorize("hasRole('ROLE_VISITOR')")
+    @PostMapping("/{museum-id}")
     @Operation(summary = "Visitor add museum as their favorite")
     public ResponseEntity<ApiResponse<VisitorFavorite>> createVisitorFavorite(
             @PathVariable("museum-id") UUID museumId,
@@ -56,7 +57,8 @@ public class FavoriteController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @GetMapping("/museum/{museum-id}")
+    @PreAuthorize("hasRole('ROLE_VISITOR')")
+    @GetMapping("/{museum-id}")
     @Operation(summary = "Visitor add museum as their favorite")
     public ResponseEntity<ApiResponse<VisitorFavorite>> getVisitorFavorite(@PathVariable("museum-id") UUID museumId) {
         UUID visitorId = getVisitorIdByUserId();

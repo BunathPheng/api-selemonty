@@ -3,6 +3,7 @@ package org.hrd.finalprojectmuseum.model.entity;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
+import org.hrd.finalprojectmuseum.model.entity.visitor.Visitor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -15,7 +16,7 @@ public class Booking {
     private MuseumOwner museum;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private Tour tour;
-    private UUID visitorId;
+    private Visitor visitor;
     private BigDecimal ticketPrice;
     private String ticketType;
     private String ticketStatus;

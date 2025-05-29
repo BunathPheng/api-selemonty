@@ -28,14 +28,14 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @RequestMapping("api/v1/visitor")
 @SecurityRequirement(name = "bearerAuth")
-@PreAuthorize("hasRole('ROLE_VISITOR')")
 public class VisitorController {
 
     private final AppUserService appUserService;
     private final VisitorService visitorService;
 
-    @GetMapping()
-    public ResponseEntity<ApiResponse<ListResponse<Visitor>>> getAllVisitors(
+    @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
+    @GetMapping("/museum")
+    public ResponseEntity<ApiResponse<ListResponse<Visitor>>> getAllVisitorsOfMuseum(
             @RequestParam(value = "search", required = false) String search,
             @RequestParam(defaultValue = "1") @Min(value = 1, message = "must be greater than 0") Integer page,
             @RequestParam(defaultValue = "10") @Min(value = 1, message = "must be greater than 0") Integer size
@@ -47,6 +47,26 @@ public class VisitorController {
         if (user.getRole() == Role.ROLE_MUSEUM_OWNER){
             visitorListResponse = visitorService.getVisitorByUserId(userId, search, page, size);
         }
+
+        ApiResponse<ListResponse<Visitor>> response = ApiResponse.<ListResponse<Visitor>>builder()
+                .success(true)
+                .message("Visitors fetched successfully")
+                .status(HttpStatus.OK)
+                .payload(visitorListResponse)
+                .build();
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @GetMapping("/admin")
+    public ResponseEntity<ApiResponse<ListResponse<Visitor>>> getAllVisitors(
+            @RequestParam(value = "search", required = false) String search,
+            @RequestParam(defaultValue = "1") @Min(value = 1, message = "must be greater than 0") Integer page,
+            @RequestParam(defaultValue = "10") @Min(value = 1, message = "must be greater than 0") Integer size
+    ){
+
+        ListResponse<Visitor>  visitorListResponse = visitorService.getAllVisitor(search, page, size);
 
         ApiResponse<ListResponse<Visitor>> response = ApiResponse.<ListResponse<Visitor>>builder()
                 .success(true)

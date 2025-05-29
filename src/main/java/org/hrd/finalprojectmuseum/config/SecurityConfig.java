@@ -48,12 +48,13 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/api/v1/museum/all",
-                                "/api/v1/museum/by-location"
+                                "/api/v1/museum/by-location",
+                                "api/v1/event/view/**"
                         ).permitAll()
-                        .requestMatchers("/api/v1/artifact/**").hasRole("MUSEUM_OWNER")
-                        .requestMatchers(HttpMethod.POST, "/api/v1/booking/*").hasRole("VISITOR")  // Only POST booking creation for visitors
-                        .requestMatchers(HttpMethod.GET, "/api/v1/booking").hasAnyRole("VISITOR", "MUSEUM_OWNER")  // GET booking history for both
-                        .requestMatchers(HttpMethod.GET, "/api/v1/booking/*").hasAnyRole("VISITOR", "MUSEUM_OWNER")
+//                        .requestMatchers("/api/v1/artifact/**").hasRole("MUSEUM_OWNER")
+//                        .requestMatchers(HttpMethod.POST, "/api/v1/booking/*").hasRole("VISITOR")  // Only POST booking creation for visitors
+//                        .requestMatchers(HttpMethod.GET, "/api/v1/booking").hasAnyRole("VISITOR", "MUSEUM_OWNER")  // GET booking history for both
+//                        .requestMatchers(HttpMethod.GET, "/api/v1/booking/*").hasAnyRole("VISITOR", "MUSEUM_OWNER")
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

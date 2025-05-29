@@ -42,6 +42,7 @@ public class ZoneController {
         return zoneService.getMuseumIdByUserId(userId);
     }
 
+    @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER') or hasRole('ROLE_VISITOR')")
     @GetMapping("/all-zone-category")
     @Operation(summary = "Get all museum zone categories")
     public ResponseEntity<ApiResponse<List<MuseumZoneCategory>>> getAllZoneCategories() {
@@ -56,6 +57,7 @@ public class ZoneController {
         return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
     }
 
+    @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
     @PostMapping
     @Operation(summary = "Create museum zone")
     public ResponseEntity<ApiResponse<MuseumZone>> addMuseumZone(@RequestBody @Valid MuseumZoneRequest museumZoneRequest) {
@@ -73,6 +75,7 @@ public class ZoneController {
         return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
     }
 
+    @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER') or hasRole('ROLE_VISITOR')")
     @GetMapping("/zone-category")
     @Operation(summary = "Get all museum zone categories belong to museum")
     public ResponseEntity<ApiResponse<List<MuseumZoneCategory>>> getAllZoneCategoriesByMuseumId() {
@@ -90,6 +93,7 @@ public class ZoneController {
         return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
     }
 
+    @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER') or hasRole('ROLE_VISITOR')")
     @GetMapping("/{zone-id}")
     @Operation(summary = "Get museum zone detail by museum zone Id")
     public ResponseEntity<ApiResponse<MuseumZone>> getMuseumZoneDetailByZoneId(@PathVariable("zone-id") UUID zoneId) {
@@ -107,6 +111,7 @@ public class ZoneController {
         return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
     }
 
+    @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
     @PutMapping("/{zone-id}")
     @Operation(summary = "Update museum zone detail by zone Id")
     public ResponseEntity<ApiResponse<MuseumZone>> updateMuseumZoneDetailByZoneId(
@@ -125,6 +130,7 @@ public class ZoneController {
         return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
     }
 
+    @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
     @PatchMapping("/{zone-id}")
     @Operation(summary = "Delete museum zone zone Id")
     public ResponseEntity<ApiResponse<MuseumZone>> deleteMuseumZoneByZoneId(@PathVariable("zone-id") UUID zoneId) {
@@ -141,6 +147,7 @@ public class ZoneController {
         return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
     }
 
+    @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER') or hasRole('ROLE_VISITOR')")
     @GetMapping
     @Operation(summary = "Get all museum zone")
     public ResponseEntity<ApiResponse<List<MuseumZoneResponse>>> getAllMuseumZonesByMuseumId(

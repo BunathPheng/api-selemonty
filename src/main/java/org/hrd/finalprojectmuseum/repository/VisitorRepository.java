@@ -1,6 +1,7 @@
 package org.hrd.finalprojectmuseum.repository;
 
 import org.apache.ibatis.annotations.*;
+import org.hrd.finalprojectmuseum.model.dto.response.ListResponse;
 import org.hrd.finalprojectmuseum.model.entity.visitor.Visitor;
 
 import java.util.List;
@@ -37,4 +38,11 @@ public interface VisitorRepository {
         AND full_name ILIKE CONCAT('%', #{seach}, '%')
     """)
     Integer countAllVisitor(UUID museumId, String search);
+
+    @Select("""
+        SELECT * FROM visitors
+        WHERE full_name ILIKE CONCAT('%', #{seach}, '%')
+        OFFSET (#{page}-1)* #{size} LIMIT #{size};
+    """)
+    ListResponse<Visitor> findAllVisitor(String search, Integer page, Integer size);
 }

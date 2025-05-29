@@ -244,12 +244,10 @@ public interface BookingRepository {
     """)
     Integer countAllBookingByMuseumIdSearchBookingTypeAndDateRange(UUID museumId, String search, BookingType bookingType, LocalDate startDate, LocalDate endDate);
 
-    // ===== INDIVIDUAL BOOKING OPERATIONS =====
     @ResultMap("bookingMapper")
     @Select("""
-        SELECT b.* FROM bookings b 
-        INNER JOIN museum_owners m ON b.museum_id = m.museum_id
-        WHERE b.booking_id = #{bookingId}::UUID AND b.museum_id = #{museumId}::UUID
+        SELECT * FROM bookings
+        WHERE booking_id = #{bookingId}::UUID AND museum_id = #{museumId}::UUID
     """)
     Booking findBookingByBookingIdAndMuseumId(UUID bookingId, UUID museumId);
 
@@ -279,7 +277,7 @@ public interface BookingRepository {
 
     @Select("""
         INSERT INTO bookings (museum_id, visitor_id, slot_amount, booking_date)
-        VALUES (#{museumId}, #{visitorId}, #{booking.slotAmount}, #{booking.bookingDate})
+        VALUES (#{museumId}::UUID, #{visitorId}::UUID, #{booking.slotAmount}, #{booking.bookingDate})
         RETURNING booking_id;
     """)
     UUID insertBookingForTourRequest(UUID museumId, UUID visitorId, @Param("booking") RequestTourRequest requestTourRequest);

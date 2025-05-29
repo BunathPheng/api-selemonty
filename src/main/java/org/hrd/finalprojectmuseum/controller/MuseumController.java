@@ -34,6 +34,7 @@ public class MuseumController {
     private final ScheduleService scheduleService;
     private final MuseumService museumService;
 
+    @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
     @Operation(summary = "For check and verify booking ticket by bookingId which provide by qr scan. Only museum owner can use.")
     @PatchMapping("/management/verify/qr")
     public ResponseEntity<ApiResponse<Booking>> verifyScanQrCodeBookingId(@RequestParam("scan") @NotNull UUID bookingId) {
@@ -59,6 +60,7 @@ public class MuseumController {
         return ResponseEntity.ok(response);
     }
 
+    @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
     @Operation(summary = "For check and verify booking ticket by code QR instead of scanning. Only museum owner can use.")
     @PatchMapping("/management/verify/code")
     public ResponseEntity<ApiResponse<Booking>> verifyQrCodeBookingId(@RequestParam("code-qr") @NotNull String codeQr) {
