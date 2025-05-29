@@ -2,6 +2,7 @@ package org.hrd.finalprojectmuseum.controller;
 
 import com.alibaba.fastjson2.JSONObject;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.Min;
@@ -30,6 +31,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("api/v1/museum")
 @RequiredArgsConstructor
+@SecurityRequirement(name = "bearerAuth")
 public class MuseumController {
     private final ProfileService profileService;
     private final BookingService bookingService;

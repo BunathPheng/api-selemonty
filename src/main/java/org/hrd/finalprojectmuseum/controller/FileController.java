@@ -1,5 +1,6 @@
 package org.hrd.finalprojectmuseum.controller;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.hrd.finalprojectmuseum.model.dto.response.ApiResponse;
@@ -17,6 +18,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 @RestController
 @RequestMapping("api/v1/file")
 @RequiredArgsConstructor
+@SecurityRequirement(name = "bearerAuth")
 public class FileController {
     private final FileService fileService;
 

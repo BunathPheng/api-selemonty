@@ -1,5 +1,6 @@
 package org.hrd.finalprojectmuseum.controller;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.hrd.finalprojectmuseum.model.dto.response.ApiResponse;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumCategory;
@@ -16,6 +17,7 @@ import java.util.List;
 @RestController
 @RequestMapping("api/v1/museum/categories")
 @RequiredArgsConstructor
+@SecurityRequirement(name = "bearerAuth")
 public class MuseumCategoriesController {
 
     private final MuseumRepository museumRepository;
