@@ -20,6 +20,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 
@@ -48,16 +49,16 @@ public class EventController {
                 .message("All events have been fetched")
                 .status(HttpStatus.OK)
                 .payload(listEventResponse)
+                .timestamp(LocalDateTime.now())
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    @PreAuthorize("hasRole('ROLE_VISITOR')")
     @Operation(
-            summary = "Get all event of a museum. For visitor only",
-            description = "Use to get all event of museum with pagination. Required museumId"
+            summary = "Get all events of a museum by museum ID",
+            description = "Use to get all events of museum with pagination. Required museumId"
     )
-    @GetMapping("/view/{museum-id}")
+    @GetMapping("/view/museum/{museum-id}")
     public ResponseEntity<ApiResponse<ListResponse<Event>>> getAllEventsByMuseumId(
             @PathVariable("museum-id") @NotNull UUID museumId,
             @RequestParam(required = false) String search,
@@ -70,26 +71,27 @@ public class EventController {
                 .message("All events have been fetched")
                 .status(HttpStatus.OK)
                 .payload(listEventResponse)
+                .timestamp(LocalDateTime.now())
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER') or hasRole('ROLE_VISITOR')")
-    @Operation(summary = "Use to get event by using eventId. For visitor and museum owner role")
+    @Operation(summary = "Get a single event by event ID. For visitor and museum owner role")
     @GetMapping("/view/{event-id}")
     public ResponseEntity<ApiResponse<Event>> getEventsByEventId(@PathVariable("event-id") @NotNull UUID eventId) {
         Event event = eventService.findEventsByEventId(eventId);
         ApiResponse<Event> response = ApiResponse.<Event>builder()
                 .success(true)
-                .message("All events have been fetched")
+                .message("Event has been fetched successfully")
                 .status(HttpStatus.OK)
                 .payload(event)
+                .timestamp(LocalDateTime.now())
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
-    @Operation(summary = "Use to get all event of museum. For museum owner role only")
+    @PreAuthorize("hasRole('MUSEUM_OWNER')")
+    @Operation(summary = "Get all events of current museum owner. For museum owner role only")
     @GetMapping()
     public ResponseEntity<ApiResponse<ListResponse<Event>>> getAllEventForMuseumOwner(
             @RequestParam(required = false) String search,
@@ -105,12 +107,13 @@ public class EventController {
                 .message("All events have been fetched")
                 .status(HttpStatus.OK)
                 .payload(listEventResponse)
+                .timestamp(LocalDateTime.now())
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
-    @Operation(summary = "Use to create new event. For museum owner role only")
+    @PreAuthorize("hasRole('MUSEUM_OWNER')")
+    @Operation(summary = "Create a new event. For museum owner role only")
     @PostMapping()
     public ResponseEntity<ApiResponse<Event>> createNewEvent(@RequestBody @Valid EventRequest eventRequest) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -119,15 +122,16 @@ public class EventController {
         Event event = eventService.addNewEvent(museumOwner, eventRequest);
         ApiResponse<Event> response = ApiResponse.<Event>builder()
                 .success(true)
-                .message("Event have been created successfully")
+                .message("Event has been created successfully")
                 .status(HttpStatus.CREATED)
                 .payload(event)
+                .timestamp(LocalDateTime.now())
                 .build();
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
-    @Operation(summary = "Use to update event. For museum owner role only")
+    @PreAuthorize("hasRole('MUSEUM_OWNER')")
+    @Operation(summary = "Update an event by event ID. For museum owner role only")
     @PutMapping("/{event-id}")
     public ResponseEntity<ApiResponse<Event>> updateEventByEventId(
             @RequestBody @Valid EventRequest eventRequest,
@@ -136,22 +140,24 @@ public class EventController {
         Event event = eventService.updateEventByEventId(eventId, eventRequest);
         ApiResponse<Event> response = ApiResponse.<Event>builder()
                 .success(true)
-                .message("All events have been updated successfully")
+                .message("Event has been updated successfully")
                 .status(HttpStatus.OK)
                 .payload(event)
+                .timestamp(LocalDateTime.now())
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
-    @Operation(summary = "Use to delete event by update delete status to true new event. For museum owner role only")
-    @PatchMapping("/{event-id}")
-    public ResponseEntity<ApiResponse<Event>> updateDeleteStatus(@PathVariable("event-id") @NotNull UUID eventId) {
+    @PreAuthorize("hasRole('MUSEUM_OWNER')")
+    @Operation(summary = "Soft delete an event by updating delete status. For museum owner role only")
+    @DeleteMapping("/{event-id}")
+    public ResponseEntity<ApiResponse<Void>> updateDeleteStatus(@PathVariable("event-id") @NotNull UUID eventId) {
         eventService.updateDeleteStatus(eventId);
-        ApiResponse<Event> response = ApiResponse.<Event>builder()
+        ApiResponse<Void> response = ApiResponse.<Void>builder()
                 .success(true)
-                .message("Event have been updated to deleted successfully")
+                .message("Event has been deleted successfully")
                 .status(HttpStatus.OK)
+                .timestamp(LocalDateTime.now())
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
