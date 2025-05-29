@@ -23,6 +23,11 @@ public class MuseumOwner {
     private JSONObject landscapeLink;
     private String description;
     private Boolean isApproved;
+    private String address;
+    private String clientId;
+    private String clientSecret;
+    private String accountName;
+    private String parentAccountNo;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

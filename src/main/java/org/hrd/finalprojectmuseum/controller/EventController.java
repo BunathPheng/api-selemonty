@@ -12,7 +12,7 @@ import org.hrd.finalprojectmuseum.model.dto.response.ListResponse;
 import org.hrd.finalprojectmuseum.model.entity.Event;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
 import org.hrd.finalprojectmuseum.service.EventService;
-import org.hrd.finalprojectmuseum.service.MuseumOwnerService;
+import org.hrd.finalprojectmuseum.service.ProfileService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -31,7 +31,7 @@ import java.util.UUID;
 public class EventController {
 
     private final EventService eventService;
-    private final MuseumOwnerService museumOwnerService;
+    private final ProfileService profileService;
 
     @Operation(
             summary = "Get all event of all museums",
@@ -93,7 +93,7 @@ public class EventController {
     public ResponseEntity<ApiResponse<Event>> createNewEvent(@RequestBody @Valid EventRequest eventRequest) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UUID userId = UUID.fromString((String) auth.getCredentials());
-        MuseumOwner museumOwner = museumOwnerService.getMuseumOwnerByUserId(userId);
+        MuseumOwner museumOwner = profileService.getMuseumOwnerByUserId(userId);
         Event event = eventService.addNewEvent(museumOwner, eventRequest);
         ApiResponse<Event> response = ApiResponse.<Event>builder()
                 .success(true)

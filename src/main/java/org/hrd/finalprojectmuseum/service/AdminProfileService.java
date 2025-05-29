@@ -10,8 +10,6 @@ import java.util.UUID;
 
 public interface AdminProfileService {
 
-    Admin getAdminByUserId(UUID userId);
 
-    Admin updateAdminByUserId(UUID userId, AdminRequest adminRequest);
 
 }

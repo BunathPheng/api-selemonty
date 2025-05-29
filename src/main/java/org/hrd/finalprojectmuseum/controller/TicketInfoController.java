@@ -6,10 +6,9 @@ import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.hrd.finalprojectmuseum.model.dto.request.TicketInfoRequest;
 import org.hrd.finalprojectmuseum.model.dto.response.ApiResponse;
-import org.hrd.finalprojectmuseum.model.dto.response.ListResponse;
 import org.hrd.finalprojectmuseum.model.entity.TicketInfo;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
-import org.hrd.finalprojectmuseum.service.MuseumOwnerService;
+import org.hrd.finalprojectmuseum.service.ProfileService;
 import org.hrd.finalprojectmuseum.service.TicketInfoService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,7 +27,7 @@ import java.util.UUID;
 public class TicketInfoController {
 
     private final TicketInfoService ticketInfoService;
-    private final MuseumOwnerService museumOwnerService;
+    private final ProfileService profileService;
 
     @GetMapping("/{museum-id}")
     @PreAuthorize("hasRole('ROLE_VISITOR')")
@@ -49,7 +48,7 @@ public class TicketInfoController {
     public ResponseEntity<ApiResponse<TicketInfo>> getTicketInfoByMuseumIdForMuseumOwner() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UUID userId = UUID.fromString((String) auth.getCredentials());
-        MuseumOwner museumOwner = museumOwnerService.getMuseumOwnerByUserId(userId);
+        MuseumOwner museumOwner = profileService.getMuseumOwnerByUserId(userId);
         TicketInfo ticketInfo = ticketInfoService.getTicketInfoByMuseumId(museumOwner.getMuseumId());
         ApiResponse<TicketInfo> response = ApiResponse.<TicketInfo>builder()
                 .success(true)
@@ -65,7 +64,7 @@ public class TicketInfoController {
     public ResponseEntity<ApiResponse<TicketInfo>> updateTicketInfo(@RequestBody TicketInfoRequest ticketInfoRequest) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UUID userId = UUID.fromString((String) auth.getCredentials());
-        MuseumOwner museumOwner = museumOwnerService.getMuseumOwnerByUserId(userId);
+        MuseumOwner museumOwner = profileService.getMuseumOwnerByUserId(userId);
         TicketInfo ticketInfo = ticketInfoService.updateTicketInfo(museumOwner.getMuseumId(), ticketInfoRequest);
         ApiResponse<TicketInfo> response = ApiResponse.<TicketInfo>builder()
                 .success(true)

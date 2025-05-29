@@ -149,5 +149,14 @@ public class AppUserServiceImpl implements AppUserService {
         if (!isCorrect) throw new AppBadRequestException("Invalid old password. Please check your old password and try again.");
         appUserRepository.updatePasswordByUserId(userId, passwordEncoder.encode(passwordRequest.getNewPassword()));
     }
+
+    @Override
+    public AppUserRegister findUserByUserId(UUID userId) {
+        AppUserRegister appUserRegister = appUserRepository.getUserById(userId);
+        if (appUserRegister == null) {
+            throw new AppBadRequestException("User with id " + userId + " does not exist.");
+        }
+        return appUserRegister;
+    }
 }
 

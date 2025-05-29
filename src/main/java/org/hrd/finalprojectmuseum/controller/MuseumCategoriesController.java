@@ -3,7 +3,7 @@ package org.hrd.finalprojectmuseum.controller;
 import lombok.RequiredArgsConstructor;
 import org.hrd.finalprojectmuseum.model.dto.response.ApiResponse;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumCategory;
-import org.hrd.finalprojectmuseum.service.MuseumOwnerService;
+import org.hrd.finalprojectmuseum.repository.MuseumRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,11 +18,11 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MuseumCategoriesController {
 
-    private final MuseumOwnerService museumOwnerService;
+    private final MuseumRepository museumRepository;
 
     @GetMapping("/museum-category")
     public ResponseEntity<ApiResponse<List<MuseumCategory>>> getMuseumCategory() {
-        List<MuseumCategory> museumCategories = museumOwnerService.getMuseumCategories();
+        List<MuseumCategory> museumCategories = museumRepository.getMuseumCategories();
         ApiResponse<List<MuseumCategory>> response = ApiResponse.<List<MuseumCategory>>builder()
                 .message("Museum Categories has been fetched")
                 .success(true)

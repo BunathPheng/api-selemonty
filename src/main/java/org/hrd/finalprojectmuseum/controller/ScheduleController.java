@@ -10,7 +10,7 @@ import org.hrd.finalprojectmuseum.model.dto.request.museum_owner.ScheduleRequest
 import org.hrd.finalprojectmuseum.model.dto.response.ApiResponse;
 import org.hrd.finalprojectmuseum.model.entity.Schedule;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
-import org.hrd.finalprojectmuseum.service.MuseumOwnerService;
+import org.hrd.finalprojectmuseum.service.ProfileService;
 import org.hrd.finalprojectmuseum.service.ScheduleService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,14 +30,14 @@ import java.util.UUID;
 public class ScheduleController {
 
     private final ScheduleService scheduleService;
-    private final MuseumOwnerService museumOwnerService;
+    private final ProfileService profileService;
 
     @GetMapping("/detail")
     @Operation(summary = "Get schedule of a week with 7 day")
     public ResponseEntity<ApiResponse<List<Schedule>>> getAllSchedulesDetailOfMuseum() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UUID userId = UUID.fromString((String) auth.getCredentials());
-        MuseumOwner museumOwner = museumOwnerService.getMuseumOwnerByUserId(userId);
+        MuseumOwner museumOwner = profileService.getMuseumOwnerByUserId(userId);
         List<Schedule> schedules = scheduleService.getScheduleOfMuseum(museumOwner.getMuseumId());
         ApiResponse<List<Schedule>> response = ApiResponse.<List<Schedule>>builder()
                 .success(true)
@@ -67,7 +67,7 @@ public class ScheduleController {
     public ResponseEntity<ApiResponse<List<Schedule>>> getGroupedSchedulesOfMuseum() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UUID userId = UUID.fromString((String) auth.getCredentials());
-        MuseumOwner museumOwner = museumOwnerService.getMuseumOwnerByUserId(userId);
+        MuseumOwner museumOwner = profileService.getMuseumOwnerByUserId(userId);
         List<Schedule> schedules = scheduleService.getShortSchedulesOfMuseum(museumOwner.getMuseumId());
         ApiResponse<List<Schedule>> response = ApiResponse.<List<Schedule>>builder()
                 .success(true)
@@ -86,7 +86,7 @@ public class ScheduleController {
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             UUID userId = UUID.fromString((String) auth.getCredentials());
-            MuseumOwner museumOwner = museumOwnerService.getMuseumOwnerByUserId(userId);
+            MuseumOwner museumOwner = profileService.getMuseumOwnerByUserId(userId);
 
             if (scheduleRequests.size() > 7) {
                 throw new AppBadRequestException("Cannot have more than 7 schedule entries");

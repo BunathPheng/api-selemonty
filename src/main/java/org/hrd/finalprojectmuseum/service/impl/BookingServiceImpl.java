@@ -12,7 +12,7 @@ import org.hrd.finalprojectmuseum.model.entity.Pagination;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
 import org.hrd.finalprojectmuseum.model.enums.BookingType;
 import org.hrd.finalprojectmuseum.repository.BookingRepository;
-import org.hrd.finalprojectmuseum.repository.MuseumOwnerRepository;
+import org.hrd.finalprojectmuseum.repository.MuseumRepository;
 import org.hrd.finalprojectmuseum.service.BookingService;
 import org.hrd.finalprojectmuseum.utils.UniqueTextCodeGenerator;
 import org.springframework.stereotype.Service;
@@ -29,11 +29,11 @@ import java.util.UUID;
 public class BookingServiceImpl implements BookingService {
     private final BookingRepository bookingRepository;
     private final UniqueTextCodeGenerator uniqueTextCodeGenerator;
-    private final MuseumOwnerRepository museumOwnerRepository;
+    private final MuseumRepository museumRepository;
 
     @Override
     public Booking makeABookingByMuseumId(UUID museumId, UUID visitorId, BookingRequest bookingRequest) {
-        MuseumOwner museum = museumOwnerRepository.findMuseumOwnerByMuseumId(museumId);
+        MuseumOwner museum = museumRepository.findMuseumOwnerByMuseumId(museumId);
         if (museum == null) {
             throw new AppNotFoundException("Museum with id " + museumId + " not exists");
         }

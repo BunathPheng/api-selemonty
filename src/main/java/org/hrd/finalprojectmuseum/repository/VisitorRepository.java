@@ -1,18 +1,18 @@
 package org.hrd.finalprojectmuseum.repository;
 
 import org.apache.ibatis.annotations.*;
-import org.hrd.finalprojectmuseum.model.dto.request.visitor.VisitorRequest;
 import org.hrd.finalprojectmuseum.model.entity.visitor.Visitor;
 
-import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Mapper
 public interface VisitorRepository {
+
     @Results(id = "visitorMapper", value = {
             @Result(property = "visitorId", column = "visitor_id"),
             @Result(property = "appUserRegister", column = "user_id",
-            one = @One(select = "org.hrd.finalprojectmuseum.repository.AppUserRepository.getUserById")),
+                    one = @One(select = "org.hrd.finalprojectmuseum.repository.AppUserRepository.getUserById")),
             @Result(property = "fullName", column = "full_name"),
             @Result(property = "contactNumber", column = "contact_number"),
             @Result(property = "gender", column = "gender"),
@@ -22,21 +22,19 @@ public interface VisitorRepository {
             @Result(property = "updatedAt", column = "updated_at")
     })
     @Select("""
-        SELECT * FROM visitors WHERE user_id = #{userId}::UUID
+        SELECT * FROM visitors v INNER JOIN bookings b
+        ON v.visitor_id = b.visitor_id
+        WHERE b.museum_id = #{museumId}::UUID
+        AND full_name ILIKE CONCAT('%', #{seach}, '%')
+        OFFSET (#{page}-1)* #{size} LIMIT #{size};
     """)
-    Visitor findVisitor(UUID userId);
+    List<Visitor> findVisitorByMuseumId(UUID museumId, String search, Integer page, Integer size);
 
-    @ResultMap("visitorMapper")
     @Select("""
-       UPDATE visitors SET full_name = #{visitor.fullName}, contact_number = #{visitor.contactNumber}, gender = #{visitor.gender},
-                           dob = #{visitor.dob}, profile_image_link = #{visitor.profileImageLink}, updated_at = #{updatedAt}  WHERE user_id = #{userId}::uuid
-                            RETURNING *;
+        SELECT COUNT(*) FROM visitors v INNER JOIN bookings b
+        ON v.visitor_id = b.visitor_id
+        WHERE b.museum_id = #{museumId}::UUID
+        AND full_name ILIKE CONCAT('%', #{seach}, '%')
     """)
-    Visitor modifyVisitorByVisitorId(UUID userId, @Param("visitor") VisitorRequest visitorRequest, LocalDateTime updatedAt);
-
-    @ResultMap("visitorMapper")
-    @Select("""
-        SELECT * FROM visitors WHERE visitor_id = #{visitorId}::UUID
-    """)
-    Visitor findVisitorById(UUID visitorId);
+    Integer countAllVisitor(UUID museumId, String search);
 }
