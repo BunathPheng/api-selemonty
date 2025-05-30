@@ -1,5 +1,6 @@
 package org.hrd.finalprojectmuseum.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.hrd.finalprojectmuseum.model.dto.response.ApiResponse;
@@ -20,6 +21,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 public class FilesController {
     private final FileService fileService;
 
+    @Operation(summary = "for upload file")
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<File>> uploadFile(
             @RequestParam("file") @Valid MultipartFile file,
@@ -47,6 +49,7 @@ public class FilesController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @Operation(summary = "for view file by file name")
     @GetMapping("/view/{fileName}")
     public ResponseEntity<?> viewFileByFileName(
             @PathVariable String fileName
@@ -81,6 +84,7 @@ public class FilesController {
                 .body(resource);
     }
 
+    @Operation(summary = "for delete file by file name")
     @DeleteMapping("delete/{fileName}")
     public ResponseEntity<ApiResponse<Void>> deleteFile(
             @RequestParam("fileName") String fileName

@@ -37,7 +37,7 @@ public class BookingsController {
     private final ProfileService profileService;
     private final AppUserService appUserService;
 
-    @Operation(summary = "For booking a ticket. Only visitor can use.")
+    @Operation(summary = "For booking a ticket. Only visitor can use.", description = "Need to input right ticket price and total price")
     @SecurityRequirement(name = "bearerAuth")
     @PreAuthorize("hasRole('ROLE_VISITOR')")
     @PostMapping("/individual/{museum-id}")
@@ -82,7 +82,7 @@ public class BookingsController {
     @SecurityRequirement(name = "bearerAuth")
     @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER') or hasRole('ROLE_VISITOR')")
     @Operation(
-            summary = "For get all booking history of a visitor with search, category and between of two date. MuseumOwner and Visitor can use.",
+            summary = "For get all booking history",
             description = "For Date must follow format (YYYY-MM-DD). If any filter dont want to use just leave it empty."
     )
 
@@ -115,6 +115,10 @@ public class BookingsController {
         return ResponseEntity.ok(response);
     }
 
+    @Operation(
+            summary = "For get all booking history of a visitor with search, category and between of two date. MuseumOwner and Visitor can use.",
+            description = "For Date must follow format (YYYY-MM-DD). If any filter dont want to use just leave it empty."
+    )
     @SecurityRequirement(name = "bearerAuth")
     @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER') or hasRole('ROLE_VISITOR')")
     @GetMapping("/filter")
@@ -152,7 +156,7 @@ public class BookingsController {
     @SecurityRequirement(name = "bearerAuth")
     @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER') or hasRole('ROLE_VISITOR')")
     @Operation(
-            summary = "For get booking by Booking ID, category and between of two date. MuseumOwner and Visitor can use."
+            summary = "For get booking by Booking ID MuseumOwner and Visitor can use."
     )
     @GetMapping("/{booking-id}")
     public ResponseEntity<ApiResponse<Booking>> getBookingHistoryByBookingId(@PathVariable("booking-id") @Valid UUID bookingId) {
@@ -171,7 +175,6 @@ public class BookingsController {
             booking = bookingService.getBookingByMuseumId(bookingId, museumOwner.getMuseumId());
 
         }
-
         ApiResponse<Booking> response = ApiResponse.<Booking>builder()
                 .success(true)
                 .message("Booking retrieved successfully")

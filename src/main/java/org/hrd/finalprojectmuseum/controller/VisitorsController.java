@@ -22,7 +22,7 @@ import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("api/v1/visitor")
+@RequestMapping("api/v1/visitors")
 @SecurityRequirement(name = "bearerAuth")
 public class VisitorsController {
 

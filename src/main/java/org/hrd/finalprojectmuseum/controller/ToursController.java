@@ -29,7 +29,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("api/v1/tour")
+@RequestMapping("api/v1/tours")
 @RequiredArgsConstructor
 @SecurityRequirement(name = "bearerAuth")
 public class ToursController {

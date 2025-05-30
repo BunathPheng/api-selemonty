@@ -70,7 +70,7 @@ public class AuthsController {
         return ResponseEntity.ok(response);
     }
 
-    @Operation(summary = "Login with google with IdToken", description = "This endpoint need google IdToken from frontend to verify to register or login. Can use google oauth2 playground website to get IdToken for testing.")
+    @Operation(summary = "Login with google with IdToken as visitor", description = "This endpoint need google IdToken from frontend to verify to register or login. Can use google oauth2 playground website to get IdToken for testing.")
     @PostMapping("/google/sign-in/visitor")
     public ResponseEntity<ApiResponse<LoginToken>> handleGoogleLoginAsVisitor(@RequestBody @Valid IdTokenRequest request) throws Exception {
         LoginToken userInfo = googleAuthService.verifyAndExtractUserInfo(request.getIdToken(), "VISITOR");
@@ -83,6 +83,7 @@ public class AuthsController {
         return ResponseEntity.ok(response);
     }
 
+    @Operation(summary = "Login with google with IdToken as museum", description = "This endpoint need google IdToken from frontend to verify to register or login. Can use google oauth2 playground website to get IdToken for testing.")
     @PostMapping("/google/sign-in/museum-owner")
     public ResponseEntity<ApiResponse<LoginToken>> handleGoogleLoginAsMuseumOwner(@RequestBody @Valid IdTokenRequest request) throws Exception {
         LoginToken userInfo = googleAuthService.verifyAndExtractUserInfo(request.getIdToken(), "MUSEUM-OWNER");
@@ -228,7 +229,7 @@ public class AuthsController {
         return ResponseEntity.ok(response);
     }
 
-    @Operation(summary = "Reset password after confirm all step", description = "This endpoint use to confirm token and then change password to new password for user")
+    @Operation(summary = "Reset password after confirm all step of forgot password", description = "This endpoint use to confirm token and then change password to new password for user")
     @PostMapping("/forgot-password/reset-password")
     public ResponseEntity<ApiResponse<String>> resetPassword(@RequestBody @Valid ResetPasswordRequest resetPasswordRequest) {
         appUserService.resetPassword(resetPasswordRequest.getToken(), resetPasswordRequest.getNewPassword());
@@ -240,6 +241,7 @@ public class AuthsController {
         return ResponseEntity.ok(response);
     }
 
+    @Operation(summary = "get expiration of OTP as second")
     @GetMapping("/otp-expiration")
     public ResponseEntity<ApiResponse<Long>> otpExpiration(@RequestParam @Email(message = "Email form is incorrect") @NotBlank(message = "Email is required") String email) {
         Long expiration = otpService.getExpirationByOtpId(email);
@@ -251,7 +253,6 @@ public class AuthsController {
                 .build();
         return ResponseEntity.ok(response);
     }
-
 
     @GetMapping("/google/login")
     @Operation(summary = "For Testing only", description = "this endpoint server side flow for google sign in")

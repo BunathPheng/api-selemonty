@@ -147,18 +147,4 @@ public class ProfilesController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    @PreAuthorize("hasRole('ROLE_VISITOR')")
-    @DeleteMapping("/visitor")
-    public ResponseEntity<ApiResponse<Void>> deleteVisitor() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        UUID userId = UUID.fromString((String) auth.getCredentials());
-        profileService.deleteVisitor(userId);
-        ApiResponse<Void> response = ApiResponse.<Void>builder()
-                .success(true)
-                .message("delete profile successfully")
-                .status(HttpStatus.OK)
-                .build();
-        return ResponseEntity.ok(response);
-    }
-
 }

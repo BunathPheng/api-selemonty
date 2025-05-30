@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/zone")
+@RequestMapping("/api/v1/zones")
 @RequiredArgsConstructor
 public class ZonesController {
 
