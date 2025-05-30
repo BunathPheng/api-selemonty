@@ -10,6 +10,10 @@ A comprehensive museum management system that provides features for museum owner
 *   [Maven](https://maven.apache.org/)
 *   [PostgreSQL](https://www.postgresql.org/)
 
+## 🌐 API Access
+
+You can access the API at the following URL:http://34.129.192.53:8080/swagger-ui/index.html
+
 ## Usage
 
 > **AuthsController**
