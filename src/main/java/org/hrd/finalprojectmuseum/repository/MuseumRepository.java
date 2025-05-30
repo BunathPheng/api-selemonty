@@ -123,23 +123,29 @@ public interface MuseumRepository {
     @ResultMap("museumMapper")
     @Select("""
         SELECT * FROM museum_owners
-        INNER JOIN user_info on user_info.user_id = museum_owners.user_id WHERE is_approved = true AND is_verified = true
+        INNER JOIN user_info on user_info.user_id = museum_owners.user_id
+        WHERE is_approved = true AND is_verified = true
+        AND name ILIKE CONCAT('%', #{search}, '%')
         offset (#{page}-1)* #{size} limit #{size};
     """)
-    List<MuseumOwner> getAllApprovedMuseums(Integer page, Integer size);
+    List<MuseumOwner> getAllApprovedMuseums(String search, Integer page, Integer size);
 
     @ResultMap("museumMapper")
     @Select("""
         SELECT * FROM museum_owners
-        INNER JOIN user_info on user_info.user_id = museum_owners.user_id WHERE is_approved = true AND is_verified = true AND museum_category_id = #{museumCategoryId}::UUID
+        INNER JOIN user_info on user_info.user_id = museum_owners.user_id 
+        WHERE is_approved = true AND is_verified = true 
+        AND museum_category_id = #{museumCategoryId}::UUID
+        AND name ILIKE CONCAT('%', #{search}, '%')
         offset (#{page}-1)* #{size} limit #{size};
     """)
-    List<MuseumOwner> getAllApprovedMuseumsByCategoryId(UUID museumCategoryId, Integer page, Integer size);
+    List<MuseumOwner> getAllApprovedMuseumsByCategoryId(String search, UUID museumCategoryId, Integer page, Integer size);
 
     @Select("""
-        SELECT COUNT(*) FROM museum_owners INNER JOIN user_info on user_info.user_id = museum_owners.user_id WHERE is_approved = true AND is_verified = true
+        SELECT COUNT(*) FROM museum_owners INNER JOIN user_info on user_info.user_id = museum_owners.user_id
+        WHERE is_approved = true AND is_verified = true AND name ILIKE CONCAT('%', #{search}, '%')
     """)
-    Integer countAllApprovedMuseums();
+    Integer countAllApprovedMuseums(String search);
 
     @Select("""
         SELECT COUNT(*) FROM museum_owners INNER JOIN user_info on user_info.user_id = museum_owners.user_id
@@ -201,4 +207,12 @@ public interface MuseumRepository {
         AND museum_category_id = #{museumCategoryId}::UUID AND is_approved = #{isApproved}
     """)
     Integer countAllMuseumsByCategoryAndStatus(String search, UUID museumCategoryId, boolean isApproved);
+
+    @Select("""
+        SELECT COUNT(*) FROM museum_owners INNER JOIN user_info on user_info.user_id = museum_owners.user_id
+        WHERE is_approved = true AND is_verified = true AND name ILIKE CONCAT('%', #{search}, '%')
+        AND museum_category_id = #{museumCategoryId}::UUID
+    """)
+    Integer countAllApprovedMuseumsByCategoryId(String search, UUID museumCategoryId);
+
 }

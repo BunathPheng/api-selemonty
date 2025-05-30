@@ -87,17 +87,32 @@ public class MuseumsController {
         return ResponseEntity.ok(response);
     }
 
-    @SecurityRequirement(name = "bearerAuth")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @Operation(summary = "For get all museums with all status type. Allowed only admin")
+    @Operation(summary = "For get all museums. Allowed guest")
     @GetMapping()
     public ResponseEntity<ApiResponse<ListResponse<MuseumOwner>>> getAllMuseumOwners(
+            @RequestParam(defaultValue = "1") @Min(value = 1, message = "must be greater than 0") Integer page,
+            @RequestParam(defaultValue = "10") @Min(value = 1, message = "must be greater than 0") Integer size,
+            @RequestParam("status") MuseumStatus museumStatus
+            ) {
+        ListResponse<MuseumOwner> museums = museumService.getAllMuseum(null, null, page, size, museumStatus);
+        ApiResponse<ListResponse<MuseumOwner>> response = ApiResponse.<ListResponse<MuseumOwner>>builder()
+                .success(true)
+                .message("Museums has been fetched successfully")
+                .status(HttpStatus.OK)
+                .payload(museums)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @Operation(summary = "For get all museums with filter. Allowed guest")
+    @GetMapping("/filter")
+    public ResponseEntity<ApiResponse<ListResponse<MuseumOwner>>> getMuseumOwnersByFilter(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) UUID museumCategoryId,
             @RequestParam(defaultValue = "1") @Min(value = 1, message = "must be greater than 0") Integer page,
             @RequestParam(defaultValue = "10") @Min(value = 1, message = "must be greater than 0") Integer size,
             @RequestParam("status") MuseumStatus museumStatus
-            ) {
+    ) {
         ListResponse<MuseumOwner> museums = museumService.getAllMuseum(search, museumCategoryId, page, size, museumStatus);
         ApiResponse<ListResponse<MuseumOwner>> response = ApiResponse.<ListResponse<MuseumOwner>>builder()
                 .success(true)
@@ -109,7 +124,7 @@ public class MuseumsController {
     }
 
     @Operation(summary = "For get all approved museums filter by distance. Allowed all role and guest")
-    @GetMapping("/by-distance")
+    @GetMapping("/nearby")
     public ResponseEntity<ApiResponse<List<MuseumWithDistanceResponse>>> getAllMuseumOwnersByLocation(
             @RequestParam(required = false) @Digits(integer = 4, fraction = 6, message = "Must be a number with up to 4 integer digits and 6 fractional digits") BigDecimal lat,
             @RequestParam(required = false) @Digits(integer = 4, fraction = 6, message = "Must be a number with up to 4 integer digits and 6 fractional digits") BigDecimal lng,
@@ -125,13 +140,15 @@ public class MuseumsController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    @Operation(summary = "For get all approved museums. Allowed all role and guest")
-    @GetMapping("/approved")
-    public ResponseEntity<ApiResponse<ListResponse<MuseumOwner>>> getAllApprovedMuseumOwners(@RequestParam(required = false) UUID museumCategoryId, @RequestParam(defaultValue = "1") @Min(value = 1, message = "must be greater than 0") Integer page, @RequestParam(defaultValue = "10") @Min(value = 1, message = "must be greater than 0") Integer size) {
-        ListResponse<MuseumOwner> museums = museumService.getAllApprovedMuseum(museumCategoryId, page, size);
-        ApiResponse<ListResponse<MuseumOwner>> response = ApiResponse.<ListResponse<MuseumOwner>>builder()
+    @Operation(summary = "For get museum by museum id. Allowed guest")
+    @GetMapping("{museum-id}")
+    public ResponseEntity<ApiResponse<MuseumOwner>> getMuseumOwnerByMuseumId(
+            @PathVariable("museum-id") @NotNull UUID museumId
+    ) {
+        MuseumOwner museums = museumService.getAllMuseumByMuseumId(museumId);
+        ApiResponse<MuseumOwner> response = ApiResponse.<MuseumOwner>builder()
                 .success(true)
-                .message("Approved Museums has been fetched successfully")
+                .message("Museum has been fetched successfully")
                 .status(HttpStatus.OK)
                 .payload(museums)
                 .build();

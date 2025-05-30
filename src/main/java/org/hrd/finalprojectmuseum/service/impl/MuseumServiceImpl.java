@@ -109,32 +109,6 @@ public class MuseumServiceImpl implements MuseumService {
     }
 
     @Override
-    public ListResponse<MuseumOwner> getAllApprovedMuseum(UUID museumCategoryId, Integer page, Integer size) {
-        List<MuseumOwner> museums;
-        if (museumCategoryId == null){
-            museums = museumRepository.getAllApprovedMuseums(page, size);
-        }else {
-            museums = museumRepository.getAllApprovedMuseumsByCategoryId(museumCategoryId, page, size);
-        }
-        for (MuseumOwner museum : museums) {
-            setFullData(museum);
-        }
-
-        Integer totalItems = museumRepository.countAllApprovedMuseums();
-
-        Pagination pagination = new Pagination();
-        pagination = pagination.calculatePagination(totalItems, page, size);
-
-        ListResponse<MuseumOwner> listMuseumResponse = ListResponse.<MuseumOwner>builder()
-                .items(museums)
-                .pagination(pagination)
-                .build();
-        listMuseumResponse.setItems(museums);
-        listMuseumResponse.setPagination(pagination);
-        return listMuseumResponse;
-    }
-
-    @Override
     public List<MuseumWithDistanceResponse> getAllMuseumByLocation(BigDecimal lat, BigDecimal lng, Integer distance) {
         List<MuseumWithDistanceResponse> nearbyMuseums = museumRepository
                 .findNearbyMuseumsOptimized(lat, lng, distance);
@@ -152,9 +126,15 @@ public class MuseumServiceImpl implements MuseumService {
                 museum.setTotalReviews(visitorReviewStatistics.getTotalReviews());
             }
         }
-
         return nearbyMuseums;
+    }
 
-
+    @Override
+    public MuseumOwner getAllMuseumByMuseumId(UUID museumId) {
+        MuseumOwner museum = museumRepository.findMuseumOwnerByMuseumId(museumId);
+        if (museum == null) {
+            throw new AppNotFoundException("Museum not found");
+        }
+        return museum;
     }
 }

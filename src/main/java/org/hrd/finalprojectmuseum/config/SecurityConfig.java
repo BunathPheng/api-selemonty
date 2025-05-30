@@ -51,8 +51,8 @@ public class SecurityConfig {
                         ).permitAll()
                         .requestMatchers(HttpMethod.GET,
                                 // Museum endpoints
-                                "/api/v1/museum/approved",
-                                "/api/v1/museum/by-location",
+                                "/api/v1/museum/**",
+                                "/api/v1/museum/nearby",
 
                                 // Event endpoints
                                 "/api/v1/events",
