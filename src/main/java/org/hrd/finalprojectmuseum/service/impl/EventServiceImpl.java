@@ -8,6 +8,7 @@ import org.hrd.finalprojectmuseum.model.dto.response.ListResponse;
 import org.hrd.finalprojectmuseum.model.entity.Event;
 import org.hrd.finalprojectmuseum.model.entity.Pagination;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
+import org.hrd.finalprojectmuseum.model.enums.EventStatus;
 import org.hrd.finalprojectmuseum.repository.EventRepository;
 import org.hrd.finalprojectmuseum.service.EventService;
 import org.springframework.stereotype.Service;
@@ -24,16 +25,34 @@ public class EventServiceImpl implements EventService {
     private final EventRepository eventRepository;
 
     @Override
-    public ListResponse<Event> findAllEvents(String search, Integer page, Integer size, LocalDate dateFiler) {
+    public ListResponse<Event> findAllEvents(String search, Integer page, Integer size, LocalDate dateFiler, EventStatus eventStatus) {
         search = search == null ? "" : search;
         Integer totalItems;
         List<Event> events;
-        if (dateFiler == null) {
-            events = eventRepository.findAllEvents(search, page, size);
-            totalItems = eventRepository.countAllEvent(search);
-        } else {
-            events = eventRepository.findAllEventsWithDateFilter(search, page, size, dateFiler);
-            totalItems = eventRepository.countAllEventWithFilter(search, dateFiler);
+        if (eventStatus == EventStatus.ALL) {
+            if (dateFiler == null) {
+                events = eventRepository.findAllEvents(search, page, size);
+                totalItems = eventRepository.countAllEvent(search);
+            } else {
+                events = eventRepository.findAllEventsWithDateFilter(search, page, size, dateFiler);
+                totalItems = eventRepository.countAllEventWithFilter(search, dateFiler);
+            }
+        }else if(eventStatus == EventStatus.AVAILABLE ){
+            if (dateFiler == null) {
+                events = eventRepository.findAllEventsAvailable(search, page, size);
+                totalItems = eventRepository.countAllEventAvailable(search);
+            } else {
+                events = eventRepository.findAllEventsWithDateFilterAvailable(search, page, size, dateFiler);
+                totalItems = eventRepository.countAllEventWithFilterAvailable(search, dateFiler);
+            }
+        }else {
+            if (dateFiler == null) {
+                events = eventRepository.findAllEventsEnded(search, page, size);
+                totalItems = eventRepository.countAllEventEnded(search);
+            } else {
+                events = eventRepository.findAllEventsWithDateFilterEnded(search, page, size, dateFiler);
+                totalItems = eventRepository.countAllEventWithFilterEnded(search, dateFiler);
+            }
         }
         for (Event event : events) {
             event.updateStatus();
@@ -41,8 +60,6 @@ public class EventServiceImpl implements EventService {
         Pagination pagination = new Pagination();
         totalItems = totalItems == null ? 0 : totalItems;
         pagination = pagination.calculatePagination(totalItems, page, size);
-
-
         return ListResponse.<Event>builder()
                 .items(events)
                 .pagination(pagination)

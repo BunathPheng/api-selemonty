@@ -16,6 +16,8 @@ import org.hrd.finalprojectmuseum.model.entity.visitor.Visitor;
 import org.hrd.finalprojectmuseum.model.entity.visitor.VisitorReviewStatistics;
 import org.hrd.finalprojectmuseum.repository.*;
 import org.hrd.finalprojectmuseum.service.ProfileService;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -135,5 +137,13 @@ public class ProfileServiceImpl implements ProfileService {
             throw new AppNotFoundException("UserId is wrong");
         }
         appUserRepository.deleteUser(userId);
+    }
+
+    @Override
+    public UUID getMuseumIdByUserId() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        UUID userId = UUID.fromString((String) auth.getCredentials());
+
+        return profileRepository.getMuseumIdByUserId(userId);
     }
 }

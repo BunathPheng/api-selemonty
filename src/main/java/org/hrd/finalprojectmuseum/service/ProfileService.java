@@ -10,6 +10,8 @@ import org.hrd.finalprojectmuseum.model.entity.admin.Admin;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumCategory;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
 import org.hrd.finalprojectmuseum.model.entity.visitor.Visitor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.List;
 import java.util.UUID;
@@ -33,4 +35,6 @@ public interface ProfileService {
     Visitor updateVisitor(UUID userId, VisitorRequest visitorRequest);
 
     void deleteVisitor(UUID userId);
+
+    UUID getMuseumIdByUserId();
 }

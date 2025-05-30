@@ -168,6 +168,9 @@ public interface ReviewRepository {
     })
     VisitorReviewStatistics retriveVisitorReviewStatistics (@Param("museumId") UUID museumId);
 
-
-
+    @Delete("""
+        DELETE FROM reviews
+        WHERE review_id = #{reviewId}::UUID AND museum_id = #{museumId}::UUID;
+    """)
+    void deleteVisitorReviewByMuseumOwner(UUID reviewId, UUID museumId);
 }

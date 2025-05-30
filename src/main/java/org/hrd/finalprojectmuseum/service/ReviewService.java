@@ -16,4 +16,6 @@ public interface ReviewService {
     Integer getAllVisitorReviews(UUID museumId);
     void deleteVisitorReview(UUID reviewId, UUID visitorId);
     VisitorReviewStatistics getVisitorReviewStatistics(UUID museumId);
+
+    void deleteVisitorReviewByMuseumOwner(UUID reviewId, UUID museumId);
 }

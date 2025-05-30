@@ -1,6 +1,6 @@
 package org.hrd.finalprojectmuseum.model.enums;
 
-public enum EventFilter {
+public enum EventStatus {
     ALL,
     AVAILABLE,
     ENDED

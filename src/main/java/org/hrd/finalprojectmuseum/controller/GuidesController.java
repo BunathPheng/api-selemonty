@@ -34,6 +34,25 @@ public class GuidesController {
     @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
     @GetMapping()
     public ResponseEntity<ApiResponse<ListResponse<Guide>>> getAllTourGuideByMuseumId(
+            @RequestParam(defaultValue = "1") @Min(value = 1, message = "must be greater than 0") Integer page,
+            @RequestParam(defaultValue = "10") @Min(value = 1, message = "must be greater than 0") Integer size
+    ) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        UUID userId = UUID.fromString((String) auth.getCredentials());
+        MuseumOwner museum = profileService.getMuseumOwnerByUserId(userId);
+        ListResponse<Guide> guideListResponse = guideService.getAllTourGuideByMuseumId(museum.getMuseumId(), null, page, size, null);
+        ApiResponse<ListResponse<Guide>> response = ApiResponse.<ListResponse<Guide>>builder()
+                .success(true)
+                .message("Guides has been successfully retrieved")
+                .payload(guideListResponse)
+                .status(HttpStatus.OK)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
+    @GetMapping("/filter")
+    public ResponseEntity<ApiResponse<ListResponse<Guide>>> getAllTourGuideByMuseumIdWithFilter(
             @RequestParam(value = "search", required = false) String search,
             @RequestParam(defaultValue = "1") @Min(value = 1, message = "must be greater than 0") Integer page,
             @RequestParam(defaultValue = "10") @Min(value = 1, message = "must be greater than 0") Integer size,

@@ -13,6 +13,7 @@ import org.hrd.finalprojectmuseum.model.dto.response.ApiResponse;
 import org.hrd.finalprojectmuseum.model.dto.response.ListResponse;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumArtifact;
 import org.hrd.finalprojectmuseum.service.ArtifactService;
+import org.hrd.finalprojectmuseum.service.ProfileService;
 import org.hrd.finalprojectmuseum.service.ZoneService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,14 +30,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ArtifactsController {
     private final ArtifactService artifactService;
-    private final ZoneService zoneService;
+    private final ProfileService profileService;
 
-    private UUID getMuseumIdByUserId(){
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        UUID userId = UUID.fromString((String) auth.getCredentials());
-
-        return zoneService.getMuseumIdByUserId(userId);
-    }
 
     @PostMapping("/{zone-id}")
     @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
@@ -45,7 +40,7 @@ public class ArtifactsController {
     public ResponseEntity<ApiResponse<MuseumArtifact>> addMuseumArtifactByZoneId(
             @RequestBody @Valid MuseumArtifactRequest museumArtifactRequest,
             @PathVariable("zone-id") UUID zoneId) {
-        UUID museumId = getMuseumIdByUserId();
+        UUID museumId = profileService.getMuseumIdByUserId();
         MuseumArtifact museumArtifactByZoneId = artifactService.createMuseumArtifactByZoneId(museumArtifactRequest, zoneId, museumId);
 
         ApiResponse<MuseumArtifact> apiResponse = ApiResponse.<MuseumArtifact>builder()
@@ -66,7 +61,7 @@ public class ArtifactsController {
             @PathVariable("artifact-id") UUID artifactId,
             MuseumArtifactRequest museumArtifactRequest) {
 
-        UUID museumId = getMuseumIdByUserId();
+        UUID museumId = profileService.getMuseumIdByUserId();
         artifactService.updateMuseumArtifactByArtifactId(artifactId, museumArtifactRequest, museumId);
 
         ApiResponse<MuseumArtifact> apiResponse = ApiResponse.<MuseumArtifact>builder()
@@ -86,7 +81,7 @@ public class ArtifactsController {
             summary = "Update museum artifact by artifact Id"
     )
     public ResponseEntity<ApiResponse<MuseumArtifact>> deleteMuseumArtifactByArtifactId(@PathVariable("artifact-id") UUID artifactId){
-        UUID museumId = getMuseumIdByUserId();
+        UUID museumId = profileService.getMuseumIdByUserId();
         artifactService.deleteMuseumArtifactByArtifactId(artifactId, museumId);
 
         ApiResponse<MuseumArtifact> apiResponse = ApiResponse.<MuseumArtifact>builder()
@@ -118,6 +113,24 @@ public class ArtifactsController {
     @GetMapping()
     @Operation(summary = "Get museum artifact by artifact Id")
     public ResponseEntity<ApiResponse<ListResponse<MuseumArtifact>>> getAllMuseumArtifactByZoneId(
+            @RequestParam("zone-id") @NotNull(message = "ZoneID is required") UUID zoneId,
+            @RequestParam(defaultValue = "1") @Positive @Min(value = 1, message = "must greater than 0") Integer page,
+            @RequestParam(defaultValue = "3") @Positive @Min(value = 1, message = "must greater than 0") Integer size
+    ){
+        ListResponse<MuseumArtifact> artifacts = artifactService.getAllMuseumArtifactByZoneId(zoneId, null, page, size);
+        ApiResponse<ListResponse<MuseumArtifact>> apiResponse = ApiResponse.<ListResponse<MuseumArtifact>>builder()
+                .success(true)
+                .message("Museum artifacts fetched successfully.")
+                .payload(artifacts)
+                .status(HttpStatus.OK)
+                .timestamp(LocalDateTime.now())
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
+    }
+
+    @GetMapping("/filter")
+    @Operation(summary = "Get museum artifact by artifact Id")
+    public ResponseEntity<ApiResponse<ListResponse<MuseumArtifact>>> getAllMuseumArtifactByZoneIdAndFilter(
             @RequestParam("zone-id") @NotNull(message = "ZoneID is required") UUID zoneId,
             @RequestParam(required = false) String search,
             @RequestParam(defaultValue = "1") @Positive @Min(value = 1, message = "must greater than 0") Integer page,

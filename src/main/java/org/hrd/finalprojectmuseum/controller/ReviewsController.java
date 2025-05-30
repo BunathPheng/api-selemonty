@@ -8,10 +8,16 @@ import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.hrd.finalprojectmuseum.model.dto.request.visitor.VisitorReviewRequest;
 import org.hrd.finalprojectmuseum.model.dto.response.ApiResponse;
+import org.hrd.finalprojectmuseum.model.entity.AppUserRegister;
 import org.hrd.finalprojectmuseum.model.entity.Pagination;
+import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
 import org.hrd.finalprojectmuseum.model.entity.visitor.VisitorReview;
 import org.hrd.finalprojectmuseum.model.entity.visitor.VisitorReviewStatistics;
 import org.hrd.finalprojectmuseum.model.enums.ReviewType;
+import org.hrd.finalprojectmuseum.model.enums.Role;
+import org.hrd.finalprojectmuseum.service.AppUserService;
+import org.hrd.finalprojectmuseum.service.MuseumService;
+import org.hrd.finalprojectmuseum.service.ProfileService;
 import org.hrd.finalprojectmuseum.service.ReviewService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,27 +30,23 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@SecurityRequirement(name = "bearerAuth")
 @RequestMapping("/api/v1/reviews")
-@PreAuthorize("hasRole('ROLE_VISITOR')")
 @RequiredArgsConstructor
 public class ReviewsController {
     private final ReviewService reviewService;
+    private final AppUserService appUserService;
+    private final ProfileService profileService;
+    private final MuseumService museumService;
 
-    private UUID getVisitorIdByUserId(){
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        UUID userId = UUID.fromString((String) auth.getCredentials());
-
-        return reviewService.getVisitorIdByUserId(userId);
-    }
-
+    @SecurityRequirement(name = "bearerAuth")
+    @PreAuthorize("hasRole('ROLE_VISITOR')")
     @PostMapping("/{museum-id}")
     @Operation(summary = "Create a review for a museum")
     public ResponseEntity<ApiResponse<VisitorReview>> addVisitorReview(
             @PathVariable("museum-id") UUID museumId,
             @Valid @RequestBody VisitorReviewRequest visitorReviewRequest) {
 
-        UUID visitorId = getVisitorIdByUserId();
+        UUID visitorId = reviewService.getVisitorIdByUserId(appUserService.getUserId());
 
         VisitorReview newReview = reviewService.addVisitorReview(museumId, visitorId, visitorReviewRequest);
 
@@ -84,13 +86,15 @@ public class ReviewsController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    @SecurityRequirement(name = "bearerAuth")
+    @PreAuthorize("hasRole('ROLE_VISITOR')")
     @PutMapping("/{review-Id}")
     @Operation(summary = "Update a review of a museum")
     public ResponseEntity<ApiResponse<VisitorReview>> updateVisitorReview(
             @PathVariable("review-Id") UUID reviewId,
             @Valid @RequestBody VisitorReviewRequest visitorReviewRequest) {
 
-        UUID visitorId = getVisitorIdByUserId();
+        UUID visitorId = reviewService.getVisitorIdByUserId(appUserService.getUserId());
 
         VisitorReview updateVisitorReview = reviewService.updateVisitorReview(reviewId, visitorId, visitorReviewRequest);
 
@@ -104,12 +108,18 @@ public class ReviewsController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    @SecurityRequirement(name = "bearerAuth")
+    @PreAuthorize("hasRole('ROLE_VISITOR') or hasRole('ROLE_MUSEUM_OWNER')")
     @DeleteMapping("/{review-Id}")
     @Operation(summary = "Delete visitor review for a museum")
     public ResponseEntity<ApiResponse<VisitorReview>> deleteVisitorReviewById(@PathVariable("review-Id") UUID reviewId) {
-        UUID visitorId = getVisitorIdByUserId();
-        reviewService.deleteVisitorReview(reviewId, visitorId);
-
+        AppUserRegister appUser = appUserService.getAppUserRegister();
+        if (appUser.getRole() == Role.ROLE_VISITOR){
+            reviewService.deleteVisitorReview(reviewId, reviewService.getVisitorIdByUserId(appUser.getUserId()));
+        }else if(appUser.getRole() == Role.ROLE_MUSEUM_OWNER){
+            MuseumOwner museum = profileService.getMuseumOwnerByUserId(appUser.getUserId());
+            reviewService.deleteVisitorReviewByMuseumOwner(reviewId, museum.getMuseumId());
+        }
         ApiResponse<VisitorReview> response = ApiResponse.<VisitorReview>builder()
                 .success(true)
                 .message("Visitor review deleted successfully")

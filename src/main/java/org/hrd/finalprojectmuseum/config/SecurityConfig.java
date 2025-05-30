@@ -68,7 +68,15 @@ public class SecurityConfig {
 
                                 // Zone endpoints
                                 "/api/v1/zone",
-                                "/api/v1/zone/**"
+                                "/api/v1/zone/**",
+
+                                //Schedule endpoints
+                                "/api/v1/museum/schedule/**",
+                                "/api/v1/museum/schedule/grouped/**",
+                                "/api/v1/museum/schedule/detail/**",
+
+                                //Ticket
+                                "/api/v1/tickets/**"
                         ).permitAll()
 //                        .requestMatchers("/api/v1x    /artifact/**").hasRole("MUSEUM_OWNER")
 //                        .requestMatchers(HttpMethod.POST, "/api/v1/booking/*").hasRole("VISITOR")  // Only POST booking creation for visitors

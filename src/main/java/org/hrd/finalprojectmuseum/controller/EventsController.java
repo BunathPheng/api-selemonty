@@ -11,6 +11,7 @@ import org.hrd.finalprojectmuseum.model.dto.response.ApiResponse;
 import org.hrd.finalprojectmuseum.model.dto.response.ListResponse;
 import org.hrd.finalprojectmuseum.model.entity.Event;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
+import org.hrd.finalprojectmuseum.model.enums.EventStatus;
 import org.hrd.finalprojectmuseum.service.EventService;
 import org.hrd.finalprojectmuseum.service.ProfileService;
 import org.springframework.http.HttpStatus;
@@ -39,12 +40,30 @@ public class EventsController {
     )
     @GetMapping()
     public ResponseEntity<ApiResponse<ListResponse<Event>>> getAllEvents(
+            @RequestParam(defaultValue = "1") @Min(value = 1, message = "must be greater than 0") Integer page,
+            @RequestParam(defaultValue = "10") @Min(value = 1, message = "must be greater than 0") Integer size,
+            @RequestParam(name = "event-status") EventStatus eventStatus
+            ) {
+        ListResponse<Event> listEventResponse = eventService.findAllEvents(null, page, size, null, eventStatus);
+        ApiResponse<ListResponse<Event>> response = ApiResponse.<ListResponse<Event>>builder()
+                .success(true)
+                .message("All events have been fetched")
+                .status(HttpStatus.OK)
+                .payload(listEventResponse)
+                .timestamp(LocalDateTime.now())
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @GetMapping("/filter")
+    public ResponseEntity<ApiResponse<ListResponse<Event>>> getAllEventsWithFilter(
             @RequestParam(required = false) String search,
             @RequestParam(defaultValue = "1") @Min(value = 1, message = "must be greater than 0") Integer page,
             @RequestParam(defaultValue = "10") @Min(value = 1, message = "must be greater than 0") Integer size,
-            @RequestParam(required = false) LocalDate dateFiler
+            @RequestParam(required = false, name = "date-filter") LocalDate dateFilter,
+            @RequestParam(name = "event-status") EventStatus eventStatus
     ) {
-        ListResponse<Event> listEventResponse = eventService.findAllEvents(search, page, size, dateFiler);
+        ListResponse<Event> listEventResponse = eventService.findAllEvents(search, page, size, dateFilter, eventStatus);
         ApiResponse<ListResponse<Event>> response = ApiResponse.<ListResponse<Event>>builder()
                 .success(true)
                 .message("All events have been fetched")

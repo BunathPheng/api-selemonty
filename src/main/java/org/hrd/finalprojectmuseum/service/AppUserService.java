@@ -35,4 +35,8 @@ public interface AppUserService extends UserDetailsService {
     void updatePassword(UUID userId, ChangePasswordRequest passwordRequest);
 
     AppUserRegister findUserByUserId(UUID userId);
+
+    UUID getUserId();
+
+    AppUserRegister getAppUserRegister();
 }
