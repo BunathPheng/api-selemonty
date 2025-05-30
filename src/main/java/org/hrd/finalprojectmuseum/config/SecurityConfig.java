@@ -49,8 +49,8 @@ public class SecurityConfig {
                                 "/swagger-ui.html",
                                 "/api/v1/museum/all",
                                 "/api/v1/museum/by-location",
-                                "api/v1/event/view",
-                                "api/v1/event/view/**"
+                                "/api/v1/event/view",
+                                "/api/v1/event/view/**"
                         ).permitAll()
 //                        .requestMatchers("/api/v1/artifact/**").hasRole("MUSEUM_OWNER")
 //                        .requestMatchers(HttpMethod.POST, "/api/v1/booking/*").hasRole("VISITOR")  // Only POST booking creation for visitors

@@ -24,6 +24,7 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public ListResponse<Event> findAllEvents(String search, Integer page, Integer size) {
+        search = search == null ? "" : search;
         Integer totalItems = eventRepository.countAllEvent();
 
         List<Event> events = eventRepository.findAllEvents(search, page, size);
@@ -42,6 +43,7 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public ListResponse<Event> findAllEventsByMuseumId(String search, UUID museumId, Integer page, Integer size) {
+        search = search == null ? "" : search;
         Integer totalItems = eventRepository.countAllEventByMuseumId(search, museumId);
 
         List<Event> events = eventRepository.findAllEventsByMuseumId(search, museumId, page, size);
