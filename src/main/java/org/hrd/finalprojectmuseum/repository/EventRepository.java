@@ -5,6 +5,7 @@ import org.apache.ibatis.type.JdbcType;
 import org.hrd.finalprojectmuseum.model.dto.request.EventRequest;
 import org.hrd.finalprojectmuseum.model.entity.Event;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -13,9 +14,9 @@ import java.util.UUID;
 public interface EventRepository {
 
     @Select("""
-        SELECT count(*) FROM events
+        SELECT count(*) FROM events WHERE title ILIKE CONCAT('%', #{search}, '%')
     """)
-    Integer countAllEvent();
+    Integer countAllEvent(String search);
 
     @Results(id = "eventMapper", value = {
             @Result(property = "eventId", column = "event_id"),
@@ -35,11 +36,26 @@ public interface EventRepository {
             @Result(property = "deleted", column = "is_deleted"),
     })
     @Select("""
-        SELECT * FROM events WHERE is_deleted = false
-                             AND title LIKE CONCAT('%', #{search}, '%')
-                             OFFSET (#{page}-1)* #{size} LIMIT #{size};
+        SELECT * FROM events 
+        WHERE is_deleted = false
+        AND title LIKE CONCAT('%', #{search}, '%')
+        ORDER BY start_date
+        OFFSET (#{page} - 1) * #{size} 
+        LIMIT #{size}
     """)
-    List<Event> findAllEvents(String search, Integer page, Integer size);
+    List<Event> findAllEvents(@Param("search") String search, @Param("page") Integer page, @Param("size") Integer size);
+
+    @ResultMap("eventMapper")
+    @Select("""
+        SELECT * FROM events 
+        WHERE is_deleted = false
+        AND title LIKE CONCAT('%', #{search}, '%')
+        AND DATE(start_date) = #{dateFilter}
+        ORDER BY start_date
+        OFFSET (#{page} - 1) * #{size} 
+        LIMIT #{size}
+    """)
+    List<Event> findAllEventsWithDateFilter(@Param("search") String search, @Param("page") Integer page, @Param("size") Integer size, @Param("dateFilter") LocalDate dateFilter);
 
     @ResultMap("eventMapper")
     @Select("""
@@ -83,4 +99,10 @@ public interface EventRepository {
         UPDATE events SET is_deleted = true, updated_at = #{updatedAt} WHERE event_id = #{eventId}::UUID AND is_deleted = false;
     """)
     void updateDeleteStatus(UUID eventId, LocalDateTime updatedAt);
+
+    @Select("""
+        SELECT count(*) FROM events WHERE title ILIKE CONCAT('%', #{search}, '%')
+        AND DATE(start_date) = #{dateFilter}
+    """)
+    Integer countAllEventWithFilter(String search, LocalDate dateFilter);
 }

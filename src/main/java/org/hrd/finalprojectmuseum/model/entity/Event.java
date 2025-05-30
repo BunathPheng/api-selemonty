@@ -27,12 +27,16 @@ public class Event {
 
     public void updateStatus() {
         LocalDateTime now = LocalDateTime.now();
-        if ((now.isEqual(this.startDate) || now.isAfter(this.startDate)) && now.isBefore(this.endDate)) {
-            this.status = "Ongoing";
-        } else if (now.isBefore(this.startDate)) {
-            this.status = "Coming soon";
-        } else if (now.isAfter(this.endDate)) {
-            this.status = "Finished";
+        if (startDate != null && endDate != null) {
+            if (now.isBefore(startDate)) {
+                this.status = "UPCOMING";
+            } else if (now.isAfter(endDate)) {
+                this.status = "COMPLETED";
+            } else {
+                this.status = "ONGOING";
+            }
+        } else {
+            this.status = "UNKNOWN";
         }
     }
 }

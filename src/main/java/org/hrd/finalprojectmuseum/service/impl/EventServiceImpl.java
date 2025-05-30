@@ -12,6 +12,7 @@ import org.hrd.finalprojectmuseum.repository.EventRepository;
 import org.hrd.finalprojectmuseum.service.EventService;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -23,15 +24,22 @@ public class EventServiceImpl implements EventService {
     private final EventRepository eventRepository;
 
     @Override
-    public ListResponse<Event> findAllEvents(String search, Integer page, Integer size) {
+    public ListResponse<Event> findAllEvents(String search, Integer page, Integer size, LocalDate dateFiler) {
         search = search == null ? "" : search;
-        Integer totalItems = eventRepository.countAllEvent();
-
-        List<Event> events = eventRepository.findAllEvents(search, page, size);
+        Integer totalItems;
+        List<Event> events;
+        if (dateFiler == null) {
+            events = eventRepository.findAllEvents(search, page, size);
+            totalItems = eventRepository.countAllEvent(search);
+        } else {
+            events = eventRepository.findAllEventsWithDateFilter(search, page, size, dateFiler);
+            totalItems = eventRepository.countAllEventWithFilter(search, dateFiler);
+        }
         for (Event event : events) {
             event.updateStatus();
         }
         Pagination pagination = new Pagination();
+        totalItems = totalItems == null ? 0 : totalItems;
         pagination = pagination.calculatePagination(totalItems, page, size);
 
 

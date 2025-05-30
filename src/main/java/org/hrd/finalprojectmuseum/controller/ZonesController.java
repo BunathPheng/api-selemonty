@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.hrd.finalprojectmuseum.model.dto.request.museum_owner.MuseumZoneRequest;
@@ -101,7 +102,6 @@ public class ZonesController {
         return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
     }
 
-    @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER') or hasRole('ROLE_VISITOR')")
     @GetMapping("/{zone-id}")
     @Operation(summary = "Get museum zone detail by museum zone Id")
     public ResponseEntity<ApiResponse<MuseumZone>> getMuseumZoneDetailByZoneId(@PathVariable("zone-id") UUID zoneId) {
@@ -155,14 +155,13 @@ public class ZonesController {
         return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
     }
 
-    @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER') or hasRole('ROLE_VISITOR')")
     @GetMapping
     @Operation(summary = "Get all museum zone")
     public ResponseEntity<ApiResponse<List<MuseumZoneResponse>>> getAllMuseumZonesByMuseumId(
+            @RequestParam @NotNull UUID museumId,
+            @RequestParam(required = false) String search,
             @RequestParam(defaultValue = "1") @Positive @Min(value = 1, message = "must greater than 0") Integer page,
             @RequestParam(defaultValue = "3") @Positive @Min(value = 1, message = "must greater than 0") Integer size) {
-
-        UUID museumId = getMuseumIdByUserId();
 
         List<MuseumZoneResponse> allMuseumZonesByMuseumId = zoneService.getAllMuseumZonesByMuseumId(museumId, page, size);
 

@@ -20,6 +20,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -37,13 +38,14 @@ public class EventsController {
             summary = "Get all event of all museums. Can use without authorize",
             description = "Use to get all event with pagination"
     )
-    @GetMapping("/view")
+    @GetMapping()
     public ResponseEntity<ApiResponse<ListResponse<Event>>> getAllEvents(
             @RequestParam(required = false) String search,
             @RequestParam(defaultValue = "1") @Min(value = 1, message = "must be greater than 0") Integer page,
-            @RequestParam(defaultValue = "10") @Min(value = 1, message = "must be greater than 0") Integer size
+            @RequestParam(defaultValue = "10") @Min(value = 1, message = "must be greater than 0") Integer size,
+            @RequestParam(required = false) LocalDate dateFiler
     ) {
-        ListResponse<Event> listEventResponse = eventService.findAllEvents(search, page, size);
+        ListResponse<Event> listEventResponse = eventService.findAllEvents(search, page, size, dateFiler);
         ApiResponse<ListResponse<Event>> response = ApiResponse.<ListResponse<Event>>builder()
                 .success(true)
                 .message("All events have been fetched")
@@ -54,59 +56,17 @@ public class EventsController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    @Operation(
-            summary = "Get all events of a museum by museum ID",
-            description = "Use to get all events of museum with pagination. Required museumId"
-    )
-    @GetMapping("/view/museum/{museum-id}")
-    public ResponseEntity<ApiResponse<ListResponse<Event>>> getAllEventsByMuseumId(
-            @PathVariable("museum-id") @NotNull UUID museumId,
-            @RequestParam(required = false) String search,
-            @RequestParam(defaultValue = "1") @Min(value = 1, message = "must be greater than 0") Integer page,
-            @RequestParam(defaultValue = "10") @Min(value = 1, message = "must be greater than 0") Integer size
+    @Operation(summary = "Get event by eventId")
+    @GetMapping("/{event-id}")
+    public ResponseEntity<ApiResponse<Event>> getEventById(
+            @PathVariable("event-id") @NotNull UUID eventId
     ) {
-        ListResponse<Event> listEventResponse = eventService.findAllEventsByMuseumId(search, museumId, page, size);
-        ApiResponse<ListResponse<Event>> response = ApiResponse.<ListResponse<Event>>builder()
-                .success(true)
-                .message("All events have been fetched")
-                .status(HttpStatus.OK)
-                .payload(listEventResponse)
-                .timestamp(LocalDateTime.now())
-                .build();
-        return ResponseEntity.status(HttpStatus.OK).body(response);
-    }
-
-    @Operation(summary = "Get a single event by event ID. For visitor and museum owner role")
-    @GetMapping("/view/{event-id}")
-    public ResponseEntity<ApiResponse<Event>> getEventsByEventId(@PathVariable("event-id") @NotNull UUID eventId) {
         Event event = eventService.findEventsByEventId(eventId);
         ApiResponse<Event> response = ApiResponse.<Event>builder()
                 .success(true)
-                .message("Event has been fetched successfully")
-                .status(HttpStatus.OK)
-                .payload(event)
-                .timestamp(LocalDateTime.now())
-                .build();
-        return ResponseEntity.status(HttpStatus.OK).body(response);
-    }
-
-    @PreAuthorize("hasRole('MUSEUM_OWNER')")
-    @Operation(summary = "Get all events of current museum owner. For museum owner role only")
-    @GetMapping()
-    public ResponseEntity<ApiResponse<ListResponse<Event>>> getAllEventForMuseumOwner(
-            @RequestParam(required = false) String search,
-            @RequestParam(defaultValue = "1") @Min(value = 1, message = "must be greater than 0") Integer page,
-            @RequestParam(defaultValue = "10") @Min(value = 1, message = "must be greater than 0") Integer size
-    ) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        UUID userId = UUID.fromString((String) auth.getCredentials());
-        MuseumOwner museumOwner = profileService.getMuseumOwnerByUserId(userId);
-        ListResponse<Event> listEventResponse = eventService.findAllEventsByMuseumId(search, museumOwner.getMuseumId(), page, size);
-        ApiResponse<ListResponse<Event>> response = ApiResponse.<ListResponse<Event>>builder()
-                .success(true)
                 .message("All events have been fetched")
                 .status(HttpStatus.OK)
-                .payload(listEventResponse)
+                .payload(event)
                 .timestamp(LocalDateTime.now())
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(response);

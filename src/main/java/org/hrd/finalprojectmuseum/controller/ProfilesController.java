@@ -65,8 +65,8 @@ public class ProfilesController {
     }
 
     @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
-    @PutMapping("/museum-owner")
-    @Operation(summary = "Use to update museum profile. For only museum owner")
+    @PutMapping("/museum-owner/payment")
+    @Operation(summary = "Use to update museum payment. For only museum owner")
     public ResponseEntity<ApiResponse<MuseumOwner>> updateMuseumOwnerPayment(@RequestBody @Valid PaymentAccountRequest paymentAccountRequest) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UUID userId = UUID.fromString((String) auth.getCredentials());

@@ -20,12 +20,6 @@ public interface ProfileService {
 
     MuseumOwner updateMuseumOwnerByUserId(UUID userId, MuseumOwnerRequest museumOwnerRequest);
 
-    void deleteMuseumOwnerByUserId(UUID userId);
-
-    JSONObject addLanscapeByUserId(UUID userId, JSONObject landscapeRequest);
-
-    void deleteLandscapeByUserId(UUID userId, String landscapeKey);
-
     List<MuseumCategory> getMuseumCategories();
 
     MuseumOwner updateMuseumOwnerPaymentByUserId(UUID userId, PaymentAccountRequest paymentAccountRequest);
