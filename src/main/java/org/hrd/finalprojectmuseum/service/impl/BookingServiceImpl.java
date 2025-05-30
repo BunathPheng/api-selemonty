@@ -44,6 +44,9 @@ public class BookingServiceImpl implements BookingService {
     @Transactional
     public Booking makeABookingByMuseumId(UUID museumId, UUID visitorId, BookingRequest bookingRequest) {
         TicketInfo ticketInfo = ticketInfoRepository.findTicketInfoByMuseumId(museumId);
+        if (ticketInfo.getTotalSlot() == null){
+            throw new AppBadRequestException("Museum not set Ticket for booking yet");
+        }
         if (bookingRequest.getTicketType() == TicketType.LOCAL){
             if (ticketInfo.getLocalPrice().compareTo(bookingRequest.getTicketPrice()) != 0){
                 throw new AppBadRequestException("LocalTicket price is wrong. Right LocalTicket price is: "+ ticketInfo.getLocalPrice());

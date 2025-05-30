@@ -258,16 +258,6 @@ public class AuthsController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/google/login")
-    @Operation(summary = "For Testing only", description = "this endpoint server side flow for google sign in")
-    public RedirectView googleLogin(@RequestParam(required = false, defaultValue = "VISITOR") String role) {
-        String redirectUrl = "/oauth2/authorize/google";
-        if (role != null && !role.isEmpty()) {
-            redirectUrl += "?role=" + role;
-        }
-        return new RedirectView(redirectUrl);
-    }
-
     @Operation(summary = "Use old password to change password")
     @SecurityRequirement(name = "bearerAuth")
     @PatchMapping("/change-password")
