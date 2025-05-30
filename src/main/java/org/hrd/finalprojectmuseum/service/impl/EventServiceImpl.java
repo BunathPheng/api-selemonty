@@ -50,24 +50,6 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public ListResponse<Event> findAllEventsByMuseumId(String search, UUID museumId, Integer page, Integer size) {
-        search = search == null ? "" : search;
-        Integer totalItems = eventRepository.countAllEventByMuseumId(search, museumId);
-
-        List<Event> events = eventRepository.findAllEventsByMuseumId(search, museumId, page, size);
-        for (Event event : events) {
-            event.updateStatus();
-        }
-        Pagination pagination = new Pagination();
-        pagination = pagination.calculatePagination(totalItems, page, size);
-
-        return ListResponse.<Event>builder()
-                .items(events)
-                .pagination(pagination)
-                .build();
-    }
-
-    @Override
     public Event findEventsByEventId(UUID eventId) {
         Event event = eventRepository.findEventByEventId(eventId);
         if (event == null) {
@@ -90,15 +72,28 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public Event updateEventByEventId(UUID eventId, EventRequest eventRequest) {
-        findEventsByEventId(eventId);
+    public Event updateEventByEventId(UUID eventId, EventRequest eventRequest, UUID museumId) {
+        Event event = findEventsByEventId(eventId);
+        if (event == null){
+            throw new AppNotFoundException("Event with ID " + eventId + " does not exist");
+        }
+        if (!event.getMuseum().getMuseumId().equals(museumId)){
+            throw new AppBadRequestException("Event belongs to a other museum. You cannot update this event");
+        }
         Event updatedEvent = eventRepository.updateEventByEventId(eventId, eventRequest, LocalDateTime.now());
         updatedEvent.updateStatus();
         return updatedEvent;
     }
 
     @Override
-    public void updateDeleteStatus(UUID eventId) {
+    public void updateDeleteStatus(UUID eventId, UUID museumId) {
+        Event event = findEventsByEventId(eventId);
+        if (event == null){
+            throw new AppNotFoundException("Event with ID " + eventId + " does not exist");
+        }
+        if (!event.getMuseum().getMuseumId().equals(museumId)){
+            throw new AppBadRequestException("Event belongs to a other museum. You cannot update this event");
+        }
         findEventsByEventId(eventId);
         eventRepository.updateDeleteStatus(eventId, LocalDateTime.now());
     }

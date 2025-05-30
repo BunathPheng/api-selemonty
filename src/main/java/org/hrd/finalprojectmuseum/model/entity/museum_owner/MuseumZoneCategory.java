@@ -11,7 +11,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 public class MuseumZoneCategory {
-    private UUID museumZoneCategoryId;
+    private UUID zoneCategoryId;
     private String name;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

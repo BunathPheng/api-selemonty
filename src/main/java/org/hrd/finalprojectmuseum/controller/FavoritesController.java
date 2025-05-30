@@ -20,7 +20,7 @@ import java.util.UUID;
 @RestController
 @SecurityRequirement(name = "bearerAuth")
 @RequestMapping("/api/v1/favorites")
-@PreAuthorize("hasRole('ROLE_VISITOR')")
+@SecurityRequirement(name = "bearerAuth")
 @RequiredArgsConstructor
 public class FavoritesController {
     private final FavoriteService favoriteService;

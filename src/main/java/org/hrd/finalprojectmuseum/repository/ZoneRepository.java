@@ -18,7 +18,7 @@ public interface ZoneRepository {
         SELECT * FROM zone_categories;
     """)
     @Results(id = "zoneCategory", value = {
-            @Result(property = "museumZoneCategoryId", column = "zone_category_id"),
+            @Result(property = "zoneCategoryId", column = "zone_category_id"),
             @Result(property = "name", column = "name"),
             @Result(property = "createdAt", column = "created_at"),
             @Result(property = "updatedAt", column = "updated_at")
@@ -32,7 +32,7 @@ public interface ZoneRepository {
     """)
     UUID retrieveMuseumIDbyUserID(UUID userId);
 
-    @Select("""
+    @Insert("""
         INSERT INTO museum_zones(museum_id, zone_category_id, name, description, picture_link, video_link, updated_at)
         VALUES (#{museumId}::UUID, #{museum.categoryId}::UUID, #{museum.name}, #{museum.description}, #{museum.pictureLink},
                 #{museum.videoLink}, #{updatedAt})
@@ -117,6 +117,7 @@ public interface ZoneRepository {
                mz.created_at, mz.updated_at
         FROM museum_zones mz
         WHERE mz.museum_id = #{museumId}::UUID
+        AND name ILIKE CONCAT('%', #{search}, '%')
         AND mz.is_deleted = false
         ORDER BY mz.updated_at DESC
         LIMIT #{size} OFFSET #{offset};
@@ -133,13 +134,38 @@ public interface ZoneRepository {
             @Result(property = "createdAt", column = "created_at"),
             @Result(property = "updatedAt", column = "updated_at")
     })
-    List<MuseumZoneResponse> retrieveMuseumZoneByMuseumId(@Param("museumId") UUID museumId, @Param("size") Integer size, @Param("offset") Integer offset);
+    List<MuseumZoneResponse> retrieveMuseumZoneByMuseumId(@Param("museumId") UUID museumId, @Param("search") String search, @Param("size") Integer size, @Param("offset") Integer offset);
 
     @Select("""
         SELECT COUNT(*)
         FROM museum_zones mz
         WHERE mz.museum_id = #{museumId}::UUID
+        AND name ILIKE CONCAT('%', #{search}, '%')
         AND mz.is_deleted = false;
     """)
-    Integer countMuseumZonesByMuseumId(UUID museumId);
+    Integer countMuseumZonesByMuseumId(UUID museumId, String search);
+
+    @ResultMap("zoneListMapping")
+    @Select("""
+        SELECT mz.museum_zone_id, mz.museum_id, mz.name, mz.description, mz.picture_link, mz.zone_category_id,
+               mz.created_at, mz.updated_at
+        FROM museum_zones mz
+        WHERE mz.museum_id = #{museumId}::UUID
+        AND name ILIKE CONCAT('%', #{search}, '%')
+        AND zone_category_id = #{categoryId}::UUID
+        AND mz.is_deleted = false
+        ORDER BY mz.updated_at DESC
+        LIMIT #{size} OFFSET #{offset};
+    """)
+    List<MuseumZoneResponse> retrieveMuseumZoneByMuseumIdWithCategory(UUID museumId, String search, UUID categoryId, Integer size, Integer offset);
+
+    @Select("""
+        SELECT COUNT(*)
+        FROM museum_zones mz
+        WHERE mz.museum_id = #{museumId}::UUID
+        AND name ILIKE CONCAT('%', #{search}, '%')
+        AND zone_category_id = #{categoryId}::UUID
+        AND mz.is_deleted = false;
+    """)
+    Integer countMuseumZonesByMuseumIdWithCategory(UUID museumId, String search, UUID categoryId);
 }

@@ -52,6 +52,9 @@ public class ProfileServiceImpl implements ProfileService {
 
     @Override
     public MuseumOwner updateMuseumOwnerByUserId(UUID userId, MuseumOwnerRequest request) {
+        if (!museumRepository.isMuseumCategoriesExist(request.getMuseumCategoryId())){
+            throw new AppNotFoundException("Museum Category Not Found");
+        }
         MuseumOwner existing = getMuseumOwnerByUserId(userId);
         profileRepository.modifyMuseumOwnerById(existing.getMuseumId(), request, LocalDateTime.now());
         MuseumOwner updatedMuseum = getMuseumOwnerByUserId(userId);

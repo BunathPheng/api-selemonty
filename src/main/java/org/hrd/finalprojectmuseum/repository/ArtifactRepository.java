@@ -5,6 +5,7 @@ import org.hrd.finalprojectmuseum.model.dto.request.museum_owner.MuseumArtifactR
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumArtifact;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Mapper
@@ -59,7 +60,7 @@ public interface ArtifactRepository {
         AND is_deleted = false;
     """)
     @Results(id = "artifact", value = {
-            @Result(property = "id", column = "artifact_id"),
+            @Result(property = "artifactId", column = "artifact_id"),
             @Result(property = "zoneId", column = "museum_zone_id"),
             @Result(property = "title", column = "title"),
             @Result(property = "description", column = "description"),
@@ -78,4 +79,21 @@ public interface ArtifactRepository {
     @ResultMap("artifact")
     MuseumArtifact retrieveMuseumArtifactByArtifactId(UUID zoneID);
 
+    @ResultMap("artifact")
+    @Select("""
+        SELECT * FROM artifacts
+        WHERE museum_zone_id = #{zoneID}::UUID
+        AND title LIKE CONCAT('%', #{search}, '%')
+        AND is_deleted = false
+        OFFSET (#{page}-1) * #{size} LIMIT #{size};
+    """)
+    List<MuseumArtifact> retrieveAllMuseumArtifactsByZoneId(UUID zoneID, String search, Integer page, Integer size);
+
+    @Select("""
+        SELECT COUNT(*) FROM artifacts
+        WHERE museum_zone_id = #{zoneID}::UUID
+        AND title LIKE CONCAT('%', #{search}, '%')
+        AND is_deleted = false
+    """)
+    Integer countArtifact(UUID zoneID, String search);
 }

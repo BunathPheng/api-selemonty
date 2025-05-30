@@ -27,7 +27,6 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("api/v1/events")
-@SecurityRequirement(name = "bearerAuth")
 @RequiredArgsConstructor
 public class EventsController {
 
@@ -72,6 +71,7 @@ public class EventsController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    @SecurityRequirement(name = "bearerAuth")
     @PreAuthorize("hasRole('MUSEUM_OWNER')")
     @Operation(summary = "Create a new event. For museum owner role only")
     @PostMapping()
@@ -90,6 +90,7 @@ public class EventsController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @SecurityRequirement(name = "bearerAuth")
     @PreAuthorize("hasRole('MUSEUM_OWNER')")
     @Operation(summary = "Update an event by event ID. For museum owner role only")
     @PutMapping("/{event-id}")
@@ -97,7 +98,10 @@ public class EventsController {
             @RequestBody @Valid EventRequest eventRequest,
             @PathVariable("event-id") @NotNull UUID eventId
     ) {
-        Event event = eventService.updateEventByEventId(eventId, eventRequest);
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        UUID userId = UUID.fromString((String) auth.getCredentials());
+        MuseumOwner museumOwner = profileService.getMuseumOwnerByUserId(userId);
+        Event event = eventService.updateEventByEventId(eventId, eventRequest, museumOwner.getMuseumId());
         ApiResponse<Event> response = ApiResponse.<Event>builder()
                 .success(true)
                 .message("Event has been updated successfully")
@@ -108,11 +112,15 @@ public class EventsController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    @SecurityRequirement(name = "bearerAuth")
     @PreAuthorize("hasRole('MUSEUM_OWNER')")
     @Operation(summary = "Soft delete an event by updating delete status. For museum owner role only")
     @DeleteMapping("/{event-id}")
     public ResponseEntity<ApiResponse<Void>> updateDeleteStatus(@PathVariable("event-id") @NotNull UUID eventId) {
-        eventService.updateDeleteStatus(eventId);
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        UUID userId = UUID.fromString((String) auth.getCredentials());
+        MuseumOwner museumOwner = profileService.getMuseumOwnerByUserId(userId);
+        eventService.updateDeleteStatus(eventId, museumOwner.getMuseumId());
         ApiResponse<Void> response = ApiResponse.<Void>builder()
                 .success(true)
                 .message("Event has been deleted successfully")

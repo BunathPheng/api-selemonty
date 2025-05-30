@@ -41,21 +41,36 @@ public class SecurityConfig {
                                 "/api/v1/oauth2/**",
                                 "/api/v1/museum/categories/**",
                                 "/api/v1/file/**",
-                                "/auth/**", // Added for Google OAuth redirect
-                                "/oauth2/**", // Added for Google OAuth callback
+                                "/auth/**",
+                                "/oauth2/**",
                                 "/api/v1/files/**",
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
-                                "/api/v1/museum/all",
+                                "/api/v1/museum/all"
+                        ).permitAll()
+                        .requestMatchers(HttpMethod.GET,
+                                // Museum endpoints
+                                "/api/v1/museum/approved",
                                 "/api/v1/museum/by-location",
+
+                                // Event endpoints
                                 "/api/v1/events",
                                 "/api/v1/events/**",
+
+                                // Artifact endpoints (public read access)
+                                "/api/v1/artifacts",
                                 "/api/v1/artifacts/**",
-                                "api/v1/reviews/**",
-                                "api/v1/zone/**"
+
+                                // Review endpoints
+                                "/api/v1/reviews",
+                                "/api/v1/reviews/**",
+
+                                // Zone endpoints
+                                "/api/v1/zone",
+                                "/api/v1/zone/**"
                         ).permitAll()
-//                        .requestMatchers("/api/v1/artifact/**").hasRole("MUSEUM_OWNER")
+//                        .requestMatchers("/api/v1x    /artifact/**").hasRole("MUSEUM_OWNER")
 //                        .requestMatchers(HttpMethod.POST, "/api/v1/booking/*").hasRole("VISITOR")  // Only POST booking creation for visitors
 //                        .requestMatchers(HttpMethod.GET, "/api/v1/booking").hasAnyRole("VISITOR", "MUSEUM_OWNER")  // GET booking history for both
 //                        .requestMatchers(HttpMethod.GET, "/api/v1/booking/*").hasAnyRole("VISITOR", "MUSEUM_OWNER")
