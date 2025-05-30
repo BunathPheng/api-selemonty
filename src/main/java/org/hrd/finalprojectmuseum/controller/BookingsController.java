@@ -8,7 +8,6 @@ import lombok.RequiredArgsConstructor;
 import org.hrd.finalprojectmuseum.model.dto.request.BookingRequest;
 import org.hrd.finalprojectmuseum.model.dto.request.RequestTourRequest;
 import org.hrd.finalprojectmuseum.model.dto.response.ApiResponse;
-import org.hrd.finalprojectmuseum.model.dto.response.BookingDetail;
 import org.hrd.finalprojectmuseum.model.dto.response.ListResponse;
 import org.hrd.finalprojectmuseum.model.entity.AppUserRegister;
 import org.hrd.finalprojectmuseum.model.entity.Booking;
@@ -28,14 +27,13 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("api/v1/booking")
+@RequestMapping("api/v1/bookings")
 @SecurityRequirement(name = "bearerAuth")
 @RequiredArgsConstructor
-public class BookingController {
+public class BookingsController {
     private final BookingService bookingService;
     private final ProfileService profileService;
     private final AppUserService appUserService;

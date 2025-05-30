@@ -25,10 +25,10 @@ import java.util.UUID;
 
 
 @RestController
-@RequestMapping("api/v1/event")
+@RequestMapping("api/v1/events")
 @SecurityRequirement(name = "bearerAuth")
 @RequiredArgsConstructor
-public class EventController {
+public class EventsController {
 
     private final EventService eventService;
     private final ProfileService profileService;

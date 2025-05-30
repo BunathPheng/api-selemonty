@@ -4,7 +4,6 @@ import com.alibaba.fastjson2.JSONObject;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.hrd.finalprojectmuseum.model.dto.request.PaymentAccountRequest;
 import org.hrd.finalprojectmuseum.model.dto.request.admin.AdminRequest;
@@ -28,7 +27,7 @@ import java.util.UUID;
 @RequestMapping("api/v1/profile")
 @SecurityRequirement(name = "bearerAuth")
 @RequiredArgsConstructor
-public class ProfileController {
+public class ProfilesController {
 
     private final ProfileService profileService;
 
@@ -66,34 +65,19 @@ public class ProfileController {
     }
 
     @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
-    @Operation(summary = "Use to delete museum account. For only museum owner")
-    @DeleteMapping("/museum-owner")
-    public ResponseEntity<ApiResponse<Void>> deleteMuseumOwner() {
+    @PutMapping("/museum-owner")
+    @Operation(summary = "Use to update museum profile. For only museum owner")
+    public ResponseEntity<ApiResponse<MuseumOwner>> updateMuseumOwnerPayment(@RequestBody @Valid PaymentAccountRequest paymentAccountRequest) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UUID userId = UUID.fromString((String) auth.getCredentials());
-        profileService.deleteMuseumOwnerByUserId(userId);
-        ApiResponse<Void> response = ApiResponse.<Void>builder()
+        MuseumOwner museumOwner = profileService.updateMuseumOwnerPaymentByUserId(userId, paymentAccountRequest);
+        ApiResponse<MuseumOwner> response = ApiResponse.<MuseumOwner>builder()
                 .success(true)
-                .message("Museum owner has been delete successfully")
+                .message("Museum owner payment has been updated successfully")
                 .status(HttpStatus.OK)
+                .payload(museumOwner)
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(response);
-    }
-
-    @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
-    @Operation(summary = "For add landscape", description = "Landscape is using JSONB so this endpoint use for add landscape")
-    @PutMapping("/museum-owner/landscape")
-    public ResponseEntity<ApiResponse<JSONObject>> addLandscape(@RequestBody JSONObject landscapeRequest) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        UUID userId = UUID.fromString((String) auth.getCredentials());
-        JSONObject landscape = profileService.addLanscapeByUserId(userId, landscapeRequest);
-        ApiResponse<JSONObject> response = ApiResponse.<JSONObject>builder()
-                .success(true)
-                .message("Landscape has been updated successfully")
-                .payload(landscape)
-                .status(HttpStatus.CREATED)
-                .build();
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
     
     // For admin

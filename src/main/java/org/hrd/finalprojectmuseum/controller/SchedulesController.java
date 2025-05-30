@@ -27,7 +27,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @SecurityRequirement(name = "bearerAuth")
 @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
-public class ScheduleController {
+public class SchedulesController {
 
     private final ScheduleService scheduleService;
     private final ProfileService profileService;

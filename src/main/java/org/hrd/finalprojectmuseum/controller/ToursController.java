@@ -31,7 +31,7 @@ import java.util.UUID;
 @RequestMapping("api/v1/tour")
 @RequiredArgsConstructor
 @SecurityRequirement(name = "bearerAuth")
-public class TourController {
+public class ToursController {
 
     private final ProfileService profileService;
     private final TourService tourService;

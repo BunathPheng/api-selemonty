@@ -23,7 +23,7 @@ import java.util.UUID;
 @RequestMapping("api/v1/tickets")
 @RequiredArgsConstructor
 @SecurityRequirement(name = "bearerAuth")
-public class TicketInfoController {
+public class TicketsInfoController {
 
     private final TicketInfoService ticketInfoService;
     private final ProfileService profileService;

@@ -2,7 +2,6 @@ package org.hrd.finalprojectmuseum.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.hrd.finalprojectmuseum.model.dto.response.ApiResponse;
 import org.hrd.finalprojectmuseum.model.entity.visitor.VisitorFavorite;
@@ -20,10 +19,10 @@ import java.util.UUID;
 
 @RestController
 @SecurityRequirement(name = "bearerAuth")
-@RequestMapping("/api/v1/favorite")
+@RequestMapping("/api/v1/favorites")
 @PreAuthorize("hasRole('ROLE_VISITOR')")
 @RequiredArgsConstructor
-public class FavoriteController {
+public class FavoritesController {
     private final FavoriteService favoriteService;
     private final ReviewService reviewService;
 

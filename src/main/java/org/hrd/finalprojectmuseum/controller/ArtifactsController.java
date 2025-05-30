@@ -2,7 +2,6 @@ package org.hrd.finalprojectmuseum.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.hrd.finalprojectmuseum.model.dto.request.museum_owner.MuseumArtifactRequest;
@@ -19,9 +18,9 @@ import java.util.UUID;
 
 @RestController
 @SecurityRequirement(name = "bearerAuth")
-@RequestMapping("/api/v1/artifact")
+@RequestMapping("/api/v1/artifacts")
 @RequiredArgsConstructor
-public class ArtifactController {
+public class ArtifactsController {
     private final ArtifactService artifactService;
 
     @PostMapping("/{zone-id}")
@@ -78,9 +77,8 @@ public class ArtifactController {
         return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
     }
 
-    @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER') or hasRole('ROLE_VISITOR')")
     @GetMapping("/{artifact-id}")
-    @Operation(summary = "Update museum artifact by artifact Id")
+    @Operation(summary = "Get museum artifact by artifact Id")
     public ResponseEntity<ApiResponse<MuseumArtifact>> getMuseumArtifactByArtifactId(@PathVariable("artifact-id") UUID artifactId){
         MuseumArtifact artifact = artifactService.getMuseumArtifactByArtifactId(artifactId);
         ApiResponse<MuseumArtifact> apiResponse = ApiResponse.<MuseumArtifact>builder()

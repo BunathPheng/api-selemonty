@@ -27,7 +27,7 @@ import java.util.UUID;
 @RequestMapping("api/v1/museum")
 @RequiredArgsConstructor
 @SecurityRequirement(name = "bearerAuth")
-public class MuseumController {
+public class MuseumsController {
     private final ProfileService profileService;
     private final BookingService bookingService;
     private final TicketInfoService ticketInfoService;

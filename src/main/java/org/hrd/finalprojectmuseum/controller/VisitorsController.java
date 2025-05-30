@@ -1,15 +1,10 @@
 package org.hrd.finalprojectmuseum.controller;
 
-import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
-import org.checkerframework.checker.units.qual.A;
-import org.hrd.finalprojectmuseum.model.dto.request.visitor.VisitorRequest;
 import org.hrd.finalprojectmuseum.model.dto.response.ApiResponse;
 import org.hrd.finalprojectmuseum.model.dto.response.ListResponse;
-import org.hrd.finalprojectmuseum.model.entity.AppUser;
 import org.hrd.finalprojectmuseum.model.entity.AppUserRegister;
 import org.hrd.finalprojectmuseum.model.entity.visitor.Visitor;
 import org.hrd.finalprojectmuseum.model.enums.Role;
@@ -28,7 +23,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @RequestMapping("api/v1/visitor")
 @SecurityRequirement(name = "bearerAuth")
-public class VisitorController {
+public class VisitorsController {
 
     private final AppUserService appUserService;
     private final VisitorService visitorService;

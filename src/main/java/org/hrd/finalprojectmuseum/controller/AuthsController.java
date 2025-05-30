@@ -7,7 +7,6 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.validator.constraints.Length;
 import org.hrd.finalprojectmuseum.exception.AppBadRequestException;
 import org.hrd.finalprojectmuseum.jwt.JwtUtils;
 import org.hrd.finalprojectmuseum.model.dto.request.auth.ChangePasswordRequest;
@@ -30,14 +29,13 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.view.RedirectView;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/auths")
-public class AuthController {
+public class AuthsController {
     private final AppUserService appUserService;
     private final AuthenticationManager authenticationManager;
     private final JwtUtils jwtUtils;

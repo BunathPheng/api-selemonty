@@ -65,39 +65,6 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     @Override
-    public void deleteMuseumOwnerByUserId(UUID userId) {
-        MuseumOwner museumOwner = getMuseumOwnerByUserId(userId);
-        profileRepository.removeMuseumOwnerByMuseumId(museumOwner.getMuseumId());
-    }
-
-    @Override
-    public JSONObject addLanscapeByUserId(UUID userId, JSONObject landscapeRequest) {
-        MuseumOwner museumOwner = getMuseumOwnerByUserId(userId);
-        JSONObject existLandscape = museumOwner.getLandscapeLink();
-        if (existLandscape == null) {
-            existLandscape = new JSONObject();
-        }
-        existLandscape.putAll(landscapeRequest);
-
-        return profileRepository.modifyLandscapeByMuseumId(museumOwner.getMuseumId(), existLandscape);
-    }
-
-    @Override
-    public void deleteLandscapeByUserId(UUID userId, String landscapeKey) {
-        MuseumOwner museumOwner = getMuseumOwnerByUserId(userId);
-        JSONObject existLandscape = museumOwner.getLandscapeLink();
-        if (existLandscape == null) {
-            existLandscape = new JSONObject();
-        }
-        if (existLandscape.containsKey(landscapeKey)) {
-            existLandscape.remove(landscapeKey);
-        }else {
-            throw new AppNotFoundException("Landscape Key Not Found");
-        }
-        profileRepository.modifyLandscapeByMuseumId(museumOwner.getMuseumId(), existLandscape);
-    }
-
-    @Override
     public List<MuseumCategory> getMuseumCategories() {
         List<MuseumCategory> museumCategories = museumRepository.getMuseumCategories();
         if (museumCategories == null) {

@@ -2,7 +2,6 @@ package org.hrd.finalprojectmuseum.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Positive;
@@ -29,7 +28,7 @@ import java.util.UUID;
 @RequestMapping("/api/v1/reviews")
 @PreAuthorize("hasRole('ROLE_VISITOR')")
 @RequiredArgsConstructor
-public class ReviewController {
+public class ReviewsController {
     private final ReviewService reviewService;
 
     private UUID getVisitorIdByUserId(){

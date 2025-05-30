@@ -26,7 +26,7 @@ import java.util.UUID;
 @RequestMapping("api/v1/guide")
 @RequiredArgsConstructor
 @SecurityRequirement(name = "bearerAuth")
-public class GuideController {
+public class GuidesController {
 
     private final GuideService guideService;
     private final ProfileService profileService;
