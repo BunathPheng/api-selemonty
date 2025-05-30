@@ -15,6 +15,7 @@ import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
 import org.hrd.finalprojectmuseum.model.entity.visitor.Visitor;
 import org.hrd.finalprojectmuseum.model.enums.Role;
 import org.hrd.finalprojectmuseum.model.enums.TourStatus;
+import org.hrd.finalprojectmuseum.repository.TourRepository;
 import org.hrd.finalprojectmuseum.service.AppUserService;
 import org.hrd.finalprojectmuseum.service.ProfileService;
 import org.hrd.finalprojectmuseum.service.TourService;
@@ -41,6 +42,35 @@ public class ToursController {
     @Operation(summary = "Use for get all tour. For museum owner and visitor")
     @GetMapping()
     public ResponseEntity<ApiResponse<ListResponse<Tour>>> getAllTourById(
+            @RequestParam(defaultValue = "1") @Min(value = 1, message = "must be greater than 0") Integer page,
+            @RequestParam(defaultValue = "10") @Min(value = 1, message = "must be greater than 0") Integer size,
+            @NotNull(message = "Status Type is required") TourStatus statusType
+    ) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        UUID userId = UUID.fromString((String) auth.getCredentials());
+        AppUserRegister appUserRegister = appUserService.findUserByUserId(userId);
+        ListResponse<Tour> guideListResponse = null;
+        if (appUserRegister.getRole() == Role.ROLE_MUSEUM_OWNER){
+            MuseumOwner museum = profileService.getMuseumOwnerByUserId(userId);
+            guideListResponse = tourService.getAllTourByMuseumId(museum.getMuseumId(), null, page, size, statusType);
+        } else if (appUserRegister.getRole() == Role.ROLE_VISITOR) {
+            Visitor visitor = profileService.getProfile(userId);
+            guideListResponse = tourService.getAllTourByVisitorId(visitor.getVisitorId(), null, page, size, statusType);
+        }
+
+        ApiResponse<ListResponse<Tour>> response = ApiResponse.<ListResponse<Tour>>builder()
+                .success(true)
+                .message("Tours has been successfully retrieved")
+                .payload(guideListResponse)
+                .status(HttpStatus.OK)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER') or hasRole('ROLE_VISITOR')")
+    @Operation(summary = "Use for get all tour with filter. Allow guest")
+    @GetMapping("/filter")
+    public ResponseEntity<ApiResponse<ListResponse<Tour>>> getAllTourByIdWithFilter(
             @RequestParam(value = "search", required = false) String search,
             @RequestParam(defaultValue = "1") @Min(value = 1, message = "must be greater than 0") Integer page,
             @RequestParam(defaultValue = "10") @Min(value = 1, message = "must be greater than 0") Integer size,

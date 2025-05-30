@@ -33,7 +33,7 @@ public class SchedulesController {
     @SecurityRequirement(name = "bearerAuth")
     @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
     @GetMapping("/detail")
-    @Operation(summary = "Get schedule of a week with 7 day")
+    @Operation(summary = "Get schedule of a week with 7 day. For museum owner")
     public ResponseEntity<ApiResponse<List<Schedule>>> getAllSchedulesDetailOfMuseum() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UUID userId = UUID.fromString((String) auth.getCredentials());
@@ -49,7 +49,7 @@ public class SchedulesController {
     }
 
     @GetMapping("/{museum-id}/detail")
-    @Operation(summary = "Get schedule of a week with 7 day")
+    @Operation(summary = "Get schedule of a week with 7 day. Allow guest")
     public ResponseEntity<ApiResponse<List<Schedule>>> getAllSchedulesDetailByMuseumOwner(
             @RequestParam("museum-id") @NotNull UUID museumId
     ) {
@@ -64,7 +64,7 @@ public class SchedulesController {
     }
 
     @GetMapping("/detail/{schedule-id}")
-    @Operation(summary = "Get schedule by scheduleId")
+    @Operation(summary = "Get schedule by scheduleId. Allow guest")
     public ResponseEntity<ApiResponse<Schedule>> getAllSchedulesDetailOfMuseum(
             @PathVariable("schedule-id") @NotNull(message = "scheduleId is required") UUID scheduleId
     ) {
@@ -78,6 +78,7 @@ public class SchedulesController {
         return  ResponseEntity.ok(response);
     }
 
+    @Operation(summary = "Get schedule as customize group for ui. Allow guest")
     @GetMapping("/grouped/{museum-id}")
     public ResponseEntity<ApiResponse<List<Schedule>>> getGroupedSchedulesOfMuseum(
             @PathVariable("museum-id") @NotNull(message = "museum id is required") UUID museumId
@@ -94,7 +95,7 @@ public class SchedulesController {
 
     @SecurityRequirement(name = "bearerAuth")
     @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
-    @Operation(summary = "For update schedule for any day of a week", description = "RequestBody is List of object and each object of a day of week so this allowed only 7 object. If List duplicate day the update will update as the latest one.")
+    @Operation(summary = "For update schedule for any day of a week. For museum owner", description = "RequestBody is List of object and each object of a day of week so this allowed only 7 object. If List duplicate day the update will update as the latest one.")
     @PutMapping()
     public ResponseEntity<ApiResponse<List<Schedule>>> updateSchedule(
             @RequestBody @Valid List<ScheduleRequest> scheduleRequests) {

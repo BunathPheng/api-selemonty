@@ -14,7 +14,6 @@ import java.util.UUID;
 public class Booking {
     private UUID bookingId;
     private MuseumOwner museum;
-    @JsonInclude(JsonInclude.Include.NON_NULL)
     private Tour tour;
     private Visitor visitor;
     private BigDecimal ticketPrice;

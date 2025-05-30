@@ -1,5 +1,8 @@
 package org.hrd.finalprojectmuseum.repository;
 
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 import org.apache.ibatis.annotations.*;
 import org.hrd.finalprojectmuseum.model.dto.request.TicketInfoRequest;
 import org.hrd.finalprojectmuseum.model.entity.TicketInfo;
@@ -12,7 +15,7 @@ public interface TicketInfoRepository {
     @Results(id = "ticketMapper", value = {
             @Result(property = "ticketInfoId", column = "ticket_info_id"),
             @Result(property = "museum", column = "museum_id",
-                    many = @Many(select = "org.hrd.finalprojectmuseum.repository.MuseumRepository.findMuseumByMuseumId")
+                    one = @One(select = "org.hrd.finalprojectmuseum.repository.MuseumRepository.findMuseumByMuseumId")
             ),
             @Result(property = "localPrice", column = "local_price"),
             @Result(property = "foreignPrice", column = "foreign_price"),
@@ -36,4 +39,9 @@ public interface TicketInfoRepository {
         UPDATE ticket_info SET local_price = #{ticket.localPrice}, foreign_price = #{ticket.foreignPrice}, total_slot = #{ticket.totalSlot} WHERE museum_id = #{museumId}::UUID RETURNING *;
     """)
     TicketInfo modifyTicketInfo(UUID museumId, @Param("ticket") TicketInfoRequest ticketInfoRequest);
+
+    @Update("""
+    UPDATE ticket_info SET total_slot = #{slotAmount} WHERE museum_id = #{museumId}::UUID;
+    """)
+    void updateSlotAmount(UUID museumId, Integer slotAmount);
 }

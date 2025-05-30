@@ -8,17 +8,22 @@ import org.hrd.finalprojectmuseum.model.dto.request.RequestTourRequest;
 import org.hrd.finalprojectmuseum.model.dto.response.ListResponse;
 import org.hrd.finalprojectmuseum.model.entity.Booking;
 import org.hrd.finalprojectmuseum.model.entity.Pagination;
+import org.hrd.finalprojectmuseum.model.entity.TicketInfo;
 import org.hrd.finalprojectmuseum.model.entity.Tour;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
 import org.hrd.finalprojectmuseum.model.enums.BookingType;
+import org.hrd.finalprojectmuseum.model.enums.TicketType;
 import org.hrd.finalprojectmuseum.repository.BookingRepository;
 import org.hrd.finalprojectmuseum.repository.MuseumRepository;
+import org.hrd.finalprojectmuseum.repository.TicketInfoRepository;
 import org.hrd.finalprojectmuseum.repository.TourRepository;
 import org.hrd.finalprojectmuseum.service.BookingService;
+import org.hrd.finalprojectmuseum.service.TicketInfoService;
 import org.hrd.finalprojectmuseum.utils.UniqueTextCodeGenerator;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -32,9 +37,26 @@ public class BookingServiceImpl implements BookingService {
     private final UniqueTextCodeGenerator uniqueTextCodeGenerator;
     private final MuseumRepository museumRepository;
     private final TourRepository tourRepository;
+    private final TicketInfoRepository ticketInfoRepository;
+    private final TicketInfoService ticketInfoService;
 
     @Override
+    @Transactional
     public Booking makeABookingByMuseumId(UUID museumId, UUID visitorId, BookingRequest bookingRequest) {
+        TicketInfo ticketInfo = ticketInfoRepository.findTicketInfoByMuseumId(museumId);
+        if (bookingRequest.getTicketType() == TicketType.LOCAL){
+            if (ticketInfo.getLocalPrice().compareTo(bookingRequest.getTicketPrice()) != 0){
+                throw new AppBadRequestException("LocalTicket price is wrong. Right LocalTicket price is: "+ ticketInfo.getLocalPrice());
+            }
+        } else if(bookingRequest.getTicketType() == TicketType.FOREIGNER){
+            if (ticketInfo.getForeignPrice().compareTo(bookingRequest.getTicketPrice()) != 0){
+                throw new AppBadRequestException("Ticket price is wrong. Right ForeignTicket price is: "+ ticketInfo.getForeignPrice());
+            }
+        }
+
+        if (ticketInfo.getTotalSlot() < bookingRequest.getSlotAmount()){
+            throw new AppBadRequestException("Not enough slots available. Available slots: "+ ticketInfo.getTotalSlot());
+        }
         MuseumOwner museum = museumRepository.findMuseumOwnerByMuseumId(museumId);
         if (museum == null) {
             throw new AppNotFoundException("Museum with id " + museumId + " not exists");
@@ -46,6 +68,9 @@ public class BookingServiceImpl implements BookingService {
         String code = uniqueTextCodeGenerator.generateUniqueTextCode();
         LocalDateTime expiredDate = bookingRequest.getBookingDate().plusHours(12);
         Booking booking = bookingRepository.insertBookingByMuseumId(museumId, visitorId, code, expiredDate, bookingRequest);
+        booking.setTour(null);
+        Integer updateSlot = ticketInfo.getTotalSlot() - bookingRequest.getSlotAmount();
+        ticketInfoRepository.updateSlotAmount(museumId, updateSlot);
 
         if (booking == null) {
             throw new AppBadRequestException("Booking failed! Please try again");
@@ -191,6 +216,10 @@ public class BookingServiceImpl implements BookingService {
     @Transactional
     @Override
     public Booking requestTourByMuseumId(UUID museumId, UUID visitorId, RequestTourRequest requestTourRequest) {
+        TicketInfo ticketInfo = ticketInfoRepository.findTicketInfoByMuseumId(museumId);
+        if (ticketInfo.getTotalSlot() < requestTourRequest.getSlotAmount()){
+            throw new AppBadRequestException("Not enough slots available. Available slots: "+ ticketInfo.getTotalSlot());
+        }
         MuseumOwner museumOwner = museumRepository.findMuseumOwnerByMuseumId(museumId);
         if (museumOwner == null) {
             throw new AppNotFoundException("Museum with id " + museumId + " not exists");

@@ -77,6 +77,8 @@ public class SecurityConfig {
 
                                 //Ticket
                                 "/api/v1/tickets/**"
+
+
                         ).permitAll()
 //                        .requestMatchers("/api/v1x    /artifact/**").hasRole("MUSEUM_OWNER")
 //                        .requestMatchers(HttpMethod.POST, "/api/v1/booking/*").hasRole("VISITOR")  // Only POST booking creation for visitors

@@ -7,10 +7,15 @@ import org.hrd.finalprojectmuseum.model.dto.request.AcceptTourRequest;
 import org.hrd.finalprojectmuseum.model.dto.response.ListResponse;
 import org.hrd.finalprojectmuseum.model.dto.response.TourVisitorResponse;
 import org.hrd.finalprojectmuseum.model.entity.Pagination;
+import org.hrd.finalprojectmuseum.model.entity.TicketInfo;
 import org.hrd.finalprojectmuseum.model.entity.Tour;
 import org.hrd.finalprojectmuseum.model.enums.TourStatus;
 import org.hrd.finalprojectmuseum.repository.BookingRepository;
+import org.hrd.finalprojectmuseum.repository.TicketInfoRepository;
 import org.hrd.finalprojectmuseum.repository.TourRepository;
+import org.hrd.finalprojectmuseum.service.AppUserService;
+import org.hrd.finalprojectmuseum.service.ProfileService;
+import org.hrd.finalprojectmuseum.service.TicketInfoService;
 import org.hrd.finalprojectmuseum.service.TourService;
 import org.hrd.finalprojectmuseum.utils.UniqueTextCodeGenerator;
 import org.springframework.stereotype.Service;
@@ -26,6 +31,10 @@ public class TourServiceImpl implements TourService {
     private final TourRepository tourRepository;
     private final UniqueTextCodeGenerator uniqueTextCodeGenerator;
     private final BookingRepository bookingRepository;
+    private final TicketInfoService ticketInfoService;
+    private final TicketInfoRepository ticketInfoRepository;
+    private final AppUserService appUserService;
+    private final ProfileService profileService;
 
     @Override
     public ListResponse<Tour> getAllTourByMuseumId(UUID id, String search, Integer page, Integer size, TourStatus statusType) {
@@ -92,6 +101,13 @@ public class TourServiceImpl implements TourService {
         UUID bookingId = tourRepository.modifyTourStatus(tourId, TourStatus.PAID.toString(), LocalDateTime.now());
         String code = uniqueTextCodeGenerator.generateUniqueTextCode();
         bookingRepository.setTicketCode(bookingId, code);
+
+        UUID museumId = profileService.getMuseumIdByUserId();
+        Integer requestSlot = tourRepository.getRequestSlot(tourId);
+        TicketInfo ticketInfo = ticketInfoRepository.findTicketInfoByMuseumId(museumId);
+        System.out.println("ticketInfo: " + museumId);
+        Integer updatedAmount = ticketInfo.getTotalSlot() - requestSlot;
+        ticketInfoRepository.updateSlotAmount(museumId, updatedAmount);
     }
 
     @Override
@@ -107,6 +123,7 @@ public class TourServiceImpl implements TourService {
     @Transactional
     @Override
     public Tour acceptTourByTourId(UUID tourId, AcceptTourRequest acceptTourRequest) {
+        UUID museumId = profileService.getMuseumIdByUserId();
         Tour tour = tourRepository.findTourByTourId(tourId);
         if(tour == null){
             throw new AppNotFoundException("Tour with id " + tourId + " not found");

@@ -78,7 +78,7 @@ public class ArtifactsController {
     @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
     @PatchMapping("/{artifact-id}")
     @Operation(
-            summary = "Update museum artifact by artifact Id"
+            summary = "Delete museum artifact by artifact Id"
     )
     public ResponseEntity<ApiResponse<MuseumArtifact>> deleteMuseumArtifactByArtifactId(@PathVariable("artifact-id") UUID artifactId){
         UUID museumId = profileService.getMuseumIdByUserId();
@@ -129,7 +129,7 @@ public class ArtifactsController {
     }
 
     @GetMapping("/filter")
-    @Operation(summary = "Get museum artifact by artifact Id")
+    @Operation(summary = "Get all museum artifact by artifact Id with filter")
     public ResponseEntity<ApiResponse<ListResponse<MuseumArtifact>>> getAllMuseumArtifactByZoneIdAndFilter(
             @RequestParam("zone-id") @NotNull(message = "ZoneID is required") UUID zoneId,
             @RequestParam(required = false) String search,

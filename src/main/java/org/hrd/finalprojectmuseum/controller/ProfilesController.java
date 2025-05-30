@@ -82,6 +82,7 @@ public class ProfilesController {
     
     // For admin
 
+    @Operation(summary = "Get profile information for admin")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping("/admin")
     public ResponseEntity<ApiResponse<Admin>> getProfile() {
@@ -98,7 +99,7 @@ public class ProfilesController {
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @Operation(summary = "Use for insert and update. Any field can be null if dont want to update", description = "this endpoint can be use for insert more detail and also update any field. so you dont need to worry about field that dont want to update just leave it empty or null.")
+    @Operation(summary = "Use for update. Any field can be null if dont want to update", description = "this endpoint can be use for insert more detail and also update any field. so you dont need to worry about field that dont want to update just leave it empty or null.")
     @PutMapping("/admin")
     public ResponseEntity<ApiResponse<Admin>> updateProfile(@RequestBody @Valid AdminRequest adminRequest) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
