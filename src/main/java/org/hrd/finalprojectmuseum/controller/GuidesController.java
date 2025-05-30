@@ -1,5 +1,6 @@
 package org.hrd.finalprojectmuseum.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
@@ -31,6 +32,7 @@ public class GuidesController {
     private final GuideService guideService;
     private final ProfileService profileService;
 
+    @Operation(summary = "Get all guide. For museum owner")
     @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
     @GetMapping()
     public ResponseEntity<ApiResponse<ListResponse<Guide>>> getAllTourGuideByMuseumId(
@@ -50,6 +52,7 @@ public class GuidesController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    @Operation(summary = "Get all guide with filter. For museum owner")
     @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
     @GetMapping("/filter")
     public ResponseEntity<ApiResponse<ListResponse<Guide>>> getAllTourGuideByMuseumIdWithFilter(
@@ -71,6 +74,7 @@ public class GuidesController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    @Operation(summary = "add new guide. For museum owner")
     @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
     @PostMapping
     public ResponseEntity<ApiResponse<Guide>> addNewGuide(@RequestBody @Valid GuideRequest guideRequest) {
@@ -87,6 +91,7 @@ public class GuidesController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    @Operation(summary = "Update guide. For museum owner")
     @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
     @PutMapping("/{guide-id}")
     public ResponseEntity<ApiResponse<Guide>> updateGuideByGuideId(@PathVariable("guide-id") @NotNull UUID guideId, @RequestBody @Valid GuideRequest guideRequest) {

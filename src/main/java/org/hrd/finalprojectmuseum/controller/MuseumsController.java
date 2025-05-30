@@ -25,7 +25,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("api/v1/museum")
+@RequestMapping("api/v1/museums")
 @RequiredArgsConstructor
 public class MuseumsController {
     private final ProfileService profileService;

@@ -1,5 +1,6 @@
 package org.hrd.finalprojectmuseum.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.hrd.finalprojectmuseum.model.dto.response.ApiResponse;
@@ -21,6 +22,7 @@ public class MuseumCategoriesController {
 
     private final MuseumRepository museumRepository;
 
+    @Operation(summary = "Get all Museum category")
     @GetMapping("/museum-category")
     public ResponseEntity<ApiResponse<List<MuseumCategory>>> getMuseumCategory() {
         List<MuseumCategory> museumCategories = museumRepository.getMuseumCategories();

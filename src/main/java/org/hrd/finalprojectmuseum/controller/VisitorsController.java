@@ -1,5 +1,6 @@
 package org.hrd.finalprojectmuseum.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
@@ -21,16 +22,42 @@ import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("api/v1/visitor")
+@RequestMapping("api/v1/visitors")
 @SecurityRequirement(name = "bearerAuth")
 public class VisitorsController {
 
     private final AppUserService appUserService;
     private final VisitorService visitorService;
 
+    @Operation(summary = "For museum owner Get all visitor booking their museum. For museum owner only")
     @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
     @GetMapping("/museum")
     public ResponseEntity<ApiResponse<ListResponse<Visitor>>> getAllVisitorsOfMuseum(
+            @RequestParam(defaultValue = "1") @Min(value = 1, message = "must be greater than 0") Integer page,
+            @RequestParam(defaultValue = "10") @Min(value = 1, message = "must be greater than 0") Integer size
+    ){
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        UUID userId = UUID.fromString((String) auth.getCredentials());
+        AppUserRegister user = appUserService.findUserByUserId(userId);
+        ListResponse<Visitor> visitorListResponse = null;
+        if (user.getRole() == Role.ROLE_MUSEUM_OWNER){
+            visitorListResponse = visitorService.getVisitorByUserId(userId, null, page, size);
+        }
+
+        ApiResponse<ListResponse<Visitor>> response = ApiResponse.<ListResponse<Visitor>>builder()
+                .success(true)
+                .message("Visitors fetched successfully")
+                .status(HttpStatus.OK)
+                .payload(visitorListResponse)
+                .build();
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @Operation(summary = "For museum owner Get all visitor with filter booking their museum. For museum owner only")
+    @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
+    @GetMapping("/museum/filter")
+    public ResponseEntity<ApiResponse<ListResponse<Visitor>>> getAllVisitorsOfMuseumWithFilter(
             @RequestParam(value = "search", required = false) String search,
             @RequestParam(defaultValue = "1") @Min(value = 1, message = "must be greater than 0") Integer page,
             @RequestParam(defaultValue = "10") @Min(value = 1, message = "must be greater than 0") Integer size
@@ -53,9 +80,30 @@ public class VisitorsController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    @Operation(summary = "Get all visitor. For admin only")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping("/admin")
     public ResponseEntity<ApiResponse<ListResponse<Visitor>>> getAllVisitors(
+            @RequestParam(defaultValue = "1") @Min(value = 1, message = "must be greater than 0") Integer page,
+            @RequestParam(defaultValue = "10") @Min(value = 1, message = "must be greater than 0") Integer size
+    ){
+
+        ListResponse<Visitor>  visitorListResponse = visitorService.getAllVisitor(null, page, size);
+
+        ApiResponse<ListResponse<Visitor>> response = ApiResponse.<ListResponse<Visitor>>builder()
+                .success(true)
+                .message("Visitors fetched successfully")
+                .status(HttpStatus.OK)
+                .payload(visitorListResponse)
+                .build();
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @Operation(summary = "Get all visitor with filter. For admin only")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @GetMapping("/admin/filter")
+    public ResponseEntity<ApiResponse<ListResponse<Visitor>>> getAllVisitorsWithFilter(
             @RequestParam(value = "search", required = false) String search,
             @RequestParam(defaultValue = "1") @Min(value = 1, message = "must be greater than 0") Integer page,
             @RequestParam(defaultValue = "10") @Min(value = 1, message = "must be greater than 0") Integer size

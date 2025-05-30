@@ -82,6 +82,7 @@ public class ProfilesController {
     
     // For admin
 
+    @Operation(summary = "Get profile information for admin")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping("/admin")
     public ResponseEntity<ApiResponse<Admin>> getProfile() {
@@ -98,7 +99,7 @@ public class ProfilesController {
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @Operation(summary = "Use for insert and update. Any field can be null if dont want to update", description = "this endpoint can be use for insert more detail and also update any field. so you dont need to worry about field that dont want to update just leave it empty or null.")
+    @Operation(summary = "Use for update. Any field can be null if dont want to update", description = "this endpoint can be use for insert more detail and also update any field. so you dont need to worry about field that dont want to update just leave it empty or null.")
     @PutMapping("/admin")
     public ResponseEntity<ApiResponse<Admin>> updateProfile(@RequestBody @Valid AdminRequest adminRequest) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -144,20 +145,6 @@ public class ProfilesController {
                 .status(HttpStatus.OK)
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(response);
-    }
-
-    @PreAuthorize("hasRole('ROLE_VISITOR')")
-    @DeleteMapping("/visitor")
-    public ResponseEntity<ApiResponse<Void>> deleteVisitor() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        UUID userId = UUID.fromString((String) auth.getCredentials());
-        profileService.deleteVisitor(userId);
-        ApiResponse<Void> response = ApiResponse.<Void>builder()
-                .success(true)
-                .message("delete profile successfully")
-                .status(HttpStatus.OK)
-                .build();
-        return ResponseEntity.ok(response);
     }
 
 }

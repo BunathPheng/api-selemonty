@@ -1,5 +1,6 @@
 package org.hrd.finalprojectmuseum.repository;
 
+import jakarta.validation.constraints.NotNull;
 import org.apache.ibatis.annotations.*;
 import org.hrd.finalprojectmuseum.model.entity.Tour;
 import org.hrd.finalprojectmuseum.model.entity.TourGuide;
@@ -67,6 +68,7 @@ public interface TourRepository {
     """)
     void setTourPrice(UUID tourId, BigDecimal tourPrice);
 
+    @ResultMap("tourMapper")
     @Select("""
         SELECT * FROM tours WHERE tour_id = #{tourId}::UUID
     """)
@@ -182,4 +184,11 @@ public interface TourRepository {
         SELECT tour_price FROM tours WHERE booking_id = #{bookingId}::UUID
     """)
     BigDecimal getTourPriceByBookingId(UUID bookingId);
+
+    @Select("""
+        SELECT slot_amount FROM bookings b
+        INNER JOIN tours t ON b.booking_id = t.booking_id
+        WHERE t.tour_id = #{tourId}::UUID
+    """)
+    Integer getRequestSlot(UUID tourId);
 }
