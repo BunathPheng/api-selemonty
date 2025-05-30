@@ -15,9 +15,9 @@ public interface ZoneService {
     UUID getMuseumIdByUserId(UUID userId);
     List<MuseumZoneCategory> getAllZonesCategoriesByMuseumId(UUID museumId);
     MuseumZone getMuseumZoneDetailByZoneId(UUID museumId);
-    void updateMuseumZoneDetailByZoneId(UUID museumZoneId, MuseumZoneUpdateRequest museumZoneUpdateRequest);
-    void deleteMuseumZoneByZoneId(UUID zoneId);
-    List<MuseumZoneResponse> getAllMuseumZonesByMuseumId(UUID museumId, Integer page, Integer size);
-    Integer getTotalMuseumZonesByMuseumId(UUID museumId);
+    void updateMuseumZoneDetailByZoneId(UUID museumZoneId, MuseumZoneUpdateRequest museumZoneUpdateRequest, UUID museumId);
+    void deleteMuseumZoneByZoneId(UUID zoneId, UUID museumId);
+    List<MuseumZoneResponse> getAllMuseumZonesByMuseumId(UUID museumId, String search, UUID categoryId, Integer page, Integer size);
+    Integer getTotalMuseumZonesByMuseumId(UUID museumId, String search, UUID categoryId);
 
 }

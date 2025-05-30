@@ -29,14 +29,13 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.view.RedirectView;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/auths")
-public class AuthController {
+public class AuthsController {
     private final AppUserService appUserService;
     private final AuthenticationManager authenticationManager;
     private final JwtUtils jwtUtils;

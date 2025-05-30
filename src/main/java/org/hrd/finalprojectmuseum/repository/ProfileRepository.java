@@ -126,4 +126,9 @@ public interface ProfileRepository {
         SELECT * FROM visitors WHERE visitor_id = #{visitorId}::UUID
     """)
     Visitor findVisitorById(UUID visitorId);
+
+    @Select("""
+        SELECT museum_id FROM museum_owners WHERE user_id = #{userId}::UUID
+    """)
+    UUID getMuseumIdByUserId(UUID userId);
 }

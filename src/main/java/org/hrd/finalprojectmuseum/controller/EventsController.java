@@ -11,6 +11,7 @@ import org.hrd.finalprojectmuseum.model.dto.response.ApiResponse;
 import org.hrd.finalprojectmuseum.model.dto.response.ListResponse;
 import org.hrd.finalprojectmuseum.model.entity.Event;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
+import org.hrd.finalprojectmuseum.model.enums.EventStatus;
 import org.hrd.finalprojectmuseum.service.EventService;
 import org.hrd.finalprojectmuseum.service.ProfileService;
 import org.springframework.http.HttpStatus;
@@ -20,15 +21,15 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 
 @RestController
-@RequestMapping("api/v1/event")
-@SecurityRequirement(name = "bearerAuth")
+@RequestMapping("api/v1/events")
 @RequiredArgsConstructor
-public class EventController {
+public class EventsController {
 
     private final EventService eventService;
     private final ProfileService profileService;
@@ -37,13 +38,13 @@ public class EventController {
             summary = "Get all event of all museums. Can use without authorize",
             description = "Use to get all event with pagination"
     )
-    @GetMapping("/view")
+    @GetMapping()
     public ResponseEntity<ApiResponse<ListResponse<Event>>> getAllEvents(
-            @RequestParam(required = false) String search,
             @RequestParam(defaultValue = "1") @Min(value = 1, message = "must be greater than 0") Integer page,
-            @RequestParam(defaultValue = "10") @Min(value = 1, message = "must be greater than 0") Integer size
-    ) {
-        ListResponse<Event> listEventResponse = eventService.findAllEvents(search, page, size);
+            @RequestParam(defaultValue = "10") @Min(value = 1, message = "must be greater than 0") Integer size,
+            @RequestParam(name = "event-status") EventStatus eventStatus
+            ) {
+        ListResponse<Event> listEventResponse = eventService.findAllEvents(null, page, size, null, eventStatus);
         ApiResponse<ListResponse<Event>> response = ApiResponse.<ListResponse<Event>>builder()
                 .success(true)
                 .message("All events have been fetched")
@@ -54,18 +55,15 @@ public class EventController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    @Operation(
-            summary = "Get all events of a museum by museum ID",
-            description = "Use to get all events of museum with pagination. Required museumId"
-    )
-    @GetMapping("/view/museum/{museum-id}")
-    public ResponseEntity<ApiResponse<ListResponse<Event>>> getAllEventsByMuseumId(
-            @PathVariable("museum-id") @NotNull UUID museumId,
+    @GetMapping("/filter")
+    public ResponseEntity<ApiResponse<ListResponse<Event>>> getAllEventsWithFilter(
             @RequestParam(required = false) String search,
             @RequestParam(defaultValue = "1") @Min(value = 1, message = "must be greater than 0") Integer page,
-            @RequestParam(defaultValue = "10") @Min(value = 1, message = "must be greater than 0") Integer size
+            @RequestParam(defaultValue = "10") @Min(value = 1, message = "must be greater than 0") Integer size,
+            @RequestParam(required = false, name = "date-filter") LocalDate dateFilter,
+            @RequestParam(name = "event-status") EventStatus eventStatus
     ) {
-        ListResponse<Event> listEventResponse = eventService.findAllEventsByMuseumId(search, museumId, page, size);
+        ListResponse<Event> listEventResponse = eventService.findAllEvents(search, page, size, dateFilter, eventStatus);
         ApiResponse<ListResponse<Event>> response = ApiResponse.<ListResponse<Event>>builder()
                 .success(true)
                 .message("All events have been fetched")
@@ -76,13 +74,15 @@ public class EventController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    @Operation(summary = "Get a single event by event ID. For visitor and museum owner role")
-    @GetMapping("/view/{event-id}")
-    public ResponseEntity<ApiResponse<Event>> getEventsByEventId(@PathVariable("event-id") @NotNull UUID eventId) {
+    @Operation(summary = "Get event by eventId")
+    @GetMapping("/{event-id}")
+    public ResponseEntity<ApiResponse<Event>> getEventById(
+            @PathVariable("event-id") @NotNull UUID eventId
+    ) {
         Event event = eventService.findEventsByEventId(eventId);
         ApiResponse<Event> response = ApiResponse.<Event>builder()
                 .success(true)
-                .message("Event has been fetched successfully")
+                .message("All events have been fetched")
                 .status(HttpStatus.OK)
                 .payload(event)
                 .timestamp(LocalDateTime.now())
@@ -90,28 +90,7 @@ public class EventController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    @PreAuthorize("hasRole('MUSEUM_OWNER')")
-    @Operation(summary = "Get all events of current museum owner. For museum owner role only")
-    @GetMapping()
-    public ResponseEntity<ApiResponse<ListResponse<Event>>> getAllEventForMuseumOwner(
-            @RequestParam(required = false) String search,
-            @RequestParam(defaultValue = "1") @Min(value = 1, message = "must be greater than 0") Integer page,
-            @RequestParam(defaultValue = "10") @Min(value = 1, message = "must be greater than 0") Integer size
-    ) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        UUID userId = UUID.fromString((String) auth.getCredentials());
-        MuseumOwner museumOwner = profileService.getMuseumOwnerByUserId(userId);
-        ListResponse<Event> listEventResponse = eventService.findAllEventsByMuseumId(search, museumOwner.getMuseumId(), page, size);
-        ApiResponse<ListResponse<Event>> response = ApiResponse.<ListResponse<Event>>builder()
-                .success(true)
-                .message("All events have been fetched")
-                .status(HttpStatus.OK)
-                .payload(listEventResponse)
-                .timestamp(LocalDateTime.now())
-                .build();
-        return ResponseEntity.status(HttpStatus.OK).body(response);
-    }
-
+    @SecurityRequirement(name = "bearerAuth")
     @PreAuthorize("hasRole('MUSEUM_OWNER')")
     @Operation(summary = "Create a new event. For museum owner role only")
     @PostMapping()
@@ -130,6 +109,7 @@ public class EventController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @SecurityRequirement(name = "bearerAuth")
     @PreAuthorize("hasRole('MUSEUM_OWNER')")
     @Operation(summary = "Update an event by event ID. For museum owner role only")
     @PutMapping("/{event-id}")
@@ -137,7 +117,10 @@ public class EventController {
             @RequestBody @Valid EventRequest eventRequest,
             @PathVariable("event-id") @NotNull UUID eventId
     ) {
-        Event event = eventService.updateEventByEventId(eventId, eventRequest);
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        UUID userId = UUID.fromString((String) auth.getCredentials());
+        MuseumOwner museumOwner = profileService.getMuseumOwnerByUserId(userId);
+        Event event = eventService.updateEventByEventId(eventId, eventRequest, museumOwner.getMuseumId());
         ApiResponse<Event> response = ApiResponse.<Event>builder()
                 .success(true)
                 .message("Event has been updated successfully")
@@ -148,11 +131,15 @@ public class EventController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    @SecurityRequirement(name = "bearerAuth")
     @PreAuthorize("hasRole('MUSEUM_OWNER')")
     @Operation(summary = "Soft delete an event by updating delete status. For museum owner role only")
     @DeleteMapping("/{event-id}")
     public ResponseEntity<ApiResponse<Void>> updateDeleteStatus(@PathVariable("event-id") @NotNull UUID eventId) {
-        eventService.updateDeleteStatus(eventId);
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        UUID userId = UUID.fromString((String) auth.getCredentials());
+        MuseumOwner museumOwner = profileService.getMuseumOwnerByUserId(userId);
+        eventService.updateDeleteStatus(eventId, museumOwner.getMuseumId());
         ApiResponse<Void> response = ApiResponse.<Void>builder()
                 .success(true)
                 .message("Event has been deleted successfully")

@@ -12,8 +12,10 @@ import org.hrd.finalprojectmuseum.model.enums.Role;
 import org.hrd.finalprojectmuseum.repository.AppUserRepository;
 import org.hrd.finalprojectmuseum.service.AppUserService;
 import org.modelmapper.ModelMapper;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -157,6 +159,17 @@ public class AppUserServiceImpl implements AppUserService {
             throw new AppBadRequestException("User with id " + userId + " does not exist.");
         }
         return appUserRegister;
+    }
+
+    @Override
+    public UUID getUserId() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return UUID.fromString((String) auth.getCredentials());
+    }
+
+    @Override
+    public AppUserRegister getAppUserRegister() {
+        return findUserByUserId(getUserId());
     }
 }
 

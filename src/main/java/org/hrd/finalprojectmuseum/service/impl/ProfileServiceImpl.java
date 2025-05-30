@@ -16,6 +16,8 @@ import org.hrd.finalprojectmuseum.model.entity.visitor.Visitor;
 import org.hrd.finalprojectmuseum.model.entity.visitor.VisitorReviewStatistics;
 import org.hrd.finalprojectmuseum.repository.*;
 import org.hrd.finalprojectmuseum.service.ProfileService;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -52,6 +54,9 @@ public class ProfileServiceImpl implements ProfileService {
 
     @Override
     public MuseumOwner updateMuseumOwnerByUserId(UUID userId, MuseumOwnerRequest request) {
+        if (!museumRepository.isMuseumCategoriesExist(request.getMuseumCategoryId())){
+            throw new AppNotFoundException("Museum Category Not Found");
+        }
         MuseumOwner existing = getMuseumOwnerByUserId(userId);
         profileRepository.modifyMuseumOwnerById(existing.getMuseumId(), request, LocalDateTime.now());
         MuseumOwner updatedMuseum = getMuseumOwnerByUserId(userId);
@@ -62,39 +67,6 @@ public class ProfileServiceImpl implements ProfileService {
         updatedMuseum.setSchedule(schedules);
         updatedMuseum.setTodaySchedule(todaySchedule);
         return updatedMuseum;
-    }
-
-    @Override
-    public void deleteMuseumOwnerByUserId(UUID userId) {
-        MuseumOwner museumOwner = getMuseumOwnerByUserId(userId);
-        profileRepository.removeMuseumOwnerByMuseumId(museumOwner.getMuseumId());
-    }
-
-    @Override
-    public JSONObject addLanscapeByUserId(UUID userId, JSONObject landscapeRequest) {
-        MuseumOwner museumOwner = getMuseumOwnerByUserId(userId);
-        JSONObject existLandscape = museumOwner.getLandscapeLink();
-        if (existLandscape == null) {
-            existLandscape = new JSONObject();
-        }
-        existLandscape.putAll(landscapeRequest);
-
-        return profileRepository.modifyLandscapeByMuseumId(museumOwner.getMuseumId(), existLandscape);
-    }
-
-    @Override
-    public void deleteLandscapeByUserId(UUID userId, String landscapeKey) {
-        MuseumOwner museumOwner = getMuseumOwnerByUserId(userId);
-        JSONObject existLandscape = museumOwner.getLandscapeLink();
-        if (existLandscape == null) {
-            existLandscape = new JSONObject();
-        }
-        if (existLandscape.containsKey(landscapeKey)) {
-            existLandscape.remove(landscapeKey);
-        }else {
-            throw new AppNotFoundException("Landscape Key Not Found");
-        }
-        profileRepository.modifyLandscapeByMuseumId(museumOwner.getMuseumId(), existLandscape);
     }
 
     @Override
@@ -165,5 +137,13 @@ public class ProfileServiceImpl implements ProfileService {
             throw new AppNotFoundException("UserId is wrong");
         }
         appUserRepository.deleteUser(userId);
+    }
+
+    @Override
+    public UUID getMuseumIdByUserId() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        UUID userId = UUID.fromString((String) auth.getCredentials());
+
+        return profileRepository.getMuseumIdByUserId(userId);
     }
 }

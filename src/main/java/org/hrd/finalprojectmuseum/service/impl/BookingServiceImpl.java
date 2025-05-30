@@ -39,6 +39,9 @@ public class BookingServiceImpl implements BookingService {
         if (museum == null) {
             throw new AppNotFoundException("Museum with id " + museumId + " not exists");
         }
+        if (!museum.getIsApproved()) {
+            throw new AppBadRequestException("Booking failed. This museum is not approved by admin");
+        }
 
         String code = uniqueTextCodeGenerator.generateUniqueTextCode();
         LocalDateTime expiredDate = bookingRequest.getBookingDate().plusHours(12);

@@ -22,14 +22,12 @@ import java.util.UUID;
 @RestController
 @RequestMapping("api/v1/tickets")
 @RequiredArgsConstructor
-@SecurityRequirement(name = "bearerAuth")
-public class TicketInfoController {
+public class TicketsInfoController {
 
     private final TicketInfoService ticketInfoService;
     private final ProfileService profileService;
 
     @GetMapping("/{museum-id}")
-    @PreAuthorize("hasRole('ROLE_VISITOR') or hasRole('ROLE_MUSEUM_OWNER')")
     @Operation(summary = "For get Ticket Information and use for visitor role and museum owner role")
     public ResponseEntity<ApiResponse<TicketInfo>> getTicketInfoByMuseumId(@PathVariable("museum-id") @NotNull UUID museumId) {
         TicketInfo ticketInfo = ticketInfoService.getTicketInfoByMuseumId(museumId);
@@ -42,6 +40,7 @@ public class TicketInfoController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    @SecurityRequirement(name = "bearerAuth")
     @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
     @Operation(summary = "For get Ticket Information and use for museum owner role without required museum id")
     @GetMapping
@@ -59,6 +58,7 @@ public class TicketInfoController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    @SecurityRequirement(name = "bearerAuth")
     @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
     @Operation(summary = "For update Ticket Information and use for museum owner role")
     @PutMapping()

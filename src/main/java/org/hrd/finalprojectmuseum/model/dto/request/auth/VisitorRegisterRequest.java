@@ -13,8 +13,8 @@ import org.hrd.finalprojectmuseum.model.enums.Role;
 @Builder
 public class VisitorRegisterRequest {
     @NotBlank(message = "Full name is required")
-    @Size(min = 2, message = "Full name must be at least 2 characters")
-    @Size(max = 255, message = "Full name cannot be greater than 255 characters")
+    @Size(min = 2, max = 255, message = "Full name must be between 2 and 255 characters")
+    @Pattern(regexp = "^[a-zA-Z\\s'-]+$", message = "Full name can only contain letters, spaces, hyphens, and apostrophes")
     private String fullName;
 
     @Schema(example = "example@gmail.com")

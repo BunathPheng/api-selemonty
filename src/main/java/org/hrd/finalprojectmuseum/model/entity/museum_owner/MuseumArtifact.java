@@ -11,7 +11,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 public class MuseumArtifact {
-    private UUID id;
+    private UUID artifactId;
     private UUID zoneId;
     private String title;
     private String description;

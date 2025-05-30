@@ -25,13 +25,13 @@ import java.util.UUID;
 @RestController
 @RequestMapping("api/v1/museum/schedule")
 @RequiredArgsConstructor
-@SecurityRequirement(name = "bearerAuth")
-@PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
-public class ScheduleController {
+public class SchedulesController {
 
     private final ScheduleService scheduleService;
     private final ProfileService profileService;
 
+    @SecurityRequirement(name = "bearerAuth")
+    @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
     @GetMapping("/detail")
     @Operation(summary = "Get schedule of a week with 7 day")
     public ResponseEntity<ApiResponse<List<Schedule>>> getAllSchedulesDetailOfMuseum() {
@@ -39,6 +39,21 @@ public class ScheduleController {
         UUID userId = UUID.fromString((String) auth.getCredentials());
         MuseumOwner museumOwner = profileService.getMuseumOwnerByUserId(userId);
         List<Schedule> schedules = scheduleService.getScheduleOfMuseum(museumOwner.getMuseumId());
+        ApiResponse<List<Schedule>> response = ApiResponse.<List<Schedule>>builder()
+                .success(true)
+                .message("Schedules have been fetched successfully")
+                .status(HttpStatus.OK)
+                .payload(schedules)
+                .build();
+        return  ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{museum-id}/detail")
+    @Operation(summary = "Get schedule of a week with 7 day")
+    public ResponseEntity<ApiResponse<List<Schedule>>> getAllSchedulesDetailByMuseumOwner(
+            @RequestParam("museum-id") @NotNull UUID museumId
+    ) {
+        List<Schedule> schedules = scheduleService.getScheduleOfMuseum(museumId);
         ApiResponse<List<Schedule>> response = ApiResponse.<List<Schedule>>builder()
                 .success(true)
                 .message("Schedules have been fetched successfully")
@@ -63,12 +78,11 @@ public class ScheduleController {
         return  ResponseEntity.ok(response);
     }
 
-    @GetMapping("/grouped")
-    public ResponseEntity<ApiResponse<List<Schedule>>> getGroupedSchedulesOfMuseum() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        UUID userId = UUID.fromString((String) auth.getCredentials());
-        MuseumOwner museumOwner = profileService.getMuseumOwnerByUserId(userId);
-        List<Schedule> schedules = scheduleService.getShortSchedulesOfMuseum(museumOwner.getMuseumId());
+    @GetMapping("/grouped/{museum-id}")
+    public ResponseEntity<ApiResponse<List<Schedule>>> getGroupedSchedulesOfMuseum(
+            @PathVariable("museum-id") @NotNull(message = "museum id is required") UUID museumId
+    ) {
+        List<Schedule> schedules = scheduleService.getShortSchedulesOfMuseum(museumId);
         ApiResponse<List<Schedule>> response = ApiResponse.<List<Schedule>>builder()
                 .success(true)
                 .message("Schedules have been fetched successfully")
@@ -78,6 +92,8 @@ public class ScheduleController {
         return  ResponseEntity.ok(response);
     }
 
+    @SecurityRequirement(name = "bearerAuth")
+    @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
     @Operation(summary = "For update schedule for any day of a week", description = "RequestBody is List of object and each object of a day of week so this allowed only 7 object. If List duplicate day the update will update as the latest one.")
     @PutMapping()
     public ResponseEntity<ApiResponse<List<Schedule>>> updateSchedule(

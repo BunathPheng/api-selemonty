@@ -8,10 +8,12 @@ import org.hrd.finalprojectmuseum.model.dto.response.ListResponse;
 import org.hrd.finalprojectmuseum.model.entity.Event;
 import org.hrd.finalprojectmuseum.model.entity.Pagination;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
+import org.hrd.finalprojectmuseum.model.enums.EventStatus;
 import org.hrd.finalprojectmuseum.repository.EventRepository;
 import org.hrd.finalprojectmuseum.service.EventService;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -23,36 +25,41 @@ public class EventServiceImpl implements EventService {
     private final EventRepository eventRepository;
 
     @Override
-    public ListResponse<Event> findAllEvents(String search, Integer page, Integer size) {
+    public ListResponse<Event> findAllEvents(String search, Integer page, Integer size, LocalDate dateFiler, EventStatus eventStatus) {
         search = search == null ? "" : search;
-        Integer totalItems = eventRepository.countAllEvent();
-
-        List<Event> events = eventRepository.findAllEvents(search, page, size);
+        Integer totalItems;
+        List<Event> events;
+        if (eventStatus == EventStatus.ALL) {
+            if (dateFiler == null) {
+                events = eventRepository.findAllEvents(search, page, size);
+                totalItems = eventRepository.countAllEvent(search);
+            } else {
+                events = eventRepository.findAllEventsWithDateFilter(search, page, size, dateFiler);
+                totalItems = eventRepository.countAllEventWithFilter(search, dateFiler);
+            }
+        }else if(eventStatus == EventStatus.AVAILABLE ){
+            if (dateFiler == null) {
+                events = eventRepository.findAllEventsAvailable(search, page, size);
+                totalItems = eventRepository.countAllEventAvailable(search);
+            } else {
+                events = eventRepository.findAllEventsWithDateFilterAvailable(search, page, size, dateFiler);
+                totalItems = eventRepository.countAllEventWithFilterAvailable(search, dateFiler);
+            }
+        }else {
+            if (dateFiler == null) {
+                events = eventRepository.findAllEventsEnded(search, page, size);
+                totalItems = eventRepository.countAllEventEnded(search);
+            } else {
+                events = eventRepository.findAllEventsWithDateFilterEnded(search, page, size, dateFiler);
+                totalItems = eventRepository.countAllEventWithFilterEnded(search, dateFiler);
+            }
+        }
         for (Event event : events) {
             event.updateStatus();
         }
         Pagination pagination = new Pagination();
+        totalItems = totalItems == null ? 0 : totalItems;
         pagination = pagination.calculatePagination(totalItems, page, size);
-
-
-        return ListResponse.<Event>builder()
-                .items(events)
-                .pagination(pagination)
-                .build();
-    }
-
-    @Override
-    public ListResponse<Event> findAllEventsByMuseumId(String search, UUID museumId, Integer page, Integer size) {
-        search = search == null ? "" : search;
-        Integer totalItems = eventRepository.countAllEventByMuseumId(search, museumId);
-
-        List<Event> events = eventRepository.findAllEventsByMuseumId(search, museumId, page, size);
-        for (Event event : events) {
-            event.updateStatus();
-        }
-        Pagination pagination = new Pagination();
-        pagination = pagination.calculatePagination(totalItems, page, size);
-
         return ListResponse.<Event>builder()
                 .items(events)
                 .pagination(pagination)
@@ -82,15 +89,28 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public Event updateEventByEventId(UUID eventId, EventRequest eventRequest) {
-        findEventsByEventId(eventId);
+    public Event updateEventByEventId(UUID eventId, EventRequest eventRequest, UUID museumId) {
+        Event event = findEventsByEventId(eventId);
+        if (event == null){
+            throw new AppNotFoundException("Event with ID " + eventId + " does not exist");
+        }
+        if (!event.getMuseum().getMuseumId().equals(museumId)){
+            throw new AppBadRequestException("Event belongs to a other museum. You cannot update this event");
+        }
         Event updatedEvent = eventRepository.updateEventByEventId(eventId, eventRequest, LocalDateTime.now());
         updatedEvent.updateStatus();
         return updatedEvent;
     }
 
     @Override
-    public void updateDeleteStatus(UUID eventId) {
+    public void updateDeleteStatus(UUID eventId, UUID museumId) {
+        Event event = findEventsByEventId(eventId);
+        if (event == null){
+            throw new AppNotFoundException("Event with ID " + eventId + " does not exist");
+        }
+        if (!event.getMuseum().getMuseumId().equals(museumId)){
+            throw new AppBadRequestException("Event belongs to a other museum. You cannot update this event");
+        }
         findEventsByEventId(eventId);
         eventRepository.updateDeleteStatus(eventId, LocalDateTime.now());
     }

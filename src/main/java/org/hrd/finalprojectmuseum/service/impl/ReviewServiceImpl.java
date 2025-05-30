@@ -119,5 +119,13 @@ public class ReviewServiceImpl implements ReviewService {
         return statistics;
     }
 
+    @Override
+    public void deleteVisitorReviewByMuseumOwner(UUID reviewId, UUID museumId) {
+        if (!reviewRepository.retrieveReviewId(reviewId)){
+            throw new AppNotFoundException("Review ID Not Found");
+        }
+        reviewRepository.deleteVisitorReviewByMuseumOwner(reviewId, museumId);
+    }
+
 
 }

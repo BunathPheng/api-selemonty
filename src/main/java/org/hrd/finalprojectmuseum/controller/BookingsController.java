@@ -8,7 +8,6 @@ import lombok.RequiredArgsConstructor;
 import org.hrd.finalprojectmuseum.model.dto.request.BookingRequest;
 import org.hrd.finalprojectmuseum.model.dto.request.RequestTourRequest;
 import org.hrd.finalprojectmuseum.model.dto.response.ApiResponse;
-import org.hrd.finalprojectmuseum.model.dto.response.BookingDetail;
 import org.hrd.finalprojectmuseum.model.dto.response.ListResponse;
 import org.hrd.finalprojectmuseum.model.entity.AppUserRegister;
 import org.hrd.finalprojectmuseum.model.entity.Booking;
@@ -28,19 +27,18 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("api/v1/booking")
-@SecurityRequirement(name = "bearerAuth")
+@RequestMapping("api/v1/bookings")
 @RequiredArgsConstructor
-public class BookingController {
+public class BookingsController {
     private final BookingService bookingService;
     private final ProfileService profileService;
     private final AppUserService appUserService;
 
     @Operation(summary = "For booking a ticket. Only visitor can use.")
+    @SecurityRequirement(name = "bearerAuth")
     @PreAuthorize("hasRole('ROLE_VISITOR')")
     @PostMapping("/individual/{museum-id}")
     public ResponseEntity<ApiResponse<Booking>> bookingIndividualByMuseumId(
@@ -61,6 +59,7 @@ public class BookingController {
     }
 
     @PreAuthorize("hasRole('ROLE_VISITOR')")
+    @SecurityRequirement(name = "bearerAuth")
     @Operation(summary = "For RequestTour. Only visitor can use.")
     @PostMapping("/tour/{museum-id}")
     public ResponseEntity<ApiResponse<Booking>> requestTourByMuseumId(
@@ -80,14 +79,46 @@ public class BookingController {
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
-
+    @SecurityRequirement(name = "bearerAuth")
     @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER') or hasRole('ROLE_VISITOR')")
     @Operation(
             summary = "For get all booking history of a visitor with search, category and between of two date. MuseumOwner and Visitor can use.",
             description = "For Date must follow format (YYYY-MM-DD). If any filter dont want to use just leave it empty."
     )
+
     @GetMapping()
     public ResponseEntity<ApiResponse<ListResponse<Booking>>> getBookingHistory(
+            @RequestParam(value = "bookingType", required = false) BookingType bookingType,
+            @RequestParam(defaultValue = "1") @Min(value = 1, message = "must be greater than 0") Integer page,
+            @RequestParam(defaultValue = "10") @Min(value = 1, message = "must be greater than 0") Integer size
+    ) {
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        UUID userId = UUID.fromString((String) auth.getCredentials());
+        AppUserRegister appUserRegister = appUserService.findUserByUserId(userId);
+        ListResponse<Booking> bookings = null;
+        if (appUserRegister.getRole() == Role.ROLE_VISITOR){
+            Visitor visitor = profileService.getProfile(userId);
+            bookings = bookingService.getBookingHistoryByVisitorId(visitor.getVisitorId(), null, page, size, bookingType, null, null);
+        } else if (appUserRegister.getRole() == Role.ROLE_MUSEUM_OWNER) {
+            MuseumOwner museumOwner = profileService.getMuseumOwnerByUserId(userId);
+            bookings = bookingService.getAllBookingByMuseumId(museumOwner.getMuseumId(), null, page, size, bookingType, null, null);
+        }
+
+        ApiResponse<ListResponse<Booking>> response = ApiResponse.<ListResponse<Booking>>builder()
+                .success(true)
+                .message("Bookings retrieved successfully")
+                .status(HttpStatus.OK)
+                .payload(bookings)
+                .build();
+
+        return ResponseEntity.ok(response);
+    }
+
+    @SecurityRequirement(name = "bearerAuth")
+    @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER') or hasRole('ROLE_VISITOR')")
+    @GetMapping("/filter")
+    public ResponseEntity<ApiResponse<ListResponse<Booking>>> getBookingHistoryByFilter(
             @RequestParam(value = "search", required = false) String search,
             @RequestParam(value = "bookingType", required = false) BookingType bookingType,
             @RequestParam(defaultValue = "1") @Min(value = 1, message = "must be greater than 0") Integer page,
@@ -118,6 +149,7 @@ public class BookingController {
         return ResponseEntity.ok(response);
     }
 
+    @SecurityRequirement(name = "bearerAuth")
     @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER') or hasRole('ROLE_VISITOR')")
     @Operation(
             summary = "For get booking by Booking ID, category and between of two date. MuseumOwner and Visitor can use."

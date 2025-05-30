@@ -2,9 +2,9 @@ package org.hrd.finalprojectmuseum.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.hrd.finalprojectmuseum.model.dto.request.museum_owner.MuseumZoneRequest;
@@ -29,9 +29,8 @@ import java.util.UUID;
 @RestController
 @SecurityRequirement(name = "bearerAuth")
 @RequestMapping("/api/v1/zone")
-@PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
 @RequiredArgsConstructor
-public class ZoneController {
+public class ZonesController {
 
     private final ZoneService zoneService;
 
@@ -42,8 +41,7 @@ public class ZoneController {
         return zoneService.getMuseumIdByUserId(userId);
     }
 
-    @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER') or hasRole('ROLE_VISITOR')")
-    @GetMapping("/all-zone-category")
+    @GetMapping("/zone-category")
     @Operation(summary = "Get all museum zone categories")
     public ResponseEntity<ApiResponse<List<MuseumZoneCategory>>> getAllZoneCategories() {
         List<MuseumZoneCategory> museumZoneCategory = zoneService.getAllZonesCategories();
@@ -52,7 +50,6 @@ public class ZoneController {
                 .message("All Zone categories have been successfully fetched.")
                 .payload(museumZoneCategory)
                 .status(HttpStatus.OK)
-                .timestamp(LocalDateTime.now())
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
     }
@@ -75,25 +72,6 @@ public class ZoneController {
         return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
     }
 
-    @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER') or hasRole('ROLE_VISITOR')")
-    @GetMapping("/zone-category")
-    @Operation(summary = "Get all museum zone categories belong to museum")
-    public ResponseEntity<ApiResponse<List<MuseumZoneCategory>>> getAllZoneCategoriesByMuseumId() {
-
-        UUID museumId = getMuseumIdByUserId();
-
-        List<MuseumZoneCategory> museumZoneCategory = zoneService.getAllZonesCategoriesByMuseumId(museumId);
-        ApiResponse<List<MuseumZoneCategory>> apiResponse = ApiResponse.<List<MuseumZoneCategory>>builder()
-                .success(true)
-                .message("All Zone categories belong to museum has been successfully fetched.")
-                .payload(museumZoneCategory)
-                .status(HttpStatus.OK)
-                .timestamp(LocalDateTime.now())
-                .build();
-        return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
-    }
-
-    @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER') or hasRole('ROLE_VISITOR')")
     @GetMapping("/{zone-id}")
     @Operation(summary = "Get museum zone detail by museum zone Id")
     public ResponseEntity<ApiResponse<MuseumZone>> getMuseumZoneDetailByZoneId(@PathVariable("zone-id") UUID zoneId) {
@@ -118,7 +96,8 @@ public class ZoneController {
             @PathVariable("zone-id") UUID zoneId,
             @RequestBody @Valid MuseumZoneUpdateRequest  museumZoneUpdateRequest) {
 
-        zoneService.updateMuseumZoneDetailByZoneId(zoneId, museumZoneUpdateRequest);
+        UUID museumId = getMuseumIdByUserId();
+        zoneService.updateMuseumZoneDetailByZoneId(zoneId, museumZoneUpdateRequest, museumId);
 
         ApiResponse<MuseumZone> apiResponse = ApiResponse.<MuseumZone>builder()
                 .success(true)
@@ -135,7 +114,8 @@ public class ZoneController {
     @Operation(summary = "Delete museum zone zone Id")
     public ResponseEntity<ApiResponse<MuseumZone>> deleteMuseumZoneByZoneId(@PathVariable("zone-id") UUID zoneId) {
 
-        zoneService.deleteMuseumZoneByZoneId(zoneId);
+        UUID museumId = getMuseumIdByUserId();
+        zoneService.deleteMuseumZoneByZoneId(zoneId, museumId);
 
         ApiResponse<MuseumZone> apiResponse = ApiResponse.<MuseumZone>builder()
                 .success(true)
@@ -147,18 +127,18 @@ public class ZoneController {
         return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
     }
 
-    @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER') or hasRole('ROLE_VISITOR')")
-    @GetMapping
+    @GetMapping()
     @Operation(summary = "Get all museum zone")
     public ResponseEntity<ApiResponse<List<MuseumZoneResponse>>> getAllMuseumZonesByMuseumId(
+            @RequestParam @NotNull UUID museumId,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) UUID categoryId,
             @RequestParam(defaultValue = "1") @Positive @Min(value = 1, message = "must greater than 0") Integer page,
             @RequestParam(defaultValue = "3") @Positive @Min(value = 1, message = "must greater than 0") Integer size) {
 
-        UUID museumId = getMuseumIdByUserId();
+        List<MuseumZoneResponse> allMuseumZonesByMuseumId = zoneService.getAllMuseumZonesByMuseumId(museumId, search, categoryId, page, size);
 
-        List<MuseumZoneResponse> allMuseumZonesByMuseumId = zoneService.getAllMuseumZonesByMuseumId(museumId, page, size);
-
-        Integer totalItems = zoneService.getTotalMuseumZonesByMuseumId(museumId);
+        Integer totalItems = zoneService.getTotalMuseumZonesByMuseumId(museumId, search, categoryId);
 
         Pagination pagination = new Pagination();
         pagination = pagination.calculatePagination(totalItems, page, size);

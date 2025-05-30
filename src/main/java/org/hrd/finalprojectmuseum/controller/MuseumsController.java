@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.hrd.finalprojectmuseum.model.dto.response.*;
 import org.hrd.finalprojectmuseum.model.entity.Booking;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
+import org.hrd.finalprojectmuseum.model.enums.MuseumStatus;
 import org.hrd.finalprojectmuseum.service.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,14 +27,14 @@ import java.util.UUID;
 @RestController
 @RequestMapping("api/v1/museum")
 @RequiredArgsConstructor
-@SecurityRequirement(name = "bearerAuth")
-public class MuseumController {
+public class MuseumsController {
     private final ProfileService profileService;
     private final BookingService bookingService;
     private final TicketInfoService ticketInfoService;
     private final ScheduleService scheduleService;
     private final MuseumService museumService;
 
+    @SecurityRequirement(name = "bearerAuth")
     @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
     @Operation(summary = "For check and verify booking ticket by bookingId which provide by qr scan. Only museum owner can use.")
     @PatchMapping("/management/verify/qr")
@@ -60,6 +61,7 @@ public class MuseumController {
         return ResponseEntity.ok(response);
     }
 
+    @SecurityRequirement(name = "bearerAuth")
     @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
     @Operation(summary = "For check and verify booking ticket by code QR instead of scanning. Only museum owner can use.")
     @PatchMapping("/management/verify/code")
@@ -85,15 +87,14 @@ public class MuseumController {
         return ResponseEntity.ok(response);
     }
 
-    @Operation(summary = "For get all museum and can add museumCategoryId to get museum", description = "Note for category we can leave it as null if we to get all museum by not filter by category")
-    @GetMapping("/all")
+    @Operation(summary = "For get all museums. Allowed guest")
+    @GetMapping()
     public ResponseEntity<ApiResponse<ListResponse<MuseumOwner>>> getAllMuseumOwners(
-            @RequestParam(required = false) String search,
-            @RequestParam(required = false) UUID museumCategoryId,
             @RequestParam(defaultValue = "1") @Min(value = 1, message = "must be greater than 0") Integer page,
-            @RequestParam(defaultValue = "10") @Min(value = 1, message = "must be greater than 0") Integer size
-    ) {
-        ListResponse<MuseumOwner> museums = museumService.getAllMuseum(search, museumCategoryId, page, size);
+            @RequestParam(defaultValue = "10") @Min(value = 1, message = "must be greater than 0") Integer size,
+            @RequestParam("status") MuseumStatus museumStatus
+            ) {
+        ListResponse<MuseumOwner> museums = museumService.getAllMuseum(null, null, page, size, museumStatus);
         ApiResponse<ListResponse<MuseumOwner>> response = ApiResponse.<ListResponse<MuseumOwner>>builder()
                 .success(true)
                 .message("Museums has been fetched successfully")
@@ -103,8 +104,27 @@ public class MuseumController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    @Operation(summary = "For get all museum and can add museumCategoryId to get museum", description = "Note for category we can leave it as null if we to get all museum by not filter by category")
-    @GetMapping("/by-location")
+    @Operation(summary = "For get all museums with filter. Allowed guest")
+    @GetMapping("/filter")
+    public ResponseEntity<ApiResponse<ListResponse<MuseumOwner>>> getMuseumOwnersByFilter(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) UUID museumCategoryId,
+            @RequestParam(defaultValue = "1") @Min(value = 1, message = "must be greater than 0") Integer page,
+            @RequestParam(defaultValue = "10") @Min(value = 1, message = "must be greater than 0") Integer size,
+            @RequestParam("status") MuseumStatus museumStatus
+    ) {
+        ListResponse<MuseumOwner> museums = museumService.getAllMuseum(search, museumCategoryId, page, size, museumStatus);
+        ApiResponse<ListResponse<MuseumOwner>> response = ApiResponse.<ListResponse<MuseumOwner>>builder()
+                .success(true)
+                .message("Museums has been fetched successfully")
+                .status(HttpStatus.OK)
+                .payload(museums)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @Operation(summary = "For get all approved museums filter by distance. Allowed all role and guest")
+    @GetMapping("/nearby")
     public ResponseEntity<ApiResponse<List<MuseumWithDistanceResponse>>> getAllMuseumOwnersByLocation(
             @RequestParam(required = false) @Digits(integer = 4, fraction = 6, message = "Must be a number with up to 4 integer digits and 6 fractional digits") BigDecimal lat,
             @RequestParam(required = false) @Digits(integer = 4, fraction = 6, message = "Must be a number with up to 4 integer digits and 6 fractional digits") BigDecimal lng,
@@ -120,36 +140,25 @@ public class MuseumController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @Operation(summary = "For get all approved museums and can add museumCategoryId to get museum", description = "Note for category we can leave it as null if we to get all approved museums by not filter by category")
-    @GetMapping("/approved")
-    public ResponseEntity<ApiResponse<ListResponse<MuseumOwner>>> getAllApprovedMuseumOwners(@RequestParam(required = false) UUID museumCategoryId, @RequestParam(defaultValue = "1") @Min(value = 1, message = "must be greater than 0") Integer page, @RequestParam(defaultValue = "10") @Min(value = 1, message = "must be greater than 0") Integer size) {
-        ListResponse<MuseumOwner> museums = museumService.getAllApprovedMuseum(museumCategoryId, page, size);
-        ApiResponse<ListResponse<MuseumOwner>> response = ApiResponse.<ListResponse<MuseumOwner>>builder()
+    @Operation(summary = "For get museum by museum id. Allowed guest")
+    @GetMapping("{museum-id}")
+    public ResponseEntity<ApiResponse<MuseumOwner>> getMuseumOwnerByMuseumId(
+            @PathVariable("museum-id") @NotNull UUID museumId
+    ) {
+        MuseumOwner museums = museumService.getAllMuseumByMuseumId(museumId);
+        ApiResponse<MuseumOwner> response = ApiResponse.<MuseumOwner>builder()
                 .success(true)
-                .message("Approved Museums has been fetched successfully")
+                .message("Museum has been fetched successfully")
                 .status(HttpStatus.OK)
                 .payload(museums)
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @Operation(summary = "For get all request museums and can add museumCategoryId to get museum", description = "Note for category we can leave it as null if we to get all request museums by not filter by category")
-    @GetMapping("/request")
-    public ResponseEntity<ApiResponse<ListResponse<MuseumOwner>>> viewRequestMuseum(@RequestParam(required = false) UUID museumCategoryId, @RequestParam(defaultValue = "1") @Min(value = 1, message = "must be greater than 0") Integer page, @RequestParam(defaultValue = "10") @Min(value = 1, message = "must be greater than 0") Integer size) {
-        ListResponse<MuseumOwner> requestMuseums = museumService.getAllRequestMuseum(museumCategoryId, page, size);
-        ApiResponse<ListResponse<MuseumOwner>> response = ApiResponse.<ListResponse<MuseumOwner>>builder()
-                .success(true)
-                .message("Request Museums has been fetched successfully")
-                .status(HttpStatus.OK)
-                .payload(requestMuseums)
-                .build();
-        return ResponseEntity.status(HttpStatus.OK).body(response);
-    }
-
+    @SecurityRequirement(name = "bearerAuth")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PatchMapping("/approve/{museum-id}")
+    @Operation(summary = "For approve request museums. Allowed only admin")
     @Transactional
     public ResponseEntity<ApiResponse<Void>> approveMuseum(@PathVariable("museum-id") @NotNull UUID museumId) {
         museumService.approveMuseum(museumId);
