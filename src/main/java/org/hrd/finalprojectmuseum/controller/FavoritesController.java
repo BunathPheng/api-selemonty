@@ -67,7 +67,7 @@ public class FavoritesController {
                 .success(true)
                 .message("Visitor favorite fetched successfully")
                 .payload(visitorFavorite)
-                .status(HttpStatus.CREATED)
+                .status(HttpStatus.OK)
                 .build();
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);

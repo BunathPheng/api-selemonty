@@ -8,10 +8,14 @@ import java.util.UUID;
 @Mapper
 public interface FavoriteRepository {
 
-//    ON CONFLICT (museum_id, visitor_id)
-//        DO UPDATE SET is_favorite = true
-//ON CONFLICT (museum_id, visitor_id)
-//    DO UPDATE SET is_favorite = false
+    @Select("""
+        SELECT EXISTS(
+        SELECT 1
+        FROM museum_owners
+        WHERE museum_id = #{museumId}::UUID AND is_approved = true
+        )
+    """)
+    boolean isApproveMuseum(UUID museumId);
 
     @Insert("""
         INSERT INTO favorites(museum_id, visitor_id, is_favorite)
