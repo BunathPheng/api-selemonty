@@ -12,6 +12,8 @@ import org.hrd.finalprojectmuseum.jwt.JwtUtils;
 import org.hrd.finalprojectmuseum.model.dto.request.auth.ChangePasswordRequest;
 import org.hrd.finalprojectmuseum.model.dto.request.auth.*;
 import org.hrd.finalprojectmuseum.model.dto.response.ApiResponse;
+import org.hrd.finalprojectmuseum.model.dto.response.ForgotPasswordToken;
+import org.hrd.finalprojectmuseum.model.dto.response.OtpExpiration;
 import org.hrd.finalprojectmuseum.model.entity.AppUserRegister;
 import org.hrd.finalprojectmuseum.model.entity.LoginToken;
 import org.hrd.finalprojectmuseum.model.entity.Otps;
@@ -211,7 +213,7 @@ public class AuthsController {
 
     @Operation(summary = "Verify OTP to confirm change password", description = "Use OTP in email to verify then it will return token. This token can be use to combine with frontend route to make sure the link use to change password can be use only in period of time and nobody can access, accepted user.")
     @PostMapping("/forgot-password/verify-otp")
-    public ResponseEntity<ApiResponse<String>> verifyOtpForgotPassword(@RequestParam @Email(message = "Email is wrong syntax") @NotBlank(message = "Email is required") String email, @RequestParam @NotBlank(message = "OTP is required") String otp) {
+    public ResponseEntity<ApiResponse<ForgotPasswordToken>> verifyOtpForgotPassword(@RequestParam @Email(message = "Email is wrong syntax") @NotBlank(message = "Email is required") String email, @RequestParam @NotBlank(message = "OTP is required") String otp) {
         appUserService.checkEmail(email);
         String storedOtp = otpService.getOtp(email, otp);
 
@@ -220,10 +222,11 @@ public class AuthsController {
         }
         otpService.removeOtp(email);
         String token = appUserService.getToken(email);
-        ApiResponse<String> response = ApiResponse.<String>builder()
+        ForgotPasswordToken forgotPasswordToken = ForgotPasswordToken.builder().token(token).build();
+        ApiResponse<ForgotPasswordToken> response = ApiResponse.<ForgotPasswordToken>builder()
                 .success(true)
                 .message("Otp has been verified successfully.")
-                .payload(token)
+                .payload(forgotPasswordToken)
                 .status(HttpStatus.OK)
                 .build();
         return ResponseEntity.ok(response);
@@ -243,13 +246,14 @@ public class AuthsController {
 
     @Operation(summary = "get expiration of OTP as second")
     @GetMapping("/otp-expiration")
-    public ResponseEntity<ApiResponse<Long>> otpExpiration(@RequestParam @Email(message = "Email form is incorrect") @NotBlank(message = "Email is required") String email) {
+    public ResponseEntity<ApiResponse<OtpExpiration>> otpExpiration(@RequestParam @Email(message = "Email form is incorrect") @NotBlank(message = "Email is required") String email) {
         Long expiration = otpService.getExpirationByOtpId(email);
-        ApiResponse<Long> response = ApiResponse.<Long>builder()
+        OtpExpiration otpExpiration = OtpExpiration.builder().expiration(expiration).build();
+        ApiResponse<OtpExpiration> response = ApiResponse.<OtpExpiration>builder()
                 .success(true)
                 .message("Successfully get the expiration datetime")
                 .status(HttpStatus.OK)
-                .payload(expiration)
+                .payload(otpExpiration)
                 .build();
         return ResponseEntity.ok(response);
     }
