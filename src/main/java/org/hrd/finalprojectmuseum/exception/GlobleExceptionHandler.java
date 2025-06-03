@@ -24,11 +24,16 @@ public class GlobleExceptionHandler {
     @ExceptionHandler(AppNotFoundException.class)
     public ProblemDetail handleException(AppNotFoundException e) {
         ProblemDetail detail = ProblemDetail.forStatus(HttpStatus.NOT_FOUND);
-        detail.setDetail(e.getMessage());
-        detail.setProperty("timestamp", LocalDateTime.now());
+        detail.setDetail("RESOURCE NOT FOUND");
 
+        Map<String, String> errors = new HashMap<>();
+        errors.put("message", e.getMessage());
+        detail.setProperty("errors", errors);
+
+        detail.setProperty("timestamp", LocalDateTime.now());
         return detail;
     }
+
 
     @ExceptionHandler(ThrowFieldException.class)
     public ProblemDetail handleThrowFieldException(ThrowFieldException e) {
@@ -46,10 +51,16 @@ public class GlobleExceptionHandler {
     @ExceptionHandler(AppBadRequestException.class)
     public ProblemDetail handleBadRequestException(AppBadRequestException e) {
         ProblemDetail detail = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
-        detail.setDetail(e.getMessage());
+        detail.setDetail("BAD REQUEST"); // general message in detail
+
+        Map<String, String> errors = new HashMap<>();
+        errors.put("message", e.getMessage()); // put detailed message here
+        detail.setProperty("errors", errors);
+
         detail.setProperty("timestamp", LocalDateTime.now());
         return detail;
     }
+
 
     @ExceptionHandler(InvalidOptException.class)
     public ProblemDetail handleInvalidOptException(InvalidOptException e) {
@@ -185,18 +196,19 @@ public class GlobleExceptionHandler {
         ProblemDetail detail = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
         detail.setProperty("timestamp", LocalDateTime.now());
 
-        // Check if it's a UUID parsing error
+        Map<String, String> errors = new HashMap<>();
         if (e.getMessage() != null && e.getMessage().contains("Invalid UUID string")) {
             detail.setDetail("Invalid UUID format provided");
-            Map<String, String> errors = new HashMap<>();
-            errors.put("uuid", "Invalid UUID format. Expected format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx");
-            detail.setProperty("errors", errors);
+            errors.put("uuid", "Invalid UUID format. Expected: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx");
         } else {
-            detail.setDetail("Invalid input: " + e.getMessage());
+            detail.setDetail("Invalid input");
+            errors.put("error", e.getMessage());
         }
 
+        detail.setProperty("errors", errors);
         return detail;
     }
+
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ProblemDetail handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {

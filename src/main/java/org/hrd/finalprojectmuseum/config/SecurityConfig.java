@@ -53,6 +53,7 @@ public class SecurityConfig {
                                 // Museum endpoints
                                 "/api/v1/museums/**",
                                 "/api/v1/museums/nearby",
+                                "/api/v1/museums/popular",
 
                                 // Event endpoints
                                 "/api/v1/events",

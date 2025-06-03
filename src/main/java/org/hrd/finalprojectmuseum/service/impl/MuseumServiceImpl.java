@@ -33,7 +33,6 @@ public class MuseumServiceImpl implements MuseumService {
     private final ReviewRepository reviewRepository;
     private final ScheduleRepository scheduleRepository;
 
-
     @Override
     public MuseumOwner setFullData(MuseumOwner museumOwner) {
         VisitorReviewStatistics reviewStatistics = reviewRepository.retriveVisitorReviewStatistics(museumOwner.getMuseumId());
@@ -136,5 +135,16 @@ public class MuseumServiceImpl implements MuseumService {
             throw new AppNotFoundException("Museum not found");
         }
         return museum;
+    }
+
+    @Override
+    public ListResponse<MuseumOwner> getAllMuseumOrderbyPopular(Integer page, Integer size) {
+        List<MuseumOwner> museumOwners = museumRepository.findAllMuseumOrderbyPopular(page, size);
+        Pagination pagination = new Pagination();
+        Integer countMuseum = museumRepository.countAllMuseumOrderbyPopular();
+        return ListResponse.<MuseumOwner>builder()
+                .items(museumOwners)
+                .pagination(pagination.calculatePagination(countMuseum, page, size))
+                .build();
     }
 }
