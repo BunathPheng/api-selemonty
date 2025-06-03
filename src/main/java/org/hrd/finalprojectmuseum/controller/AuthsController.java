@@ -45,7 +45,6 @@ public class AuthsController {
     private final OtpCacheService otpService;
     private final GoogleAuthService googleAuthService;
     private final EmailService emailService;
-    private final PasswordEncoder passwordEncoder;
 
     @Operation(summary = "Use for login for all role")
     @PostMapping("/login")
@@ -124,7 +123,7 @@ public class AuthsController {
     public ResponseEntity<ApiResponse<AppUserRegister>> registerMuseumOwner(@RequestBody @Valid MuseumOwnerRegisterRequest museumOwnerRegisterRequest) throws IOException {
 
         AppUserRegister appUser = appUserService.registerUser(museumOwnerRegisterRequest.getEmail(), museumOwnerRegisterRequest.getPassword(), Role.ROLE_MUSEUM_OWNER);
-        appUserService.storeMuseumOwner(appUser.getUserId(), museumOwnerRegisterRequest.getName(), museumOwnerRegisterRequest.getLogoLink(), museumOwnerRegisterRequest.getLat(), museumOwnerRegisterRequest.getLng(), museumOwnerRegisterRequest.getDescription());
+        appUserService.storeMuseumOwner(appUser.getUserId(), museumOwnerRegisterRequest.getName(), museumOwnerRegisterRequest.getLogoLink(), museumOwnerRegisterRequest.getAddress(), museumOwnerRegisterRequest.getLat(), museumOwnerRegisterRequest.getLng(), museumOwnerRegisterRequest.getDescription());
         ApiResponse<AppUserRegister> response = ApiResponse.<AppUserRegister>builder()
                 .success(true)
                 .message("Registered successfully")

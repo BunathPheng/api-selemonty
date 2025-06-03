@@ -137,7 +137,7 @@ public class AppUserServiceImpl implements AppUserService {
     }
 
     @Override
-    public void storeMuseumOwner(UUID userId, String name, String logoLink, BigDecimal lat, BigDecimal lng, String description) {
+    public void storeMuseumOwner(UUID userId, String name, String logoLink, String address, BigDecimal lat, BigDecimal lng, String description) {
         appUserRepository.storeMeseumOwner(userId, name, logoLink, lat, lng, description);
     }
 
