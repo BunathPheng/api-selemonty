@@ -21,9 +21,11 @@ WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 
 # Set default environment variables (can be overridden when running the container)
-# ENV BASE_URL=http://34.143.146.124:8088
-# ENV DB_URL=jdbc:postgresql://96.9.81.189:6438/postgres
-# ENV DB_USERNAME=postgres
-# ENV DB_PASSWORD=Limping5
-# ENV FRONTEND_URL=http://34.142.191.106:3003
+ENV BASE_URL=http://34.143.146.124:8085
+ENV DB_URL=jdbc:postgresql://96.9.81.189:6438/postgres
+ENV DB_USERNAME=postgres
+ENV DB_PASSWORD=Limping5
+ENV FRONTEND_URL=http://34.142.191.106:3003
+
 ENTRYPOINT ["java", "-jar", "app.jar"]
+
