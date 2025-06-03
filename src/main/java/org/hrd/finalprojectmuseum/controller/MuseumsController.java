@@ -173,4 +173,19 @@ public class MuseumsController {
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
+
+    @GetMapping("/popular")
+    public ResponseEntity<ApiResponse<ListResponse<MuseumOwner>>> getPopularMuseum(
+            @RequestParam(defaultValue = "1") @Min(value = 1, message = "must be greater than 0") Integer page,
+            @RequestParam(defaultValue = "10") @Min(value = 1, message = "must be greater than 0") Integer size
+    ){
+        ListResponse<MuseumOwner> museums = museumService.getAllMuseumOrderbyPopular(page, size);
+        ApiResponse<ListResponse<MuseumOwner>> response = ApiResponse.<ListResponse<MuseumOwner>>builder()
+                .success(true)
+                .message("Popular Museums has been fetched successfully")
+                .status(HttpStatus.OK)
+                .payload(museums)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
 }

@@ -2,6 +2,7 @@ package org.hrd.finalprojectmuseum.repository;
 
 import org.apache.ibatis.annotations.*;
 import org.apache.ibatis.type.JdbcType;
+import org.hrd.finalprojectmuseum.model.dto.response.ListResponse;
 import org.hrd.finalprojectmuseum.model.dto.response.MuseumWithDistanceResponse;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumCategory;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
@@ -215,4 +216,20 @@ public interface MuseumRepository {
     """)
     Integer countAllApprovedMuseumsByCategoryId(String search, UUID museumCategoryId);
 
+    @ResultMap("museumMapper")
+    @Select("""
+        SELECT m.*, COUNT(b.booking_id) AS booking_count
+        FROM museum_owners m
+        LEFT JOIN bookings b ON m.museum_id = b.museum_id
+        WHERE m.is_approved = true
+        GROUP BY m.museum_id
+        ORDER BY booking_count DESC
+        OFFSET (#{page}-1)* #{size} LIMIT #{size};
+    """)
+    List<MuseumOwner> findAllMuseumOrderbyPopular(Integer page, Integer size);
+
+    @Select("""
+        SELECT COUNT(*) FROM museum_owners WHERE is_approved = true
+    """)
+    Integer countAllMuseumOrderbyPopular();
 }

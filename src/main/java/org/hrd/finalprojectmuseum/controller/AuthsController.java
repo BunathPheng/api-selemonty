@@ -52,8 +52,6 @@ public class AuthsController {
     public ResponseEntity<ApiResponse<LoginToken>> login(@Valid @RequestBody LoginRequest loginRequest) {
         String email = loginRequest.getEmail();
         String password = loginRequest.getPassword();
-        String myPassword = passwordEncoder.encode("@M1nBtb007");
-        System.out.println(myPassword);
         AppUserRegister appUserRegister = appUserService.findUserByIdentifier(email, password);
         Authentication auth = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(appUserRegister.getEmail(), password)
