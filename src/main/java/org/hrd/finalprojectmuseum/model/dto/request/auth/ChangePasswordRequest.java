@@ -11,7 +11,7 @@ public class ChangePasswordRequest {
     @Size(min = 8, message = "Password must be at least 8 characters")
     @Size(max = 32, message = "Password cannot be greater than 32 characters")
     @Pattern(
-            regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$",
+            regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9])[\\S]{8,32}$",
             message = "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character"
     )
     private String oldPassword;

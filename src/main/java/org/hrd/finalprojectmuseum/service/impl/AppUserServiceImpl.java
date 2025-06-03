@@ -61,11 +61,11 @@ public class AppUserServiceImpl implements AppUserService {
     @Override
     public AppUserRegister findUserByIdentifier(String email, String password) {
         AppUser appUser = appUserRepository.getUserByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-        if (appUser == null) throw new AppBadRequestException("Invalid username, email, or password. Please check your credentials and try again.");
+                .orElseThrow(() -> new AppNotFoundException("User not found"));
+        if (appUser == null) throw new AppBadRequestException("Invalid email, or password. Please check your credentials and try again.");
 
         boolean isCorrect = passwordEncoder.matches(password, appUser.getPassword());
-        if (!isCorrect) throw new AppBadRequestException("Invalid username, email, or password. Please check your credentials and try again.");
+        if (!isCorrect) throw new AppBadRequestException("Invalid email, or password. Please check your credentials and try again.");
 
         if (!appUser.getIsVerified()) throw new AppBadRequestException("User has not verified yet.");
 

@@ -1,7 +1,8 @@
 package org.hrd.finalprojectmuseum.model.enums;
 
 public enum EventStatus {
-    ALL,
-    AVAILABLE,
-    ENDED
+    all,
+    coming_soon,
+    ongoing,
+    ended
 }
