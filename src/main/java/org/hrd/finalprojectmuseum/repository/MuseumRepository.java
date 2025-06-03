@@ -68,6 +68,7 @@ public interface MuseumRepository {
     @Select("""
         SELECT * FROM museum_owners
         INNER JOIN user_info on user_info.user_id = museum_owners.user_id WHERE is_approved = #{isApproved} AND is_verified = true
+        AND name ILIKE CONCAT('%', #{search}, '%')
         OFFSET (#{page}-1)* #{size} LIMIT #{size};
     """)
     List<MuseumOwner> getAllMuseumsWithStatus(String search, Integer page, Integer size, Boolean isApproved);
