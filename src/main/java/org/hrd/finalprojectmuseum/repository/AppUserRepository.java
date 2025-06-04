@@ -4,6 +4,8 @@ import org.apache.ibatis.annotations.*;
 import org.apache.ibatis.type.JdbcType;
 import org.hrd.finalprojectmuseum.model.entity.AppUser;
 import org.hrd.finalprojectmuseum.model.entity.AppUserRegister;
+import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
+import org.hrd.finalprojectmuseum.model.entity.visitor.Visitor;
 import org.hrd.finalprojectmuseum.model.enums.Role;
 
 import java.math.BigDecimal;
@@ -77,10 +79,10 @@ public interface AppUserRepository {
     void storeVisitor(UUID userId, String fullName, String profileImageLink);
 
     @Insert("""
-        INSERT INTO museum_owners(user_id, name, lat, lng, logo_link, description)
-        VALUES (#{userId}::uuid, #{name}, #{lat}, #{lng}, #{logoLink}, #{description})
+        INSERT INTO museum_owners(user_id, name, address, lat, lng, logo_link, description)
+        VALUES (#{userId}::uuid, #{name}, #{address}, #{lat}, #{lng}, #{logoLink}, #{description})
     """)
-    void storeMeseumOwner(UUID userId, String name, String logoLink, BigDecimal lat, BigDecimal lng, String description);
+    void storeMeseumOwner(UUID userId, String name, String logoLink, String address, BigDecimal lat, BigDecimal lng, String description);
 
     @Delete("""
         DELETE FROM user_info WHERE user_id = #{userId}::UUID

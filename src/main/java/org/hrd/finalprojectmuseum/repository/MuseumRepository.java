@@ -21,6 +21,7 @@ public interface MuseumRepository {
             @Result(property = "museumCategory", column = "museum_category_id", javaType = UUID.class, jdbcType = JdbcType.VARCHAR,
                     many = @Many(select = "findMuseumCategoryById")),
             @Result(property = "name", column = "name"),
+            @Result(property = "address", column = "address"),
             @Result(property = "contactNumber", column = "contact_number"),
             @Result(property = "lat", column = "lat"),
             @Result(property = "lng", column = "lng"),

@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -138,7 +139,7 @@ public class AppUserServiceImpl implements AppUserService {
 
     @Override
     public void storeMuseumOwner(UUID userId, String name, String logoLink, String address, BigDecimal lat, BigDecimal lng, String description) {
-        appUserRepository.storeMeseumOwner(userId, name, logoLink, lat, lng, description);
+        appUserRepository.storeMeseumOwner(userId, name, logoLink, address, lat, lng, description);
     }
 
     @Override
