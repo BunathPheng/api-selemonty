@@ -20,7 +20,8 @@ public class FavoriteServiceImpl implements FavoriteService {
 
     @Override
     public void addVisitorFavorite(UUID museumId, UUID visitorId, FavoriteType favoriteType) {
-        if (!reviewRepository.retrieveMuseumId(museumId)) {
+        System.out.println("hello world");
+        if (!reviewRepository.retrieveMuseumId(museumId) || !favoriteRepository.isApproveMuseum(museumId)) {
             throw new AppNotFoundException("Museum not found");
         }
         if (favoriteType == FavoriteType.FAVORITE) {
@@ -43,10 +44,12 @@ public class FavoriteServiceImpl implements FavoriteService {
 
     @Override
     public VisitorFavorite getVisitorFavorite(UUID museumId, UUID visitorId) {
-        if (!reviewRepository.retrieveMuseumId(museumId)) {
+        if (!reviewRepository.retrieveMuseumId(museumId) || !favoriteRepository.isApproveMuseum(museumId)) {
             throw new AppNotFoundException("Museum not found");
         }else if (favoriteRepository.isMuseumUnFavoriteByVisitor(museumId, visitorId)) {
             throw new AppBadRequestException("Visitor favorite museum already exists");
+        }else if (!favoriteRepository.isMuseumFavoriteByVisitor(museumId, visitorId)) {
+            throw new AppBadRequestException("Visitor haven't been add museum to favorite yet");
         }
         return favoriteRepository.getFavoriteByIds(museumId, visitorId);
     }
