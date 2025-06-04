@@ -159,13 +159,13 @@ public interface MuseumRepository {
         @Result(property = "museumId", column = "museum_id"),
         @Result(property = "name", column = "name"),
         @Result(property = "address", column = "address"),
-        @Result(property = "imageUrl", column = "image_url"),
+        @Result(property = "logoLink", column = "logo_link"),
         @Result(property = "lat", column = "lat"),
         @Result(property = "lng", column = "lng"),
         @Result(property = "distanceKm", column = "distance_km")
     })
     @Select("""
-        SELECT m.museum_id, m.name, m.address, m.banner_link,
+        SELECT m.museum_id, m.name, m.address, m.logo_link,
                m.lat, m.lng,
                ROUND(CAST((6371 * acos(
                    cos(radians(#{lat})) * cos(radians(m.lat)) *
