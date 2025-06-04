@@ -45,6 +45,22 @@ public class EventServiceImpl implements EventService {
                 events = eventRepository.findAllEventsWithDateFilterAvailable(search, page, size, dateFiler);
                 totalItems = eventRepository.countAllEventWithFilterAvailable(search, dateFiler);
             }
+        }else if(eventStatus == EventStatus.UPCOMING ){
+            if (dateFiler == null) {
+                events = eventRepository.findAllEventsUpComing(search, page, size);
+                totalItems = eventRepository.countAllEventUpComing(search);
+            } else {
+                events = eventRepository.findAllEventsWithDateFilterUpComing(search, page, size, dateFiler);
+                totalItems = eventRepository.countAllEventWithFilterUpComing(search, dateFiler);
+            }
+        }else if(eventStatus == EventStatus.ONGOING ){
+            if (dateFiler == null) {
+                events = eventRepository.findAllEventsOnGoing(search, page, size);
+                totalItems = eventRepository.countAllEventOnGoing(search);
+            } else {
+                events = eventRepository.findAllEventsWithDateFilterOngoing(search, page, size, dateFiler);
+                totalItems = eventRepository.countAllEventWithFilterOnGoing(search, dateFiler);
+            }
         }else {
             if (dateFiler == null) {
                 events = eventRepository.findAllEventsEnded(search, page, size);
