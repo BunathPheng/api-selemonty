@@ -112,7 +112,7 @@ public class MuseumsController {
             @RequestParam(required = false) UUID museumCategoryId,
             @RequestParam(defaultValue = "1") @Min(value = 1, message = "must be greater than 0") Integer page,
             @RequestParam(defaultValue = "10") @Min(value = 1, message = "must be greater than 0") Integer size,
-            @RequestParam(required = false) SortMuseum museumSort,
+            @RequestParam() SortMuseum museumSort,
             @RequestParam("status") MuseumStatus museumStatus
     ) {
         ListResponse<MuseumOwner> museums = museumService.getAllMuseum(search, museumCategoryId, page, size, museumSort, museumStatus);
