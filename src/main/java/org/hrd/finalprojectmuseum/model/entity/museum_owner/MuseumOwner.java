@@ -1,6 +1,7 @@
 package org.hrd.finalprojectmuseum.model.entity.museum_owner;
 
 import com.alibaba.fastjson2.JSONObject;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 import org.hrd.finalprojectmuseum.model.entity.AppUserRegister;
 import org.hrd.finalprojectmuseum.model.entity.Schedule;
@@ -28,10 +29,11 @@ public class MuseumOwner {
     private JSONObject landscapeLink;
     private String description;
     private Boolean isApproved;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private List<Schedule> schedule;
     private Schedule todaySchedule;
-    private String clientId;
-    private String clientSecret;
+//    private String clientId;
+//    private String clientSecret;
     private String accountName;
     private String parentAccountNo;
     private LocalDateTime createdAt;

@@ -5,6 +5,7 @@ import org.apache.ibatis.type.JdbcType;
 import org.hrd.finalprojectmuseum.model.dto.request.BookingRequest;
 import org.hrd.finalprojectmuseum.model.dto.request.RequestTourRequest;
 import org.hrd.finalprojectmuseum.model.entity.Booking;
+import org.hrd.finalprojectmuseum.model.entity.visitor.BookingV2;
 import org.hrd.finalprojectmuseum.model.enums.BookingType;
 
 import java.time.LocalDate;
@@ -286,4 +287,28 @@ public interface BookingRepository {
         UPDATE bookings SET qr_code = #{code} WHERE booking_id = #{bookingId}::UUID
     """)
     void setTicketCode(UUID bookingId, String code);
+
+    @Select("""
+        SELECT bk.booking_id, mo.name, vt.full_name, bk.booking_type, bk.ticket_type, bk.booking_date, bk.ticket_type,
+                      bk.ticket_price, bk.created_at, bk.slot_amount, bk.ticket_status, bk.qr_code
+        FROM bookings bk
+        INNER JOIN museum_owners mo ON mo.museum_id = bk.museum_id
+        INNer JOIN visitors vt ON bk.visitor_id = vt.visitor_id
+        WHERE bk.booking_id = #{bookingId}::UUID
+        AND bk.visitor_id = #{visitorId}::UUID;
+    """)
+    @Results(id = "BookingDetail", value = {
+            @Result(property = "bookingId", column = "booking_id"),
+            @Result(property = "museumName", column = "name"),
+            @Result(property = "visitorName", column = "full_name"),
+            @Result(property = "bookingType", column = "booking_type"),
+            @Result(property = "bookingDate", column = "booking_date"),
+            @Result(property = "ticketType", column = "ticket_type"),
+            @Result(property = "ticketPrice", column = "ticket_price"),
+            @Result(property = "purchasedDate", column = "created_at"),
+            @Result(property = "slotAmount", column = "slot_amount"),
+            @Result(property = "ticketStatus", column = "ticket_status"),
+            @Result(property = "qrCode", column = "qr_code"),
+    })
+    BookingV2 retrieveBookingDetailByVisitorId(UUID bookingId, UUID visitorId);
 }

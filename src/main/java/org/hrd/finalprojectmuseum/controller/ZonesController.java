@@ -36,7 +36,6 @@ public class ZonesController {
     private UUID getMuseumIdByUserId(){
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UUID userId = UUID.fromString((String) auth.getCredentials());
-
         return zoneService.getMuseumIdByUserId(userId);
     }
 

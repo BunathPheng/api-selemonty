@@ -11,6 +11,7 @@ import org.hrd.finalprojectmuseum.model.entity.Pagination;
 import org.hrd.finalprojectmuseum.model.entity.TicketInfo;
 import org.hrd.finalprojectmuseum.model.entity.Tour;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
+import org.hrd.finalprojectmuseum.model.entity.visitor.BookingV2;
 import org.hrd.finalprojectmuseum.model.enums.BookingType;
 import org.hrd.finalprojectmuseum.model.enums.TicketType;
 import org.hrd.finalprojectmuseum.repository.BookingRepository;
@@ -167,6 +168,15 @@ public class BookingServiceImpl implements BookingService {
         }
 
         checkAndUpdateExpiration(bookingId);
+        return bookingDetail;
+    }
+
+    @Override
+    public BookingV2 getBookingByVisitorIdV2(UUID bookingId, UUID visitorId) {
+        BookingV2 bookingDetail = bookingRepository.retrieveBookingDetailByVisitorId(bookingId, visitorId);
+        if (bookingDetail == null) {
+            throw new AppNotFoundException("Booking with id " + bookingId + " not exists");
+        }
         return bookingDetail;
     }
 

@@ -12,12 +12,14 @@ import org.hrd.finalprojectmuseum.model.dto.response.ListResponse;
 import org.hrd.finalprojectmuseum.model.entity.AppUserRegister;
 import org.hrd.finalprojectmuseum.model.entity.Booking;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
+import org.hrd.finalprojectmuseum.model.entity.visitor.BookingV2;
 import org.hrd.finalprojectmuseum.model.entity.visitor.Visitor;
 import org.hrd.finalprojectmuseum.model.enums.BookingType;
 import org.hrd.finalprojectmuseum.model.enums.Role;
 import org.hrd.finalprojectmuseum.service.AppUserService;
 import org.hrd.finalprojectmuseum.service.BookingService;
 import org.hrd.finalprojectmuseum.service.ProfileService;
+import org.hrd.finalprojectmuseum.service.ReviewService;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -36,6 +38,7 @@ public class BookingsController {
     private final BookingService bookingService;
     private final ProfileService profileService;
     private final AppUserService appUserService;
+    private final ReviewService reviewService;
 
     @Operation(summary = "For booking a ticket. Only visitor can use.", description = "Need to input right ticket price and total price")
     @SecurityRequirement(name = "bearerAuth")
@@ -153,29 +156,49 @@ public class BookingsController {
         return ResponseEntity.ok(response);
     }
 
+//    @SecurityRequirement(name = "bearerAuth")
+//    @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER') or hasRole('ROLE_VISITOR')")
+//    @Operation(
+//            summary = "For get booking by Booking ID MuseumOwner and Visitor can use."
+//    )
+//    @GetMapping("/{booking-id}")
+//    public ResponseEntity<ApiResponse<Booking>> getBookingHistoryByBookingId(@PathVariable("booking-id") @Valid UUID bookingId) {
+//        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+//        UUID userId = UUID.fromString((String) auth.getCredentials());
+//        AppUserRegister appUserRegister = appUserService.findUserByUserId(userId);
+//        Booking booking = null;
+//        if (appUserRegister.getRole() == Role.ROLE_VISITOR){
+//
+//            Visitor visitor = profileService.getProfile(userId);
+//            booking = bookingService.getBookingByVisitorId(bookingId, visitor.getVisitorId());
+//
+//        } else if (appUserRegister.getRole() == Role.ROLE_MUSEUM_OWNER) {
+//
+//            MuseumOwner museumOwner = profileService.getMuseumOwnerByUserId(userId);
+//            booking = bookingService.getBookingByMuseumId(bookingId, museumOwner.getMuseumId());
+//
+//        }
+//        ApiResponse<Booking> response = ApiResponse.<Booking>builder()
+//                .success(true)
+//                .message("Booking retrieved successfully")
+//                .status(HttpStatus.OK)
+//                .payload(booking)
+//                .build();
+//        return ResponseEntity.ok(response);
+////    }
+
     @SecurityRequirement(name = "bearerAuth")
     @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER') or hasRole('ROLE_VISITOR')")
     @Operation(
             summary = "For get booking by Booking ID MuseumOwner and Visitor can use."
     )
     @GetMapping("/{booking-id}")
-    public ResponseEntity<ApiResponse<Booking>> getBookingHistoryByBookingId(@PathVariable("booking-id") @Valid UUID bookingId) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        UUID userId = UUID.fromString((String) auth.getCredentials());
-        AppUserRegister appUserRegister = appUserService.findUserByUserId(userId);
-        Booking booking = null;
-        if (appUserRegister.getRole() == Role.ROLE_VISITOR){
+    public ResponseEntity<ApiResponse<BookingV2>> getBookingHistoryByBookingId(@PathVariable("booking-id") @Valid UUID bookingId) {
+        UUID visitorId = reviewService.getVisitorIdByUserId(appUserService.getUserId());
+        System.out.println(visitorId);
+        BookingV2 booking = bookingService.getBookingByVisitorIdV2(bookingId, visitorId);
 
-            Visitor visitor = profileService.getProfile(userId);
-            booking = bookingService.getBookingByVisitorId(bookingId, visitor.getVisitorId());
-
-        } else if (appUserRegister.getRole() == Role.ROLE_MUSEUM_OWNER) {
-
-            MuseumOwner museumOwner = profileService.getMuseumOwnerByUserId(userId);
-            booking = bookingService.getBookingByMuseumId(bookingId, museumOwner.getMuseumId());
-
-        }
-        ApiResponse<Booking> response = ApiResponse.<Booking>builder()
+        ApiResponse<BookingV2> response = ApiResponse.<BookingV2>builder()
                 .success(true)
                 .message("Booking retrieved successfully")
                 .status(HttpStatus.OK)

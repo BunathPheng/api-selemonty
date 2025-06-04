@@ -9,6 +9,7 @@ import org.hrd.finalprojectmuseum.model.dto.response.BookingDetail;
 import org.hrd.finalprojectmuseum.model.dto.response.BookingManagement;
 import org.hrd.finalprojectmuseum.model.dto.response.ListResponse;
 import org.hrd.finalprojectmuseum.model.entity.Booking;
+import org.hrd.finalprojectmuseum.model.entity.visitor.BookingV2;
 import org.hrd.finalprojectmuseum.model.enums.BookingType;
 
 import java.time.LocalDate;
@@ -25,6 +26,8 @@ public interface BookingService {
     ListResponse<Booking> getAllBookingByMuseumId(UUID museumId, String search, Integer page, Integer size, BookingType bookingType, LocalDate startDate, LocalDate endDate);
 
     Booking getBookingByVisitorId(@Valid UUID bookingId, UUID visitorId);
+
+    BookingV2 getBookingByVisitorIdV2(@Valid UUID bookingId, UUID visitorId);
 
     Booking findScanBookingByBookingId(@NotNull UUID bookingId, UUID museumId);
 
