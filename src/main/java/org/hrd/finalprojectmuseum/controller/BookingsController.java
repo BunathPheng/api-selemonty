@@ -188,9 +188,9 @@ public class BookingsController {
 ////    }
 
     @SecurityRequirement(name = "bearerAuth")
-    @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER') or hasRole('ROLE_VISITOR')")
+    @PreAuthorize("hasRole('ROLE_VISITOR')")
     @Operation(
-            summary = "For get booking by Booking ID MuseumOwner and Visitor can use."
+            summary = "For get booking by Booking ID for Visitor"
     )
     @GetMapping("/{booking-id}")
     public ResponseEntity<ApiResponse<BookingV2>> getBookingHistoryByBookingId(@PathVariable("booking-id") @Valid UUID bookingId) {
