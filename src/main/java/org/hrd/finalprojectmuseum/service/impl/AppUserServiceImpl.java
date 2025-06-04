@@ -165,7 +165,13 @@ public class AppUserServiceImpl implements AppUserService {
     @Override
     public UUID getUserId() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        return UUID.fromString((String) auth.getCredentials());
+        if (auth != null && auth.isAuthenticated() &&
+                !auth.getPrincipal().equals("anonymousUser") &&
+                auth.getCredentials() != null) {
+
+            return UUID.fromString((String) auth.getCredentials());
+        }
+        return null;
     }
 
     @Override
