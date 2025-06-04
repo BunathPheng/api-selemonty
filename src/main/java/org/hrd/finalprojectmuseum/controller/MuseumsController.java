@@ -126,9 +126,9 @@ public class MuseumsController {
     @Operation(summary = "For get all approved museums filter by distance. Allowed all role and guest")
     @GetMapping("/nearby")
     public ResponseEntity<ApiResponse<List<MuseumWithDistanceResponse>>> getAllMuseumOwnersByLocation(
-            @RequestParam(required = false) @Digits(integer = 4, fraction = 6, message = "Must be a number with up to 4 integer digits and 6 fractional digits") BigDecimal lat,
-            @RequestParam(required = false) @Digits(integer = 4, fraction = 6, message = "Must be a number with up to 4 integer digits and 6 fractional digits") BigDecimal lng,
-            @RequestParam(required = false) Integer distance
+            @RequestParam() @Digits(integer = 4, fraction = 6, message = "Must be a number with up to 4 integer digits and 6 fractional digits") BigDecimal lat,
+            @RequestParam() @Digits(integer = 4, fraction = 6, message = "Must be a number with up to 4 integer digits and 6 fractional digits") BigDecimal lng,
+            @RequestParam() Integer distance
     ) {
         List<MuseumWithDistanceResponse> museums = museumService.getAllMuseumByLocation(lat, lng, distance);
         ApiResponse<List<MuseumWithDistanceResponse>> response = ApiResponse.<List<MuseumWithDistanceResponse>>builder()

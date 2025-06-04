@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -37,7 +38,7 @@ public class AppUserServiceImpl implements AppUserService {
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         AppUser user = appUserRepository.getUserByEmail(email)
-                .orElseThrow(() -> new AppNotFoundException("Email is not register yet"));
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(user.getRole()));
         return new org.springframework.security.core.userdetails.User(user.getEmail(), user.getPassword(), authorities);
@@ -61,7 +62,7 @@ public class AppUserServiceImpl implements AppUserService {
     @Override
     public AppUserRegister findUserByIdentifier(String email, String password) {
         AppUser appUser = appUserRepository.getUserByEmail(email)
-                .orElseThrow(() -> new AppBadRequestException("Invalid email, or password. Please check your credentials and try again."));
+                .orElseThrow(() -> new AppNotFoundException("User not found"));
         if (appUser == null) throw new AppBadRequestException("Invalid email, or password. Please check your credentials and try again.");
 
         boolean isCorrect = passwordEncoder.matches(password, appUser.getPassword());
@@ -76,7 +77,7 @@ public class AppUserServiceImpl implements AppUserService {
     public void checkEmailBeforeOpt(String email) {
         AppUserRegister appUser = appUserRepository.findUserByEmail(email);
         if (appUser == null) {
-            throw new AppBadRequestException("Invalid email, or password. Please check your credentials and try again.");
+            throw new AppBadRequestException("Your email has not registered yet.");
         }
 
         if (appUser.getIsVerified()) {
@@ -101,7 +102,7 @@ public class AppUserServiceImpl implements AppUserService {
             throw new AppBadRequestException("Invalid or expired token");
         }
         AppUser user = appUserRepository.getUserByEmail(email)
-                .orElseThrow(() -> new AppBadRequestException("Invalid email"));
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         UserDetails userDetails = new User(
                 user.getEmail(),
                 user.getPassword(),
@@ -120,14 +121,14 @@ public class AppUserServiceImpl implements AppUserService {
     public void checkEmail(String email) {
         AppUserRegister appUser = appUserRepository.findUserByEmail(email);
         if (appUser == null) {
-            throw new AppBadRequestException("Email is not register yet.");
+            throw new AppBadRequestException("Email not found.");
         }
     }
 
     @Override
     public String getToken(String email) {
         appUserRepository.getUserByEmail(email)
-                .orElseThrow(() -> new AppBadRequestException("Invalid email. Please check your credentials and try again."));
+                .orElseThrow(() -> new UsernameNotFoundException("Email not found"));
         return jwtUtils.generateResetToken(email);
     }
 
@@ -137,8 +138,8 @@ public class AppUserServiceImpl implements AppUserService {
     }
 
     @Override
-    public void storeMuseumOwner(UUID userId, String name, String logoLink, BigDecimal lat, BigDecimal lng, String description) {
-        appUserRepository.storeMeseumOwner(userId, name, logoLink, lat, lng, description);
+    public void storeMuseumOwner(UUID userId, String name, String logoLink, String address, BigDecimal lat, BigDecimal lng, String description) {
+        appUserRepository.storeMeseumOwner(userId, name, logoLink, address, lat, lng, description);
     }
 
     @Override

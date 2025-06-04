@@ -17,6 +17,9 @@ import org.hrd.finalprojectmuseum.model.dto.response.OtpExpiration;
 import org.hrd.finalprojectmuseum.model.entity.AppUserRegister;
 import org.hrd.finalprojectmuseum.model.entity.LoginToken;
 import org.hrd.finalprojectmuseum.model.entity.Otps;
+import org.hrd.finalprojectmuseum.model.entity.admin.Admin;
+import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
+import org.hrd.finalprojectmuseum.model.entity.visitor.Visitor;
 import org.hrd.finalprojectmuseum.model.enums.Role;
 import org.hrd.finalprojectmuseum.service.*;
 import org.springframework.http.HttpStatus;
@@ -45,11 +48,11 @@ public class AuthsController {
     private final OtpCacheService otpService;
     private final GoogleAuthService googleAuthService;
     private final EmailService emailService;
-    private final PasswordEncoder passwordEncoder;
+    private final ProfileService profileService;
 
     @Operation(summary = "Use for login for all role")
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<LoginToken>> login(@Valid @RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<ApiResponse<LoginToken<?>>> login(@Valid @RequestBody LoginRequest loginRequest) {
         String email = loginRequest.getEmail();
         String password = loginRequest.getPassword();
         AppUserRegister appUserRegister = appUserService.findUserByIdentifier(email, password);
@@ -60,11 +63,33 @@ public class AuthsController {
         if (!auth.isAuthenticated()) {
             throw new AppBadRequestException("Log in failed");
         }
-        ApiResponse<LoginToken> response = ApiResponse.<LoginToken>builder()
+        LoginToken<?> loginToken;
+        if (appUserRegister.getRole() == Role.ROLE_ADMIN) {
+            Admin admin = profileService.getAdminByUserId(appUserRegister.getUserId());
+            loginToken = LoginToken.<Admin>builder()
+                    .token(jwtUtils.generateToken(appUserRegister.getEmail(), appUserRegister.getUserId(), String.valueOf(appUserRegister.getRole())))
+                    .user(admin)
+                    .build();
+        }
+        else if (appUserRegister.getRole() == Role.ROLE_MUSEUM_OWNER) {
+            MuseumOwner museumOwner = profileService.getMuseumOwnerByUserId(appUserRegister.getUserId());
+            loginToken = LoginToken.<MuseumOwner>builder()
+                    .token(jwtUtils.generateToken(appUserRegister.getEmail(), appUserRegister.getUserId(), String.valueOf(appUserRegister.getRole())))
+                    .user(museumOwner)
+                    .build();
+        }
+        else {
+            Visitor visitor = profileService.getProfile(appUserRegister.getUserId());
+            loginToken = LoginToken.<Visitor>builder()
+                    .token(jwtUtils.generateToken(appUserRegister.getEmail(), appUserRegister.getUserId(), String.valueOf(appUserRegister.getRole())))
+                    .user(visitor)
+                    .build();
+        }
+        ApiResponse<LoginToken<?>> response = ApiResponse.<LoginToken<?>>builder()
                 .success(true)
                 .message("Logged in successfully")
                 .status(HttpStatus.OK)
-                .payload(new LoginToken(jwtUtils.generateToken(appUserRegister.getEmail(), appUserRegister.getUserId(), String.valueOf(appUserRegister.getRole()))))
+                .payload(loginToken)
                 .build();
 
         return ResponseEntity.ok(response);
@@ -72,9 +97,9 @@ public class AuthsController {
 
     @Operation(summary = "Login with google with IdToken as visitor", description = "This endpoint need google IdToken from frontend to verify to register or login. Can use google oauth2 playground website to get IdToken for testing.")
     @PostMapping("/google/sign-in/visitor")
-    public ResponseEntity<ApiResponse<LoginToken>> handleGoogleLoginAsVisitor(@RequestBody @Valid IdTokenRequest request) throws Exception {
-        LoginToken userInfo = googleAuthService.verifyAndExtractUserInfo(request.getIdToken(), "VISITOR");
-        ApiResponse<LoginToken> response = ApiResponse.<LoginToken>builder()
+    public ResponseEntity<ApiResponse<LoginToken<?>>> handleGoogleLoginAsVisitor(@RequestBody @Valid IdTokenRequest request) throws Exception {
+        LoginToken<?> userInfo = googleAuthService.verifyAndExtractUserInfo(request.getIdToken(), "VISITOR");
+        ApiResponse<LoginToken<?>> response = ApiResponse.<LoginToken<?>>builder()
                 .success(true)
                 .message("Logged in successfully")
                 .status(HttpStatus.OK)
@@ -124,7 +149,7 @@ public class AuthsController {
     public ResponseEntity<ApiResponse<AppUserRegister>> registerMuseumOwner(@RequestBody @Valid MuseumOwnerRegisterRequest museumOwnerRegisterRequest) throws IOException {
 
         AppUserRegister appUser = appUserService.registerUser(museumOwnerRegisterRequest.getEmail(), museumOwnerRegisterRequest.getPassword(), Role.ROLE_MUSEUM_OWNER);
-        appUserService.storeMuseumOwner(appUser.getUserId(), museumOwnerRegisterRequest.getName(), museumOwnerRegisterRequest.getLogoLink(), museumOwnerRegisterRequest.getLat(), museumOwnerRegisterRequest.getLng(), museumOwnerRegisterRequest.getDescription());
+        appUserService.storeMuseumOwner(appUser.getUserId(), museumOwnerRegisterRequest.getName(), museumOwnerRegisterRequest.getLogoLink(), museumOwnerRegisterRequest.getAddress(), museumOwnerRegisterRequest.getLat(), museumOwnerRegisterRequest.getLng(), museumOwnerRegisterRequest.getDescription());
         ApiResponse<AppUserRegister> response = ApiResponse.<AppUserRegister>builder()
                 .success(true)
                 .message("Registered successfully")

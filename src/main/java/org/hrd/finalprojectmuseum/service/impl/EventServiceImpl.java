@@ -29,7 +29,7 @@ public class EventServiceImpl implements EventService {
         search = search == null ? "" : search;
         Integer totalItems;
         List<Event> events;
-        if (eventStatus == EventStatus.ALL) {
+        if (eventStatus == EventStatus.all) {
             if (dateFiler == null) {
                 events = eventRepository.findAllEvents(search, page, size);
                 totalItems = eventRepository.countAllEvent(search);
@@ -37,13 +37,21 @@ public class EventServiceImpl implements EventService {
                 events = eventRepository.findAllEventsWithDateFilter(search, page, size, dateFiler);
                 totalItems = eventRepository.countAllEventWithFilter(search, dateFiler);
             }
-        }else if(eventStatus == EventStatus.AVAILABLE ){
+        }else if(eventStatus == EventStatus.coming_soon ){
             if (dateFiler == null) {
                 events = eventRepository.findAllEventsAvailable(search, page, size);
                 totalItems = eventRepository.countAllEventAvailable(search);
             } else {
                 events = eventRepository.findAllEventsWithDateFilterAvailable(search, page, size, dateFiler);
                 totalItems = eventRepository.countAllEventWithFilterAvailable(search, dateFiler);
+            }
+        }else if (eventStatus == EventStatus.ongoing){
+            if (dateFiler == null) {
+                events = eventRepository.findAllEventsOngoing(search, page, size);
+                totalItems = eventRepository.countAllEventOngoing(search);
+            } else {
+                events = eventRepository.findAllEventsWithDateFilterOngoing(search, page, size, dateFiler);
+                totalItems = eventRepository.countAllEventWithFilterOngoing(search, dateFiler);
             }
         }else {
             if (dateFiler == null) {

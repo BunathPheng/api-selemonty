@@ -26,7 +26,7 @@ public class MuseumOwnerRegisterRequest {
     @NotBlank(message = "Password is required")
     @Size(min = 8, max = 32, message = "Password must be between 8 and 32 characters")
     @Pattern(
-            regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$",
+            regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9])[\\S]{8,32}$",
             message = "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character"
     )
     private String password;
@@ -37,6 +37,10 @@ public class MuseumOwnerRegisterRequest {
             message = "Must be a valid image URL (jpg, jpeg, png, gif)"
     )
     private String logoLink;
+
+    @NotBlank(message = "Address is required")
+    @Size(max = 255, message = "Address cannot be greater than 255 characters")
+    private String address;
 
     @NotNull(message = "Latitude is required")
     @DecimalMin(value = "-90.0", message = "Latitude must be between -90 and 90")
@@ -53,4 +57,5 @@ public class MuseumOwnerRegisterRequest {
     @NotBlank(message = "Description is required")
     @Size(max = 2000, message = "Description cannot be greater than 2000 characters")
     private String description;
+
 }

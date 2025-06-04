@@ -3,6 +3,7 @@ package org.hrd.finalprojectmuseum.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.hrd.finalprojectmuseum.model.dto.response.ApiResponse;
 import org.hrd.finalprojectmuseum.model.dto.response.ListResponse;
@@ -118,6 +119,19 @@ public class VisitorsController {
                 .payload(visitorListResponse)
                 .build();
 
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_MUSEUM_OWNER')")
+    @GetMapping("/{visitor-id}")
+    public ResponseEntity<ApiResponse<Visitor>> getVisitorById(@PathVariable("visitor-id") @NotNull UUID visitorId){
+        Visitor visitor = visitorService.getVisitorById(visitorId);
+        ApiResponse<Visitor> response = ApiResponse.<Visitor>builder()
+                .success(true)
+                .message("Visitors fetched successfully")
+                .status(HttpStatus.OK)
+                .payload(visitor)
+                .build();
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 

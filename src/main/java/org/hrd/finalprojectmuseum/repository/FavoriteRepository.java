@@ -9,11 +9,9 @@ import java.util.UUID;
 public interface FavoriteRepository {
 
     @Select("""
-        SELECT EXISTS(
-        SELECT 1
+        SELECT is_approved
         FROM museum_owners
-        WHERE museum_id = #{museumId}::UUID AND is_approved = true
-        )
+        WHERE museum_id = #{museumId}::UUID
     """)
     boolean isApproveMuseum(UUID museumId);
 
