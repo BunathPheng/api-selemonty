@@ -68,8 +68,9 @@ public interface MuseumRepository {
     @ResultMap("museumMapper")
     @Select("""
         SELECT * FROM museum_owners
-        INNER JOIN user_info on user_info.user_id = museum_owners.user_id WHERE is_approved = #{isApproved} AND is_verified = true
-        AND name ILIKE CONCAT('%', #{search}, '%')
+        INNER JOIN user_info on user_info.user_id = museum_owners.user_id 
+        WHERE is_approved = #{isApproved} AND is_verified = true
+        ORDER BY museum_owners.created_at DESC
         OFFSET (#{page}-1)* #{size} LIMIT #{size};
     """)
     List<MuseumOwner> getAllMuseumsWithStatus(String search, Integer page, Integer size, Boolean isApproved);
@@ -77,8 +78,10 @@ public interface MuseumRepository {
     @ResultMap("museumMapper")
     @Select("""
         SELECT * FROM museum_owners
-        INNER JOIN user_info on user_info.user_id = museum_owners.user_id WHERE is_approved = false AND is_verified = true AND museum_category_id = #{museumCategoryId}::UUID
-        offset (#{page}-1)* #{size} limit #{size};
+        INNER JOIN user_info on user_info.user_id = museum_owners.user_id 
+        WHERE is_approved = false AND is_verified = true AND museum_category_id = #{museumCategoryId}::UUID
+        ORDER BY museum_owners.created_at DESC
+        OFFSET (#{page}-1)* #{size} LIMIT #{size};
     """)
     List<MuseumOwner> getAllRequestMuseumsByCategoryId(UUID museumCategoryId, Integer page, Integer size);
 
@@ -97,7 +100,8 @@ public interface MuseumRepository {
         SELECT * FROM museum_owners
         INNER JOIN user_info on user_info.user_id = museum_owners.user_id
         WHERE is_verified = true AND name ILIKE CONCAT('%', #{search}, '%')
-        offset (#{page}-1)* #{size} limit #{size};
+        ORDER BY museum_owners.created_at DESC
+        OFFSET (#{page}-1)* #{size} LIMIT #{size};
     """)
     List<MuseumOwner> getAllMuseums(String search, Integer page, Integer size);
 
@@ -105,8 +109,10 @@ public interface MuseumRepository {
     @Select("""
         SELECT * FROM museum_owners
         INNER JOIN user_info on user_info.user_id = museum_owners.user_id
-        WHERE is_verified = true AND museum_category_id = #{museumCategoryId}::UUID AND name ILIKE CONCAT('%', #{search}, '%')
-        offset (#{page}-1)* #{size} limit #{size};
+        WHERE is_verified = true AND museum_category_id = #{museumCategoryId}::UUID
+        AND name ILIKE CONCAT('%', #{search}, '%')
+        ORDER BY created_at DESC
+        OFFSET (#{page}-1)* #{size} LIMIT #{size};
     """)
     List<MuseumOwner> getAllMuseumsByCategoryId(String search, UUID museumCategoryId, Integer page, Integer size);
 
@@ -123,33 +129,6 @@ public interface MuseumRepository {
     """)
     Integer countAllMuseumsWithStatus(String search, boolean isApproved);
 
-    @ResultMap("museumMapper")
-    @Select("""
-        SELECT * FROM museum_owners
-        INNER JOIN user_info on user_info.user_id = museum_owners.user_id
-        WHERE is_approved = true AND is_verified = true
-        AND name ILIKE CONCAT('%', #{search}, '%')
-        offset (#{page}-1)* #{size} limit #{size};
-    """)
-    List<MuseumOwner> getAllApprovedMuseums(String search, Integer page, Integer size);
-
-    @ResultMap("museumMapper")
-    @Select("""
-        SELECT * FROM museum_owners
-        INNER JOIN user_info on user_info.user_id = museum_owners.user_id 
-        WHERE is_approved = true AND is_verified = true 
-        AND museum_category_id = #{museumCategoryId}::UUID
-        AND name ILIKE CONCAT('%', #{search}, '%')
-        offset (#{page}-1)* #{size} limit #{size};
-    """)
-    List<MuseumOwner> getAllApprovedMuseumsByCategoryId(String search, UUID museumCategoryId, Integer page, Integer size);
-
-    @Select("""
-        SELECT COUNT(*) FROM museum_owners INNER JOIN user_info on user_info.user_id = museum_owners.user_id
-        WHERE is_approved = true AND is_verified = true AND name ILIKE CONCAT('%', #{search}, '%')
-    """)
-    Integer countAllApprovedMuseums(String search);
-
     @Select("""
         SELECT COUNT(*) FROM museum_owners INNER JOIN user_info on user_info.user_id = museum_owners.user_id
         WHERE is_verified = true AND name ILIKE CONCAT('%', #{search}, '%') AND museum_category_id = #{museumCategoryId}::UUID
@@ -157,13 +136,13 @@ public interface MuseumRepository {
     Integer countAllMuseumsByCategory(String search, UUID museumCategoryId);
 
     @Results(id = "MuseumWithDistanceMapper", value = {
-        @Result(property = "museumId", column = "museum_id"),
-        @Result(property = "name", column = "name"),
-        @Result(property = "address", column = "address"),
-        @Result(property = "logoLink", column = "logo_link"),
-        @Result(property = "lat", column = "lat"),
-        @Result(property = "lng", column = "lng"),
-        @Result(property = "distanceKm", column = "distance_km")
+            @Result(property = "museumId", column = "museum_id"),
+            @Result(property = "name", column = "name"),
+            @Result(property = "address", column = "address"),
+            @Result(property = "logoLink", column = "logo_link"),
+            @Result(property = "lat", column = "lat"),
+            @Result(property = "lng", column = "lng"),
+            @Result(property = "distanceKm", column = "distance_km")
     })
     @Select("""
         SELECT m.museum_id, m.name, m.address, m.logo_link,
@@ -200,7 +179,8 @@ public interface MuseumRepository {
         INNER JOIN user_info on user_info.user_id = museum_owners.user_id
         WHERE is_verified = true AND museum_category_id = #{museumCategoryId}::UUID
         AND name ILIKE CONCAT('%', #{search}, '%') AND is_approved = #{isApproved}
-        offset (#{page}-1)* #{size} limit #{size};
+        ORDER BY museum_owners.created_at DESC
+        OFFSET (#{page}-1)* #{size} LIMIT #{size};
     """)
     List<MuseumOwner> getAllMuseumsByCategoryIdAndStatus(String search, UUID museumCategoryId, Integer page, Integer size, boolean isApproved);
 
@@ -234,4 +214,119 @@ public interface MuseumRepository {
         SELECT COUNT(*) FROM museum_owners WHERE is_approved = true
     """)
     Integer countAllMuseumOrderbyPopular();
+
+    // Popular Museum Methods - All sorted by booking count DESC
+
+    // 1. Get all popular museums (ALL status)
+    @ResultMap("museumMapper")
+    @Select("""
+    SELECT m.*, COUNT(b.booking_id) AS booking_count
+    FROM museum_owners m
+    INNER JOIN user_info ui ON ui.user_id = m.user_id
+    LEFT JOIN bookings b ON m.museum_id = b.museum_id
+    WHERE m.is_approved = true
+    AND m.name ILIKE CONCAT('%', #{search}, '%')
+    GROUP BY m.museum_id, ui.user_id
+    ORDER BY booking_count DESC
+    OFFSET (#{page}-1)* #{size} LIMIT #{size};
+""")
+    List<MuseumOwner> getAllPopularMuseumsPopular(String search, Integer page, Integer size);
+
+    // 2. Get popular museums with specific status (APPROVED/NOT_APPROVED)
+    @ResultMap("museumMapper")
+    @Select("""
+    SELECT m.*, COUNT(b.booking_id) AS booking_count
+    FROM museum_owners m
+    INNER JOIN user_info ui ON ui.user_id = m.user_id
+    LEFT JOIN bookings b ON m.museum_id = b.museum_id
+    WHERE m.is_approved = true
+    AND m.is_approved = #{isApproved}
+    AND m.name ILIKE CONCAT('%', #{search}, '%')
+    GROUP BY m.museum_id, ui.user_id
+    ORDER BY booking_count DESC
+    OFFSET (#{page}-1)* #{size} LIMIT #{size};
+""")
+    List<MuseumOwner> getAllPopularMuseumsWithStatus(String search, Integer page, Integer size, Boolean isApproved);
+
+    // 3. Get popular museums by category (ALL status)
+    @ResultMap("museumMapper")
+    @Select("""
+    SELECT m.*, COUNT(b.booking_id) AS booking_count
+    FROM museum_owners m
+    INNER JOIN user_info ui ON ui.user_id = m.user_id
+    LEFT JOIN bookings b ON m.museum_id = b.museum_id
+    WHERE m.is_approved = true
+    AND m.museum_category_id = #{museumCategoryId}::UUID
+    AND m.name ILIKE CONCAT('%', #{search}, '%')
+    GROUP BY m.museum_id, ui.user_id
+    ORDER BY booking_count DESC
+    OFFSET (#{page}-1)* #{size} LIMIT #{size};
+""")
+    List<MuseumOwner> getAllPopularMuseumsByCategoryId(String search, UUID museumCategoryId, Integer page, Integer size);
+
+    // 4. Get popular museums by category and status
+    @ResultMap("museumMapper")
+    @Select("""
+    SELECT m.*, COUNT(b.booking_id) AS booking_count
+    FROM museum_owners m
+    INNER JOIN user_info ui ON ui.user_id = m.user_id
+    LEFT JOIN bookings b ON m.museum_id = b.museum_id
+    WHERE m.is_approved = true
+    AND m.museum_category_id = #{museumCategoryId}::UUID
+    AND m.is_approved = #{isApproved}
+    AND m.name ILIKE CONCAT('%', #{search}, '%')
+    GROUP BY m.museum_id, ui.user_id
+    ORDER BY booking_count DESC
+    OFFSET (#{page}-1)* #{size} LIMIT #{size};
+""")
+    List<MuseumOwner> getAllPopularMuseumsByCategoryIdAndStatus(String search, UUID museumCategoryId, Integer page, Integer size, Boolean isApproved);
+
+// COUNT METHODS for pagination
+
+    // 1. Count all popular museums (ALL status)
+    @Select("""
+    SELECT COUNT(DISTINCT m.museum_id)
+    FROM museum_owners m
+    INNER JOIN user_info ui ON ui.user_id = m.user_id
+    WHERE m.is_approved = true
+    AND m.name ILIKE CONCAT('%', #{search}, '%')
+""")
+    Integer countAllPopularMuseums(String search);
+
+// 2. Count popular museums with status (reuse existing method)
+// Integer countAllMuseumsWithStatus(String search, boolean isApproved); - Already exists
+
+    // 3. Count popular museums with status (alternative naming)
+    @Select("""
+    SELECT COUNT(DISTINCT m.museum_id)
+    FROM museum_owners m
+    INNER JOIN user_info ui ON ui.user_id = m.user_id
+    WHERE m.is_approved = true
+    AND m.is_approved = #{isApproved}
+    AND m.name ILIKE CONCAT('%', #{search}, '%')
+""")
+    Integer countPopularAllMuseumsWithStatus(String search, Boolean isApproved);
+
+    // 4. Count popular museums by category (ALL status)
+    @Select("""
+    SELECT COUNT(DISTINCT m.museum_id)
+    FROM museum_owners m
+    INNER JOIN user_info ui ON ui.user_id = m.user_id
+    WHERE m.is_approved = true
+    AND m.museum_category_id = #{museumCategoryId}::UUID
+    AND m.name ILIKE CONCAT('%', #{search}, '%')
+""")
+    Integer countAllPopularMuseumsByCategory(String search, UUID museumCategoryId);
+
+    // 5. Count popular museums by category and status
+    @Select("""
+    SELECT COUNT(DISTINCT m.museum_id)
+    FROM museum_owners m
+    INNER JOIN user_info ui ON ui.user_id = m.user_id
+    WHERE m.is_approved = true
+    AND m.museum_category_id = #{museumCategoryId}::UUID
+    AND m.is_approved = #{isApproved}
+    AND m.name ILIKE CONCAT('%', #{search}, '%')
+""")
+    Integer countAllPopularMuseumsByCategoryAndStatus(String search, UUID museumCategoryId, Boolean isApproved);
 }
