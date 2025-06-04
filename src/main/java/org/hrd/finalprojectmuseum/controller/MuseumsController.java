@@ -10,6 +10,7 @@ import org.hrd.finalprojectmuseum.model.dto.response.*;
 import org.hrd.finalprojectmuseum.model.entity.Booking;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
 import org.hrd.finalprojectmuseum.model.enums.MuseumStatus;
+import org.hrd.finalprojectmuseum.model.enums.SortMuseum;
 import org.hrd.finalprojectmuseum.service.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -94,7 +95,7 @@ public class MuseumsController {
             @RequestParam(defaultValue = "10") @Min(value = 1, message = "must be greater than 0") Integer size,
             @RequestParam("status") MuseumStatus museumStatus
             ) {
-        ListResponse<MuseumOwner> museums = museumService.getAllMuseum(null, null, page, size, museumStatus);
+        ListResponse<MuseumOwner> museums = museumService.getAllMuseum(null, null, page, size, null, museumStatus);
         ApiResponse<ListResponse<MuseumOwner>> response = ApiResponse.<ListResponse<MuseumOwner>>builder()
                 .success(true)
                 .message("Museums has been fetched successfully")
@@ -111,9 +112,10 @@ public class MuseumsController {
             @RequestParam(required = false) UUID museumCategoryId,
             @RequestParam(defaultValue = "1") @Min(value = 1, message = "must be greater than 0") Integer page,
             @RequestParam(defaultValue = "10") @Min(value = 1, message = "must be greater than 0") Integer size,
+            @RequestParam(required = false) SortMuseum museumSort,
             @RequestParam("status") MuseumStatus museumStatus
     ) {
-        ListResponse<MuseumOwner> museums = museumService.getAllMuseum(search, museumCategoryId, page, size, museumStatus);
+        ListResponse<MuseumOwner> museums = museumService.getAllMuseum(search, museumCategoryId, page, size, museumSort, museumStatus);
         ApiResponse<ListResponse<MuseumOwner>> response = ApiResponse.<ListResponse<MuseumOwner>>builder()
                 .success(true)
                 .message("Museums has been fetched successfully")
@@ -174,18 +176,4 @@ public class MuseumsController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    @GetMapping("/popular")
-    public ResponseEntity<ApiResponse<ListResponse<MuseumOwner>>> getPopularMuseum(
-            @RequestParam(defaultValue = "1") @Min(value = 1, message = "must be greater than 0") Integer page,
-            @RequestParam(defaultValue = "10") @Min(value = 1, message = "must be greater than 0") Integer size
-    ){
-        ListResponse<MuseumOwner> museums = museumService.getAllMuseumOrderbyPopular(page, size);
-        ApiResponse<ListResponse<MuseumOwner>> response = ApiResponse.<ListResponse<MuseumOwner>>builder()
-                .success(true)
-                .message("Popular Museums has been fetched successfully")
-                .status(HttpStatus.OK)
-                .payload(museums)
-                .build();
-        return ResponseEntity.status(HttpStatus.OK).body(response);
-    }
 }

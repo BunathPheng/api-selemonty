@@ -54,8 +54,9 @@ public class SecurityConfig {
                                 "/api/v1/museums/popular",
 
                                 // Event endpoints
-                                "/api/v1/events",
+                                "/api/v1/events/filter",
                                 "/api/v1/events/**",
+                                "/api/v1/events",
 
                                 // Artifact endpoints (public read access)
                                 "/api/v1/artifacts",
