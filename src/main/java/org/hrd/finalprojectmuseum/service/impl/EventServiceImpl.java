@@ -29,7 +29,7 @@ public class EventServiceImpl implements EventService {
         search = search == null ? "" : search;
         Integer totalItems;
         List<Event> events;
-        if (eventStatus == EventStatus.all) {
+        if (eventStatus == EventStatus.ALL) {
             if (dateFiler == null) {
                 events = eventRepository.findAllEvents(search, page, size);
                 totalItems = eventRepository.countAllEvent(search);

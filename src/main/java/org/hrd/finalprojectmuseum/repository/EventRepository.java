@@ -214,7 +214,7 @@ public interface EventRepository {
         SELECT count(*) FROM events WHERE title ILIKE CONCAT('%', #{search}, '%')
         AND start_date > now()
     """)
-    Integer countAllEventAvailable(String search);
+    Integer countAllEventUpComing(String search);
 
     @ResultMap("eventMapper")
     @Select("""
