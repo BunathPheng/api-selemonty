@@ -211,7 +211,6 @@ public class MuseumServiceImpl implements MuseumService {
         List<MuseumWithDistanceResponse> nearbyMuseums = museumRepository
                 .findNearbyMuseumsOptimized(lat, lng, distance);
         String day = LocalDateTime.now().getDayOfWeek().toString();
-        System.out.println("today is "+day);
         for (MuseumWithDistanceResponse museum : nearbyMuseums) {
             Schedule schedule = scheduleService.getScheduleByDay(museum.getMuseumId(), day);
             VisitorReviewStatistics visitorReviewStatistics = reviewService.getVisitorReviewStatistics(museum.getMuseumId());
@@ -233,17 +232,7 @@ public class MuseumServiceImpl implements MuseumService {
         if (museum == null) {
             throw new AppNotFoundException("Museum not found");
         }
+        setFullData(museum);
         return museum;
-    }
-
-    @Override
-    public ListResponse<MuseumOwner> getAllMuseumOrderbyPopular(Integer page, Integer size) {
-        List<MuseumOwner> museumOwners = museumRepository.findAllMuseumOrderbyPopular(page, size);
-        Pagination pagination = new Pagination();
-        Integer countMuseum = museumRepository.countAllMuseumOrderbyPopular();
-        return ListResponse.<MuseumOwner>builder()
-                .items(museumOwners)
-                .pagination(pagination.calculatePagination(countMuseum, page, size))
-                .build();
     }
 }

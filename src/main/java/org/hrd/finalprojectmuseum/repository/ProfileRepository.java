@@ -7,13 +7,12 @@ import org.hrd.finalprojectmuseum.model.dto.request.PaymentAccountRequest;
 import org.hrd.finalprojectmuseum.model.dto.request.admin.AdminRequest;
 import org.hrd.finalprojectmuseum.model.dto.request.museum_owner.MuseumOwnerRequest;
 import org.hrd.finalprojectmuseum.model.dto.request.visitor.VisitorRequest;
+import org.hrd.finalprojectmuseum.model.entity.PaymentCredential;
 import org.hrd.finalprojectmuseum.model.entity.admin.Admin;
-import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumCategory;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
 import org.hrd.finalprojectmuseum.model.entity.visitor.Visitor;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.UUID;
 
 @Mapper
@@ -35,10 +34,6 @@ public interface ProfileRepository {
             @Result(property = "landscapeLink", column = "landscape_links"),
             @Result(property = "description", column = "description"),
             @Result(property = "isApproved", column = "is_approved"),
-            @Result(property = "clientId", column = "client_id"),
-            @Result(property = "clientSecret", column = "client_secret"),
-            @Result(property = "accountName", column = "account_name"),
-            @Result(property = "parentAccountNo", column = "client_account_no"),
             @Result(property = "createdAt", column = "created_at"),
             @Result(property = "updatedAt", column = "updated_at"),
     })
@@ -67,12 +62,13 @@ public interface ProfileRepository {
     """)
     JSONObject modifyLandscapeByMuseumId(UUID museumId, JSONObject existLandscape);
 
+    @ResultMap("paymentCredential")
     @Select("""
         UPDATE museum_owners SET client_id = #{museum.clientId}, client_secret = #{museum.clientSecret},
         account_name = #{museum.accountName}, parent_account_no = #{museum.parentAccountNo},
         updated_at = #{updatedAt} WHERE user_id = #{userId}::UUID RETURNING *;
     """)
-    MuseumOwner updateMuseumPaymentByUserId(UUID userId, @Param("museum") PaymentAccountRequest paymentAccountRequest, LocalDateTime updatedAt);
+    PaymentCredential updateMuseumPaymentByUserId(UUID userId, @Param("museum") PaymentAccountRequest paymentAccountRequest, LocalDateTime updatedAt);
 
     // For admin
 
@@ -132,4 +128,15 @@ public interface ProfileRepository {
         SELECT museum_id FROM museum_owners WHERE user_id = #{userId}::UUID
     """)
     UUID getMuseumIdByUserId(UUID userId);
+
+    @Results(id = "paymentCredential", value = {
+            @Result(property = "clientId", column = "client_id"),
+            @Result(property = "clientSecret", column = "client_secret"),
+            @Result(property = "accountName", column = "account_name"),
+            @Result(property = "parentAccountNumber", column = "parent_account_no")
+    })
+    @Select("""
+        SELECT client_id, client_secret, account_name, parent_account_no FROM museum_owners WHERE museum_id = #{museumId}::UUID;
+    """)
+    PaymentCredential retrieveMuseumPaymentCredential(UUID museumId);
 }

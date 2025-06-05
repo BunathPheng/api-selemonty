@@ -23,7 +23,5 @@ public interface MuseumService {
 
     MuseumOwner getAllMuseumByMuseumId(@NotNull UUID museumId);
 
-    ListResponse<MuseumOwner> getAllMuseumOrderbyPopular(Integer page, Integer size);
-
     ListResponse<MuseumOwner> getAllMuseumForVisitor(UUID visitorId, String search, UUID museumCategoryId, Integer page, Integer size, SortMuseum museumSort, MuseumStatus museumStatus);
 }
