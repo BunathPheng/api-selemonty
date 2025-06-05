@@ -19,7 +19,7 @@ public class MuseumWithDistanceResponse {
     private UUID museumId;
     private String name;
     private String address;
-    private String imageUrl;
+    private String logoLink;
     private BigDecimal lat;
     private BigDecimal lng;
     private BigDecimal averageRating;

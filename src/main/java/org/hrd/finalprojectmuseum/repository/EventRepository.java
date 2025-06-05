@@ -36,11 +36,11 @@ public interface EventRepository {
             @Result(property = "deleted", column = "is_deleted"),
     })
     @Select("""
-        SELECT * FROM events 
+        SELECT * FROM events
         WHERE is_deleted = false
         AND title LIKE CONCAT('%', #{search}, '%')
         ORDER BY start_date
-        OFFSET (#{page} - 1) * #{size} 
+        OFFSET (#{page} - 1) * #{size}
         LIMIT #{size}
     """)
     List<Event> findAllEvents(@Param("search") String search, @Param("page") Integer page, @Param("size") Integer size);

@@ -38,7 +38,7 @@ public class EventsController {
             summary = "Get all event of all museums. Can use without authorize",
             description = "Use to get all event with pagination"
     )
-    @GetMapping()
+    @GetMapping
     public ResponseEntity<ApiResponse<ListResponse<Event>>> getAllEvents(
             @RequestParam(defaultValue = "1") @Min(value = 1, message = "must be greater than 0") Integer page,
             @RequestParam(defaultValue = "10") @Min(value = 1, message = "must be greater than 0") Integer size,
