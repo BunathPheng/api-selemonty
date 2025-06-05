@@ -65,12 +65,16 @@ public class GlobleExceptionHandler {
     @ExceptionHandler(InvalidOptException.class)
     public ProblemDetail handleInvalidOptException(InvalidOptException e) {
         ProblemDetail detail = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
-        detail.setDetail(e.getMessage());
+        detail.setDetail("BAD REQUEST");
+
+        Map<String, String> errors = new HashMap<>();
+        errors.put("message", e.getMessage());
+        detail.setProperty("errors", errors);
+
         detail.setProperty("timestamp", LocalDateTime.now());
         return detail;
     }
 
-    // Handle UUID type mismatch in path variables and request parameters
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ProblemDetail handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException e) {
         ProblemDetail detail = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
