@@ -236,43 +236,6 @@ public interface EventRepository {
     """)
     Integer countAllEventWithFilterUpComing(String search, LocalDate dateFiler);
 
-    @ResultMap("eventMapper")
-    @Select("""
-        SELECT * FROM events
-        WHERE is_deleted = false
-        AND title LIKE CONCAT('%', #{search}, '%')
-        AND start_date <= now() AND end_date >= now()
-        ORDER BY start_date
-        OFFSET (#{page} - 1) * #{size}
-        LIMIT #{size}
-    """)
-    List<Event> findAllEventsOngoing(String search, Integer page, Integer size);
-
-    @Select("""
-        SELECT count(*) FROM events WHERE title ILIKE CONCAT('%', #{search}, '%')
-        AND start_date <= now() AND end_date >= now()
-    """)
-    Integer countAllEventOngoing(String search);
-
-    @ResultMap("eventMapper")
-    @Select("""
-        SELECT * FROM events 
-        WHERE is_deleted = false
-        AND title LIKE CONCAT('%', #{search}, '%')
-        AND DATE(start_date) = #{dateFilter}
-        AND start_date <= now() AND end_date >= now()
-        ORDER BY start_date
-        OFFSET (#{page} - 1) * #{size} 
-        LIMIT #{size}
-    """)
-    List<Event> findAllEventsWithDateFilterOngoing(String search, Integer page, Integer size, LocalDate dateFiler);
-
-    @Select("""
-        SELECT count(*) FROM events WHERE title ILIKE CONCAT('%', #{search}, '%')
-        AND DATE(start_date) = #{dateFilter}
-        AND start_date <= now() AND end_date >= now()
-    """)
-    Integer countAllEventWithFilterOngoing(String search, LocalDate dateFiler);
 
     @ResultMap("eventMapper")
     @Select("""
