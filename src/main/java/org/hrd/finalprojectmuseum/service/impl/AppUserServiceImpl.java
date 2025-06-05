@@ -164,19 +164,40 @@ public class AppUserServiceImpl implements AppUserService {
 
     @Override
     public UUID getUserId() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null && auth.isAuthenticated() &&
-                !auth.getPrincipal().equals("anonymousUser") &&
-                auth.getCredentials() != null) {
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
-            return UUID.fromString((String) auth.getCredentials());
+            if (auth != null &&
+                    auth.isAuthenticated() &&
+                    !auth.getPrincipal().equals("anonymousUser") &&
+                    auth.getCredentials() != null) {
+
+                Object credentials = auth.getCredentials();
+                if (credentials instanceof String && !((String) credentials).isEmpty()) {
+                    return UUID.fromString((String) credentials);
+                }
+            }
+        } catch (IllegalArgumentException e) {
+            System.out.println(e.getMessage());
+        } catch (Exception e) {
+            System.out.println(e.toString());
         }
+
         return null;
     }
 
     @Override
     public AppUserRegister getAppUserRegister() {
-        return findUserByUserId(getUserId());
+        UUID userId = getUserId();
+        if (userId != null) {
+            try {
+                return appUserRepository.getUserById(userId);
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+                return null;
+            }
+        }
+        return null;
     }
 }
 

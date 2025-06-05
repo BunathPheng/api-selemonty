@@ -7,9 +7,12 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.hrd.finalprojectmuseum.model.dto.response.*;
+import org.hrd.finalprojectmuseum.model.entity.AppUserRegister;
 import org.hrd.finalprojectmuseum.model.entity.Booking;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
+import org.hrd.finalprojectmuseum.model.entity.visitor.Visitor;
 import org.hrd.finalprojectmuseum.model.enums.MuseumStatus;
+import org.hrd.finalprojectmuseum.model.enums.Role;
 import org.hrd.finalprojectmuseum.model.enums.SortMuseum;
 import org.hrd.finalprojectmuseum.service.*;
 import org.springframework.http.HttpStatus;
@@ -34,6 +37,7 @@ public class MuseumsController {
     private final TicketInfoService ticketInfoService;
     private final ScheduleService scheduleService;
     private final MuseumService museumService;
+    private final AppUserService appUserService;
 
     @SecurityRequirement(name = "bearerAuth")
     @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
@@ -105,6 +109,7 @@ public class MuseumsController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    @SecurityRequirement(name = "bearerAuth")
     @Operation(summary = "For get all museums with filter. Allowed guest")
     @GetMapping("/filter")
     public ResponseEntity<ApiResponse<ListResponse<MuseumOwner>>> getMuseumOwnersByFilter(
@@ -115,7 +120,14 @@ public class MuseumsController {
             @RequestParam() SortMuseum museumSort,
             @RequestParam("status") MuseumStatus museumStatus
     ) {
-        ListResponse<MuseumOwner> museums = museumService.getAllMuseum(search, museumCategoryId, page, size, museumSort, museumStatus);
+        AppUserRegister appUser = appUserService.getAppUserRegister();
+        ListResponse<MuseumOwner> museums;
+        if (appUser != null && appUser.getRole() == Role.ROLE_VISITOR){
+            Visitor visitor = profileService.getProfile(appUser.getUserId());
+            museums = museumService.getAllMuseumForVisitor(visitor.getVisitorId(), search, museumCategoryId, page, size, museumSort, museumStatus);
+        }else{
+            museums = museumService.getAllMuseum(search, museumCategoryId, page, size, museumSort, museumStatus);
+        }
         ApiResponse<ListResponse<MuseumOwner>> response = ApiResponse.<ListResponse<MuseumOwner>>builder()
                 .success(true)
                 .message("Museums has been fetched successfully")
