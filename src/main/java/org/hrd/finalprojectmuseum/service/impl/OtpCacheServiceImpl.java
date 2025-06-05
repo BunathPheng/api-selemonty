@@ -1,6 +1,8 @@
 package org.hrd.finalprojectmuseum.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.hrd.finalprojectmuseum.exception.AppBadRequestException;
+import org.hrd.finalprojectmuseum.exception.AppNotFoundException;
 import org.hrd.finalprojectmuseum.exception.InvalidOptException;
 import org.hrd.finalprojectmuseum.model.entity.AppUser;
 import org.hrd.finalprojectmuseum.model.entity.AppUserRegister;
@@ -31,7 +33,7 @@ public class OtpCacheServiceImpl implements OtpCacheService {
     @Override
     public String getOtp(String email, String otp) {
         AppUser appUser = appUserRepository.getUserByEmail(email)
-                .orElseThrow(()->  new UsernameNotFoundException("Email is not register yet"));
+                .orElseThrow(()->  new AppBadRequestException("Email is not register yet"));
         String otpCode = otpRepository.getOptCodeByUserId(appUser.getUserId());
         Otps storedOtp = otpRepository.getOptByUserId(appUser.getUserId());
         if (storedOtp == null) {
@@ -47,7 +49,7 @@ public class OtpCacheServiceImpl implements OtpCacheService {
     public void removeOtp(String email) {
         AppUserRegister appUser = appUserRepository.findUserByEmail(email);
         if (appUser == null) {
-            throw new UsernameNotFoundException("Email is not register yet");
+            throw new AppBadRequestException("Email is not register yet");
         }
         otpRepository.removeOptByUserId(appUser.getUserId());
     }
@@ -56,7 +58,7 @@ public class OtpCacheServiceImpl implements OtpCacheService {
     public Long getExpirationByOtpId(String email) {
         AppUserRegister appUser = appUserRepository.findUserByEmail(email);
         if (appUser == null) {
-            throw new UsernameNotFoundException("Email is not register yet");
+            throw new AppBadRequestException("Email is not register yet");
         }
         LocalDateTime expiration = otpRepository.getExpirationByUserId(appUser.getUserId());
         LocalDateTime now = LocalDateTime.now();
@@ -70,7 +72,7 @@ public class OtpCacheServiceImpl implements OtpCacheService {
     public Otps getOtpByUserId(String email) {
         AppUserRegister appUser = appUserRepository.findUserByEmail(email);
         if (appUser == null) {
-            throw new UsernameNotFoundException("Email is not register yet");
+            throw new AppBadRequestException("Email is not register yet");
         }
         return otpRepository.getOptByUserId(appUser.getUserId());
     }
