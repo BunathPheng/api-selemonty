@@ -19,6 +19,8 @@ public class MuseumOwner {
     private AppUserRegister appUserRegister;
     private MuseumCategory museumCategory;
     private VisitorReviewStatistics review;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private Boolean isFavorite;
     private String name;
     private String address;
     private String contactNumber;
@@ -31,6 +33,7 @@ public class MuseumOwner {
     private Boolean isApproved;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private List<Schedule> schedule;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private Schedule todaySchedule;
 //    private String clientId;
 //    private String clientSecret;

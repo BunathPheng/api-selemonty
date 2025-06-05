@@ -7,6 +7,6 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 
 public interface GoogleAuthService {
-    LoginToken verifyAndExtractUserInfo(String idTokenString, String role) throws Exception;
+    LoginToken<?> verifyAndExtractUserInfo(String idTokenString, String role) throws Exception;
 
 }

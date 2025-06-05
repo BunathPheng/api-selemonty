@@ -41,4 +41,13 @@ public class VisitorServiceImpl implements VisitorService {
         search = search == null ? "" : search;
         return visitorRepository.findAllVisitor(search, page, size);
     }
+
+    @Override
+    public Visitor getVisitorById(UUID visitorId) {
+        Visitor visitor = visitorRepository.findVisitorById(visitorId);
+        if (visitor == null){
+            throw new AppNotFoundException("Visitor with id " + visitorId + " not found");
+        }
+        return visitor;
+    }
 }

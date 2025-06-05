@@ -24,6 +24,10 @@ public class MuseumOwnerRequest {
     @NotBlank(message = "Contact number is required")
     private String contactNumber;
 
+    @NotBlank(message = "Address is required")
+    @Size(max = 255, message = "Address cannot be greater than 255 characters")
+    private String address;
+
     @Digits(integer = 3, fraction = 6, message = "Must be a valid coordinate")
     @DecimalMax(value = "90.0", message = "Latitude must be between -90 and 90")
     @DecimalMin(value = "-90.0", message = "Latitude must be between -90 and 90")
@@ -48,14 +52,11 @@ public class MuseumOwnerRequest {
     @NotBlank(message = "Banner link is required")
     private String bannerLink;
 
-    @ValidJson
+    @ValidJson(message = "Key name can not be duplicate and value must be correct link format")
     @NotNull(message = "Landscape link is required")
     private JSONObject landscapeLink;
 
-    @Pattern(
-            regexp = "^[a-zA-Z0-9\\s]{2,2000}$",
-            message = "Description must be 2-2000 characters"
-    )
     @NotBlank(message = "Description is required")
+    @Size(max = 2000, message = "Description cannot be greater than 2000 characters")
     private String description;
 }

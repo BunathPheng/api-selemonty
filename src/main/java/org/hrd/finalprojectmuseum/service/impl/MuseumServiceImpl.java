@@ -11,6 +11,7 @@ import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
 import org.hrd.finalprojectmuseum.model.entity.visitor.VisitorReviewStatistics;
 
 import org.hrd.finalprojectmuseum.model.enums.MuseumStatus;
+import org.hrd.finalprojectmuseum.model.enums.SortMuseum;
 import org.hrd.finalprojectmuseum.repository.MuseumRepository;
 import org.hrd.finalprojectmuseum.repository.ReviewRepository;
 import org.hrd.finalprojectmuseum.repository.ScheduleRepository;
@@ -64,33 +65,131 @@ public class MuseumServiceImpl implements MuseumService {
     }
 
     @Override
-    public ListResponse<MuseumOwner> getAllMuseum(String search, UUID museumCategoryId, Integer page, Integer size, MuseumStatus museumStatus) {
+    public ListResponse<MuseumOwner> getAllMuseum(String search, UUID museumCategoryId, Integer page, Integer size, SortMuseum museumSort, MuseumStatus museumStatus) {
         List<MuseumOwner> museums;
         Integer totalItems;
         search = search == null ? "" : search;
-        if (museumCategoryId == null){
-            if (museumStatus == MuseumStatus.ALL){
-                museums = museumRepository.getAllMuseums(search, page, size);
-                totalItems = museumRepository.countAllMuseums(search);
-            }else if (museumStatus == MuseumStatus.APPROVED){
-                museums = museumRepository.getAllMuseumsWithStatus(search, page, size, true);
-                totalItems = museumRepository.countAllMuseumsWithStatus(search, true);
+        if (museumSort == SortMuseum.latest) {
+            if (museumCategoryId == null){
+                if (museumStatus == MuseumStatus.ALL){
+                    museums = museumRepository.getAllMuseums(search, page, size);
+                    totalItems = museumRepository.countAllMuseums(search);
+                }else if (museumStatus == MuseumStatus.APPROVED){
+                    museums = museumRepository.getAllMuseumsWithStatus(search, page, size, true);
+                    totalItems = museumRepository.countAllMuseumsWithStatus(search, true);
+                }else {
+                    museums = museumRepository.getAllMuseumsWithStatus(search, page, size, false);
+                    totalItems = museumRepository.countAllMuseumsWithStatus(search, false);
+                }
             }else {
-                museums = museumRepository.getAllMuseumsWithStatus(search, page, size, false);
-                totalItems = museumRepository.countAllMuseumsWithStatus(search, false);
+                if (museumStatus == MuseumStatus.ALL){
+                    museums = museumRepository.getAllMuseumsByCategoryId(search, museumCategoryId, page, size);
+                    totalItems = museumRepository.countAllMuseumsByCategory(search, museumCategoryId);
+                }else if (museumStatus == MuseumStatus.APPROVED){
+                    museums = museumRepository.getAllMuseumsByCategoryIdAndStatus(search, museumCategoryId, page, size, true);
+                    totalItems = museumRepository.countAllMuseumsByCategoryAndStatus(search, museumCategoryId, true);
+                }else {
+                    museums = museumRepository.getAllMuseumsByCategoryIdAndStatus(search, museumCategoryId, page, size, false);
+                    totalItems = museumRepository.countAllMuseumsByCategoryAndStatus(search, museumCategoryId, false);
+                }
             }
-        }else {
-            if (museumStatus == MuseumStatus.ALL){
-                museums = museumRepository.getAllMuseumsByCategoryId(search, museumCategoryId, page, size);
-                totalItems = museumRepository.countAllMuseumsByCategory(search, museumCategoryId);
-            }else if (museumStatus == MuseumStatus.APPROVED){
-                museums = museumRepository.getAllMuseumsByCategoryIdAndStatus(search, museumCategoryId, page, size, true);
-                totalItems = museumRepository.countAllMuseumsByCategoryAndStatus(search, museumCategoryId, true);
+        } else {
+            if (museumCategoryId == null){
+                if (museumStatus == MuseumStatus.ALL){
+                    museums = museumRepository.getAllPopularMuseumsPopular(search, page, size);
+                    totalItems = museumRepository.countAllPopularMuseums(search);
+                }else if (museumStatus == MuseumStatus.APPROVED){
+                    museums = museumRepository.getAllPopularMuseumsWithStatus(search, page, size, true);
+                    totalItems = museumRepository.countAllMuseumsWithStatus(search, true);
+                }else {
+                    museums = museumRepository.getAllPopularMuseumsWithStatus(search, page, size, false);
+                    totalItems = museumRepository.countPopularAllMuseumsWithStatus(search, false);
+                }
             }else {
-                museums = museumRepository.getAllMuseumsByCategoryIdAndStatus(search, museumCategoryId, page, size, false);
-                totalItems = museumRepository.countAllMuseumsByCategoryAndStatus(search, museumCategoryId, false);
+                if (museumStatus == MuseumStatus.ALL){
+                    museums = museumRepository.getAllPopularMuseumsByCategoryId(search, museumCategoryId, page, size);
+                    totalItems = museumRepository.countAllPopularMuseumsByCategory(search, museumCategoryId);
+                }else if (museumStatus == MuseumStatus.APPROVED){
+                    museums = museumRepository.getAllPopularMuseumsByCategoryIdAndStatus(search, museumCategoryId, page, size, true);
+                    totalItems = museumRepository.countAllPopularMuseumsByCategoryAndStatus(search, museumCategoryId, true);
+                }else {
+                    museums = museumRepository.getAllPopularMuseumsByCategoryIdAndStatus(search, museumCategoryId, page, size, false);
+                    totalItems = museumRepository.countAllPopularMuseumsByCategoryAndStatus(search, museumCategoryId, false);
+                }
             }
         }
+
+        for (MuseumOwner museum : museums) {
+            setFullData(museum);
+        }
+
+        Pagination pagination = new Pagination();
+        pagination = pagination.calculatePagination(totalItems, page, size);
+
+        ListResponse<MuseumOwner> listMuseumResponse = ListResponse.<MuseumOwner>builder()
+                .items(museums)
+                .pagination(pagination)
+                .build();
+        listMuseumResponse.setItems(museums);
+        listMuseumResponse.setPagination(pagination);
+        return listMuseumResponse;
+    }
+
+    @Override
+    public ListResponse<MuseumOwner> getAllMuseumForVisitor(UUID visitorId, String search, UUID museumCategoryId, Integer page, Integer size, SortMuseum museumSort, MuseumStatus museumStatus) {
+        List<MuseumOwner> museums;
+        Integer totalItems;
+        search = search == null ? "" : search;
+        if (museumSort == SortMuseum.latest) {
+            if (museumCategoryId == null){
+                if (museumStatus == MuseumStatus.ALL){
+                    museums = museumRepository.getAllMuseumsForVisitor(visitorId, search, page, size);
+                    totalItems = museumRepository.countAllMuseumsForVisitor(visitorId, search);
+                }else if (museumStatus == MuseumStatus.APPROVED){
+                    museums = museumRepository.getAllMuseumsWithStatusForVisitor(visitorId, search, page, size, true);
+                    totalItems = museumRepository.countAllMuseumsWithStatusForVisitor(visitorId, search, true);
+                }else {
+                    museums = museumRepository.getAllMuseumsWithStatusForVisitor(visitorId, search, page, size, false);
+                    totalItems = museumRepository.countAllMuseumsWithStatusForVisitor(visitorId, search, false);
+                }
+            }else {
+                if (museumStatus == MuseumStatus.ALL){
+                    museums = museumRepository.getAllMuseumsByCategoryIdForVisitor(visitorId, search, museumCategoryId, page, size);
+                    totalItems = museumRepository.countAllMuseumsByCategoryForVisitor(visitorId, search, museumCategoryId);
+                }else if (museumStatus == MuseumStatus.APPROVED){
+                    museums = museumRepository.getAllMuseumsByCategoryIdAndStatusForVisitor(visitorId, search, museumCategoryId, page, size, true);
+                    totalItems = museumRepository.countAllMuseumsByCategoryAndStatusForVisitor(visitorId, search, museumCategoryId, true);
+                }else {
+                    museums = museumRepository.getAllMuseumsByCategoryIdAndStatusForVisitor(visitorId, search, museumCategoryId, page, size, false);
+                    totalItems = museumRepository.countAllMuseumsByCategoryAndStatusForVisitor(visitorId, search, museumCategoryId, false);
+                }
+            }
+        } else {
+            if (museumCategoryId == null){
+                if (museumStatus == MuseumStatus.ALL){
+                    museums = museumRepository.getAllPopularMuseumsPopularForVisitor(visitorId, search, page, size);
+                    totalItems = museumRepository.countAllPopularMuseumsForVisitor(visitorId, search);
+                }else if (museumStatus == MuseumStatus.APPROVED){
+                    museums = museumRepository.getAllPopularMuseumsWithStatusForVisitor(visitorId, search, page, size, true);
+                    totalItems = museumRepository.countAllMuseumsWithStatusForVisitor(visitorId, search, true);
+                }else {
+                    museums = museumRepository.getAllPopularMuseumsWithStatusForVisitor(visitorId, search, page, size, false);
+                    totalItems = museumRepository.countPopularAllMuseumsWithStatusForVisitor(visitorId, search, false);
+                }
+            }else {
+                if (museumStatus == MuseumStatus.ALL){
+                    museums = museumRepository.getAllPopularMuseumsByCategoryIdForVisitor(visitorId, search, museumCategoryId, page, size);
+                    totalItems = museumRepository.countAllPopularMuseumsByCategoryForVisitor(visitorId, search, museumCategoryId);
+                }else if (museumStatus == MuseumStatus.APPROVED){
+                    museums = museumRepository.getAllPopularMuseumsByCategoryIdAndStatusForVisitor(visitorId, search, museumCategoryId, page, size, true);
+                    totalItems = museumRepository.countAllPopularMuseumsByCategoryAndStatusForVisitor(visitorId, search, museumCategoryId, true);
+                }else {
+                    museums = museumRepository.getAllPopularMuseumsByCategoryIdAndStatusForVisitor(visitorId, search, museumCategoryId, page, size, false);
+                    totalItems = museumRepository.countAllPopularMuseumsByCategoryAndStatusForVisitor(visitorId, search, museumCategoryId, false);
+                }
+            }
+        }
+
         for (MuseumOwner museum : museums) {
             setFullData(museum);
         }
@@ -112,7 +211,6 @@ public class MuseumServiceImpl implements MuseumService {
         List<MuseumWithDistanceResponse> nearbyMuseums = museumRepository
                 .findNearbyMuseumsOptimized(lat, lng, distance);
         String day = LocalDateTime.now().getDayOfWeek().toString();
-        System.out.println("today is "+day);
         for (MuseumWithDistanceResponse museum : nearbyMuseums) {
             Schedule schedule = scheduleService.getScheduleByDay(museum.getMuseumId(), day);
             VisitorReviewStatistics visitorReviewStatistics = reviewService.getVisitorReviewStatistics(museum.getMuseumId());
@@ -134,17 +232,7 @@ public class MuseumServiceImpl implements MuseumService {
         if (museum == null) {
             throw new AppNotFoundException("Museum not found");
         }
+        setFullData(museum);
         return museum;
-    }
-
-    @Override
-    public ListResponse<MuseumOwner> getAllMuseumOrderbyPopular(Integer page, Integer size) {
-        List<MuseumOwner> museumOwners = museumRepository.findAllMuseumOrderbyPopular(page, size);
-        Pagination pagination = new Pagination();
-        Integer countMuseum = museumRepository.countAllMuseumOrderbyPopular();
-        return ListResponse.<MuseumOwner>builder()
-                .items(museumOwners)
-                .pagination(pagination.calculatePagination(countMuseum, page, size))
-                .build();
     }
 }

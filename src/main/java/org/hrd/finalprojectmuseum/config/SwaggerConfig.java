@@ -18,7 +18,7 @@ import org.springframework.context.annotation.Configuration;
                 )
         ),
         servers = {
-                @Server(url = "http://localhost:8080", description = "Local Server"),
+                @Server(url = "http://34.143.146.124:8085", description = "Local Server"),
         }
 )
 public class SwaggerConfig {
