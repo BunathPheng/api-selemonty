@@ -49,10 +49,11 @@ public interface ProfileRepository {
     MuseumOwner findMuseumOwnerByUserId(UUID userId);
 
     @Update("""
-        UPDATE museum_owners SET museum_category_id = #{museum.museumCategoryId}::UUID, name = #{museum.name}, contact_number = #{museum.contactNumber}, lat = #{museum.lat},
-                                 lng = #{museum.lng}, logo_link = #{museum.logoLink}, banner_link = #{museum.bannerLink},
-                                 landscape_links = #{museum.landscapeLink}::JSONB, description = #{museum.description},
-                                 updated_at = #{updatedAt} WHERE museum_id = #{museumId}::UUID;
+        UPDATE museum_owners SET museum_category_id = #{museum.museumCategoryId}::UUID, name = #{museum.name}, contact_number = #{museum.contactNumber},
+                                 address = #{museum.address}, lat = #{museum.lat}, lng = #{museum.lng}, logo_link = #{museum.logoLink},
+                                 banner_link = #{museum.bannerLink}, landscape_links = #{museum.landscapeLink}::JSONB,
+                                 description = #{museum.description}, updated_at = #{updatedAt}
+                             WHERE museum_id = #{museumId}::UUID;
     """)
     void modifyMuseumOwnerById(UUID museumId, @Param("museum") MuseumOwnerRequest museumOwnerRequest, LocalDateTime updatedAt);
 
