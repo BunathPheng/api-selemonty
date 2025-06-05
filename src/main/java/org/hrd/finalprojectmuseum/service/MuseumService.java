@@ -1,5 +1,6 @@
 package org.hrd.finalprojectmuseum.service;
 
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import org.hrd.finalprojectmuseum.model.dto.response.ListResponse;
 import org.hrd.finalprojectmuseum.model.dto.response.MuseumWithDistanceResponse;
@@ -22,5 +23,5 @@ public interface MuseumService {
 
     MuseumOwner getAllMuseumByMuseumId(@NotNull UUID museumId);
 
-    ListResponse<MuseumOwner> getAllMuseumOrderbyPopular(Integer page, Integer size);
+    ListResponse<MuseumOwner> getAllMuseumForVisitor(UUID visitorId, String search, UUID museumCategoryId, Integer page, Integer size, SortMuseum museumSort, MuseumStatus museumStatus);
 }

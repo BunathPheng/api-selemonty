@@ -4,13 +4,16 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.hrd.finalprojectmuseum.model.dto.request.BookingRequest;
+import org.hrd.finalprojectmuseum.model.dto.request.PaymentAccountRequest;
 import org.hrd.finalprojectmuseum.model.dto.request.RequestTourRequest;
 import org.hrd.finalprojectmuseum.model.dto.response.ApiResponse;
 import org.hrd.finalprojectmuseum.model.dto.response.ListResponse;
 import org.hrd.finalprojectmuseum.model.entity.AppUserRegister;
 import org.hrd.finalprojectmuseum.model.entity.Booking;
+import org.hrd.finalprojectmuseum.model.entity.PaymentCredential;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
 import org.hrd.finalprojectmuseum.model.entity.visitor.Visitor;
 import org.hrd.finalprojectmuseum.model.enums.BookingType;
@@ -56,6 +59,23 @@ public class BookingsController {
                 .payload(booking)
                 .build();
         return new ResponseEntity<>(response, HttpStatus.CREATED);
+    }
+
+    @SecurityRequirement(name = "bearerAuth")
+    @PreAuthorize("hasRole('ROLE_VISITOR')")
+    @Operation(summary = "Use to get museum payment credential For KHQR payment. For only visitor")
+    @GetMapping("/payment/{museum-id}")
+    public ResponseEntity<ApiResponse<PaymentCredential>> getMuseumOwnerPaymentCredentialByMuseumId(
+            @PathVariable("museum-id") @NotNull(message = "Museum ID is required") UUID museumId
+    ) {
+        PaymentCredential paymentCredential = profileService.getMuseumPaymentCredential(museumId);
+        ApiResponse<PaymentCredential> response = ApiResponse.<PaymentCredential>builder()
+                .success(true)
+                .message("Museum payment credential has been fetched successfully")
+                .status(HttpStatus.OK)
+                .payload(paymentCredential)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @PreAuthorize("hasRole('ROLE_VISITOR')")

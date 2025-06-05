@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.hrd.finalprojectmuseum.model.dto.response.ApiResponse;
+import org.hrd.finalprojectmuseum.model.entity.museum_owner.FavoriteMuseum;
 import org.hrd.finalprojectmuseum.model.entity.visitor.VisitorFavorite;
 import org.hrd.finalprojectmuseum.model.enums.FavoriteType;
 import org.hrd.finalprojectmuseum.service.FavoriteService;
@@ -15,6 +16,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -67,6 +69,24 @@ public class FavoritesController {
                 .success(true)
                 .message("Visitor favorite fetched successfully")
                 .payload(visitorFavorite)
+                .status(HttpStatus.OK)
+                .build();
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PreAuthorize("hasRole('ROLE_VISITOR')")
+    @GetMapping
+    @Operation(summary = "Get all visitor favorite museum")
+    public ResponseEntity<ApiResponse<List<FavoriteMuseum>>> getAllFavoriteMuseums() {
+        UUID visitorId = getVisitorIdByUserId();
+
+        List<FavoriteMuseum> favoriteMuseums = favoriteService.getAllFavoriteMuseums(visitorId);
+
+        ApiResponse<List<FavoriteMuseum>> response = ApiResponse.<List<FavoriteMuseum>>builder()
+                .success(true)
+                .message("All visitor favorite museums fetched successfully")
+                .payload(favoriteMuseums)
                 .status(HttpStatus.OK)
                 .build();
 
