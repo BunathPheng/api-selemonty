@@ -17,8 +17,6 @@ public interface BookingService {
 
     Booking makeABookingByMuseumId(UUID museumId, UUID visitorId, BookingRequest bookingRequest);
 
-    ListResponse<Booking> getBookingHistoryByVisitorId(UUID visitorId, String search, Integer page, Integer size, BookingType category, LocalDate startDate, LocalDate endDate);
-
     List<BookingV2> getVisitorBookingHistory(UUID visitorId, String search, BookingType category, Integer page, Integer size, LocalDate startDate, LocalDate endDate);
 
     Integer countVisitorBookingHistory(UUID visitorId, String search, BookingType category, Integer page, Integer size, LocalDate startDate, LocalDate endDate);
@@ -27,17 +25,11 @@ public interface BookingService {
 
     Integer countMuseumBookingHistory(UUID museumId, String search);
 
-    ListResponse<Booking> getAllBookingByMuseumId(UUID museumId, String search, Integer page, Integer size, BookingType bookingType, LocalDate startDate, LocalDate endDate);
-
-    Booking getBookingByVisitorId(@Valid UUID bookingId, UUID visitorId);
-
     BookingV2 getBookingByVisitorIdV2(@Valid UUID bookingId, UUID visitorId);
 
     Booking findScanBookingByBookingId(@NotNull UUID bookingId, UUID museumId);
 
     Booking findBookingByCodeQr(String codeQr, UUID museumId);
-
-    Booking getBookingByMuseumId(@Valid UUID bookingId, UUID museumId);
 
     Booking requestTourByMuseumId(@Valid UUID museumId, UUID visitorId, RequestTourRequest requestTourRequest);
 }

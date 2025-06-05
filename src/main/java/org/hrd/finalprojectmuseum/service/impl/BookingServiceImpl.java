@@ -78,48 +78,6 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public ListResponse<Booking> getBookingHistoryByVisitorId(UUID visitorId, String search, Integer page, Integer size, BookingType category, LocalDate startDate, LocalDate endDate) {
-        search = search == null ? "" : search;
-        boolean hasBookingType = category != null;
-        boolean hasDateRange = startDate != null && endDate != null;
-
-        List<Booking> bookings;
-        Integer totalItems;
-
-        // Get bookings with appropriate filters
-        if (!hasBookingType && !hasDateRange) {
-            bookings = bookingRepository.findByVisitorIdAndSearchWithPagination(visitorId, search.trim(), page, size);
-            totalItems = bookingRepository.countByVisitorIdAndSearch(visitorId, search.trim());
-        } else if (hasBookingType && !hasDateRange) {
-            bookings = bookingRepository.findByVisitorIdSearchAndBookingTypeWithPagination(visitorId, search.trim(), category, page, size);
-            totalItems = bookingRepository.countByVisitorIdSearchAndBookingType(visitorId, search.trim(), category);
-        } else if (!hasBookingType && hasDateRange) {
-            bookings = bookingRepository.findByVisitorIdSearchAndDateRangeWithPagination(visitorId, search.trim(), startDate, endDate, page, size);
-            totalItems = bookingRepository.countByVisitorIdSearchAndDateRange(visitorId, search.trim(), startDate, endDate);
-        } else {
-            bookings = bookingRepository.findByVisitorIdSearchBookingTypeAndDateRangeWithPagination(visitorId, search.trim(), category, startDate, endDate, page, size);
-            totalItems = bookingRepository.countByVisitorIdSearchBookingTypeAndDateRange(visitorId, search.trim(), category, startDate, endDate);
-        }
-
-        for (Booking booking : bookings) {
-            checkAndUpdateExpiration(booking.getBookingId());
-            if (category == BookingType.TOUR){
-                booking.setTotalPrice(tourRepository.getTourPriceByBookingId(booking.getBookingId()));
-            }
-        }
-
-
-        // Calculate pagination
-        Pagination pagination = new Pagination();
-        pagination = pagination.calculatePagination(totalItems, page, size);
-
-        return ListResponse.<Booking>builder()
-                .items(bookings)
-                .pagination(pagination)
-                .build();
-    }
-
-    @Override
     public List<BookingV2> getVisitorBookingHistory(UUID visitorId, String search, BookingType category, Integer page, Integer size, LocalDate startDate, LocalDate endDate) {
         search = search == null ? "" : search;
         page = page == null ? 0 : page;
@@ -176,6 +134,13 @@ public class BookingServiceImpl implements BookingService {
 
         List<BookingV2> museumHistoryBooking = bookingRepository.getMuseumBookingHistoryByMuseumId(museumId, search, page, size);
 
+//        for (Booking booking : bookings) {
+//            checkAndUpdateExpiration(booking.getBookingId());
+//            if (category == BookingType.TOUR){
+//                booking.setTotalPrice(tourRepository.getTourPriceByBookingId(booking.getBookingId()));
+//            }
+//        }
+
         for (BookingV2 booking : museumHistoryBooking) {
             checkAndUpdateExpirationV2(booking.getBookingId());
         }
@@ -187,56 +152,6 @@ public class BookingServiceImpl implements BookingService {
     public Integer countMuseumBookingHistory(UUID museumId, String search) {
         search = search == null ? "" : search;
         return bookingRepository.countMuseumBookingHistory(museumId, search);
-    }
-
-    @Override
-    public ListResponse<Booking> getAllBookingByMuseumId(UUID museumId, String search, Integer page, Integer size, BookingType bookingType, LocalDate startDate, LocalDate endDate) {
-        search = search == null ? "" : search;
-        boolean hasBookingType = bookingType != null;
-        boolean hasDateRange = startDate != null && endDate != null;
-
-        List<Booking> bookings;
-        Integer totalItems;
-
-        // Get bookings with appropriate filters
-        if (!hasBookingType && !hasDateRange) {
-            bookings = bookingRepository.findAllBookingByMuseumIdAndSearchWithPagination(museumId, search.trim(), page, size);
-            totalItems = bookingRepository.countAllBookingByMuseumIdAndSearch(museumId, search.trim());
-        } else if (hasBookingType && !hasDateRange) {
-            bookings = bookingRepository.findAllBookingByMuseumIdSearchAndBookingTypeWithPagination(museumId, search.trim(), bookingType, page, size);
-            totalItems = bookingRepository.countAllBookingByMuseumIdSearchAndBookingType(museumId, search.trim(), bookingType);
-        } else if (!hasBookingType && hasDateRange) {
-            bookings = bookingRepository.findAllBookingByMuseumIdSearchAndDateRangeWithPagination(museumId, search.trim(), startDate, endDate, page, size);
-            totalItems = bookingRepository.countAllBookingByMuseumIdSearchAndDateRange(museumId, search.trim(), startDate, endDate);
-        } else {
-            // hasBookingType && hasDateRange
-            bookings = bookingRepository.findAllBookingByMuseumIdSearchBookingTypeAndDateRangeWithPagination(museumId, search.trim(), bookingType, startDate, endDate, page, size);
-            totalItems = bookingRepository.countAllBookingByMuseumIdSearchBookingTypeAndDateRange(museumId, search.trim(), bookingType, startDate, endDate);
-        }
-
-        // Update expiration status for each booking
-        for (Booking booking : bookings) {
-            checkAndUpdateExpiration(booking.getBookingId());
-        }
-
-        Pagination pagination = new Pagination();
-        pagination = pagination.calculatePagination(totalItems, page, size);
-
-        return ListResponse.<Booking>builder()
-                .items(bookings)
-                .pagination(pagination)
-                .build();
-    }
-
-    @Override
-    public Booking getBookingByVisitorId(UUID bookingId, UUID visitorId) {
-        Booking bookingDetail = bookingRepository.findBookingByBookingIdAndVisitorId(bookingId, visitorId);
-        if (bookingDetail == null) {
-            throw new AppNotFoundException("Booking with id " + bookingId + " not exists");
-        }
-
-        checkAndUpdateExpiration(bookingId);
-        return bookingDetail;
     }
 
     @Override
@@ -279,17 +194,6 @@ public class BookingServiceImpl implements BookingService {
         }
 
         return bookingDetail;
-    }
-
-    @Override
-    public Booking getBookingByMuseumId(UUID bookingId, UUID museumId) {
-        MuseumOwner museumOwner = museumRepository.findMuseumOwnerByMuseumId(museumId);
-        if (museumOwner == null) {
-            throw new AppNotFoundException("Museum with id " + museumId + " not exists");
-        }
-        Booking booking = bookingRepository.findBookingByBookingIdAndMuseumId(bookingId, museumId);
-        System.out.println(booking);
-        return booking;
     }
 
     @Transactional
