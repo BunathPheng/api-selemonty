@@ -9,7 +9,6 @@ import org.hrd.finalprojectmuseum.model.dto.response.ListResponse;
 import org.hrd.finalprojectmuseum.model.entity.Booking;
 import org.hrd.finalprojectmuseum.model.entity.Pagination;
 import org.hrd.finalprojectmuseum.model.entity.TicketInfo;
-import org.hrd.finalprojectmuseum.model.entity.Tour;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
 import org.hrd.finalprojectmuseum.model.entity.visitor.BookingV2;
 import org.hrd.finalprojectmuseum.model.enums.BookingType;
@@ -24,7 +23,6 @@ import org.hrd.finalprojectmuseum.utils.UniqueTextCodeGenerator;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -122,6 +120,76 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
+    public List<BookingV2> getVisitorBookingHistory(UUID visitorId, String search, BookingType category, Integer page, Integer size, LocalDate startDate, LocalDate endDate) {
+        search = search == null ? "" : search;
+        page = page == null ? 0 : page;
+        size = size == null ? 10 : size;
+
+        boolean hasCategory = category != null;
+        boolean hasDateRange = startDate != null && endDate != null;
+
+        List<BookingV2> bookings = null;
+
+        if (!hasCategory && !hasDateRange) {
+            bookings = bookingRepository.findVisitorBookingHistoryBySearch(visitorId, search.trim(), page, size);
+        } else if (hasCategory && !hasDateRange) {
+            bookings = bookingRepository.findVisitorBookingHistoryBySearchAndCategory(visitorId, search.trim(), category, page, size);
+        } else if (!hasCategory && hasDateRange) {
+            bookings = bookingRepository.findVisitorBookingHistoryBySearchAndDateRange(visitorId, search.trim(), startDate, endDate, page, size);
+        } else {
+            bookings = bookingRepository.findVisitorBookingHistoryBySearchCategoryAndDateRange(visitorId, search.trim(), category, startDate, endDate, page, size);
+        }
+
+        for (BookingV2 booking : bookings) {
+            checkAndUpdateExpirationV2(booking.getBookingId());
+        }
+
+        return bookings;
+    }
+
+    @Override
+    public Integer countVisitorBookingHistory(UUID visitorId, String search, BookingType category, Integer page, Integer size, LocalDate startDate, LocalDate endDate) {
+        search = search == null ? "" : search;
+        page = page == null ? 0 : page;
+        size = size == null ? 10 : size;
+
+        boolean hasCategory = category != null;
+        boolean hasDateRange = startDate != null && endDate != null;
+
+        Integer totalItems;
+
+        if (!hasCategory && !hasDateRange) {
+            totalItems = bookingRepository.countVisitorBookingHistoryBySearch(visitorId, search.trim());
+        } else if (hasCategory && !hasDateRange) {
+            totalItems = bookingRepository.countVisitorBookingHistoryBySearchAndCategory(visitorId, search.trim(), category);
+        } else if (!hasCategory && hasDateRange) {
+            totalItems = bookingRepository.countVisitorBookingHistoryBySearchAndDateRange(visitorId, search.trim(), startDate, endDate);
+        } else {
+            totalItems = bookingRepository.countVisitorBookingHistoryBySearchCategoryAndDateRange(visitorId, search.trim(), category, startDate, endDate);
+        }
+        return totalItems;
+    }
+
+    @Override
+    public List<BookingV2> getMuseumBookingHistory(UUID museumId, String search, Integer page, Integer size) {
+        search = search == null ? "" : search;
+
+        List<BookingV2> museumHistoryBooking = bookingRepository.getMuseumBookingHistoryByMuseumId(museumId, search, page, size);
+
+        for (BookingV2 booking : museumHistoryBooking) {
+            checkAndUpdateExpirationV2(booking.getBookingId());
+        }
+
+        return museumHistoryBooking;
+    }
+
+    @Override
+    public Integer countMuseumBookingHistory(UUID museumId, String search) {
+        search = search == null ? "" : search;
+        return bookingRepository.countMuseumBookingHistory(museumId, search);
+    }
+
+    @Override
     public ListResponse<Booking> getAllBookingByMuseumId(UUID museumId, String search, Integer page, Integer size, BookingType bookingType, LocalDate startDate, LocalDate endDate) {
         search = search == null ? "" : search;
         boolean hasBookingType = bookingType != null;
@@ -177,6 +245,7 @@ public class BookingServiceImpl implements BookingService {
         if (bookingDetail == null) {
             throw new AppNotFoundException("Booking with id " + bookingId + " not exists");
         }
+        checkAndUpdateExpirationV2(bookingId);
         return bookingDetail;
     }
 
@@ -203,7 +272,7 @@ public class BookingServiceImpl implements BookingService {
             throw new AppNotFoundException("Code Qr: " + codeQr + " is incorrect");
         }
 
-        checkAndUpdateExpiration(bookingDetail.getBookingId());
+//        checkAndUpdateExpiration(bookingDetail.getBookingId());
 
         if (Objects.equals(bookingDetail.getTicketStatus(), "VALID")) {
             bookingRepository.updateStatus(bookingDetail.getBookingId(), "USED");
@@ -247,6 +316,21 @@ public class BookingServiceImpl implements BookingService {
 
         if (booking.getExpiryDate() != null &&
                 LocalDateTime.now().isAfter(booking.getExpiryDate()) &&
+                !booking.getTicketStatus().equals("EXPIRED")) {
+
+            booking.setTicketStatus("EXPIRED");
+            bookingRepository.updateStatus(bookingId, "EXPIRED");
+        }
+    }
+
+    public void checkAndUpdateExpirationV2(UUID bookingId) {
+        BookingV2 booking = bookingRepository.retrieveBookingByBookingId(bookingId);
+        if (booking == null) {
+            throw new AppNotFoundException("Booking with id " + bookingId + " not exists");
+        }
+
+        if (booking.getExpiredDate() != null &&
+                LocalDateTime.now().isAfter(booking.getExpiredDate()) &&
                 !booking.getTicketStatus().equals("EXPIRED")) {
 
             booking.setTicketStatus("EXPIRED");

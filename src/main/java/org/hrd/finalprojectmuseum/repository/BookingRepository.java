@@ -289,7 +289,7 @@ public interface BookingRepository {
     void setTicketCode(UUID bookingId, String code);
 
     @Select("""
-        SELECT bk.booking_id, mo.name, vt.full_name, bk.booking_type, bk.ticket_type, bk.booking_date, bk.ticket_type,
+        SELECT bk.booking_id, mo.name, bk.booking_type, bk.ticket_type, bk.booking_date, bk.ticket_type,
                       bk.ticket_price, bk.created_at, bk.slot_amount, bk.ticket_status, bk.qr_code
         FROM bookings bk
         INNER JOIN museum_owners mo ON mo.museum_id = bk.museum_id
@@ -300,7 +300,6 @@ public interface BookingRepository {
     @Results(id = "BookingDetail", value = {
             @Result(property = "bookingId", column = "booking_id"),
             @Result(property = "museumName", column = "name"),
-            @Result(property = "visitorName", column = "full_name"),
             @Result(property = "bookingType", column = "booking_type"),
             @Result(property = "bookingDate", column = "booking_date"),
             @Result(property = "ticketType", column = "ticket_type"),
@@ -311,4 +310,194 @@ public interface BookingRepository {
             @Result(property = "qrCode", column = "qr_code"),
     })
     BookingV2 retrieveBookingDetailByVisitorId(UUID bookingId, UUID visitorId);
+
+    @Select("""
+        SELECT b.* FROM bookings b 
+        INNER JOIN museum_owners m ON b.museum_id = m.museum_id
+        WHERE b.booking_id = #{bookingId}::UUID
+    """)
+    @ResultMap("BookingDetail")
+    BookingV2 retrieveBookingByBookingId(UUID bookingId);
+
+    // Repository methods for finding bookings
+    @Select("""
+    SELECT bk.booking_id, mo.name, mo.logo_link, bk.booking_type, bk.ticket_price, bk.ticket_status
+    FROM bookings bk
+    INNER JOIN museum_owners mo ON mo.museum_id = bk.museum_id
+    WHERE bk.visitor_id = #{visitorId}::UUID
+      AND LOWER(mo.name) LIKE LOWER(CONCAT('%', #{search}, '%'))
+    ORDER BY bk.booking_date DESC
+    LIMIT #{size} OFFSET #{page} * #{size}
+""")
+    @Results(id = "BookingDetail1", value = {
+            @Result(property = "bookingId", column = "booking_id"),
+            @Result(property = "museumName", column = "name"),
+            @Result(property = "museumLogo", column = "logo_link"),
+            @Result(property = "bookingType", column = "booking_type"),
+            @Result(property = "ticketPrice", column = "ticket_price"),
+            @Result(property = "ticketStatus", column = "ticket_status"),
+    })
+    List<BookingV2> findVisitorBookingHistoryBySearch(
+            @Param("visitorId") UUID visitorId,
+            @Param("search") String search,
+            @Param("page") Integer page,
+            @Param("size") Integer size
+    );
+
+    @Select("""
+        SELECT bk.booking_id, mo.name, mo.logo_link, bk.booking_type, bk.ticket_price, bk.ticket_status
+        FROM bookings bk
+        INNER JOIN museum_owners mo ON mo.museum_id = bk.museum_id
+        WHERE bk.visitor_id = #{visitorId}::UUID
+        AND LOWER(mo.name) LIKE LOWER(CONCAT('%', #{search}, '%'))
+        AND bk.booking_type = #{category}::text
+        ORDER BY bk.booking_date DESC
+        LIMIT #{size} OFFSET #{page} * #{size}
+    """)
+    @ResultMap("BookingDetail1")
+    List<BookingV2> findVisitorBookingHistoryBySearchAndCategory(
+            @Param("visitorId") UUID visitorId,
+            @Param("search") String search,
+            @Param("category") BookingType category,
+            @Param("page") Integer page,
+            @Param("size") Integer size
+    );
+
+    @Select("""
+    SELECT bk.booking_id, mo.name, mo.logo_link, bk.booking_type, bk.ticket_price, bk.ticket_status
+    FROM bookings bk
+    INNER JOIN museum_owners mo ON mo.museum_id = bk.museum_id
+    WHERE bk.visitor_id = #{visitorId}::UUID
+      AND LOWER(mo.name) LIKE LOWER(CONCAT('%', #{search}, '%'))
+      AND bk.booking_date BETWEEN #{startDate}::date AND #{endDate}::date
+    ORDER BY bk.booking_date DESC
+    LIMIT #{size} OFFSET #{page} * #{size}
+""")
+    @ResultMap("BookingDetail1")
+    List<BookingV2> findVisitorBookingHistoryBySearchAndDateRange(
+            @Param("visitorId") UUID visitorId,
+            @Param("search") String search,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate,
+            @Param("page") Integer page,
+            @Param("size") Integer size
+    );
+
+    @Select("""
+    SELECT bk.booking_id, mo.name, mo.logo_link, bk.booking_type, bk.ticket_price, bk.ticket_status
+    FROM bookings bk
+    INNER JOIN museum_owners mo ON mo.museum_id = bk.museum_id
+    WHERE bk.visitor_id = #{visitorId}::UUID
+      AND LOWER(mo.name) LIKE LOWER(CONCAT('%', #{search}, '%'))
+      AND bk.booking_type = #{category}::text
+      AND bk.booking_date BETWEEN #{startDate}::date AND #{endDate}::date
+    ORDER BY bk.booking_date DESC
+    LIMIT #{size} OFFSET #{page} * #{size}
+""")
+    @ResultMap("BookingDetail1")
+    List<BookingV2> findVisitorBookingHistoryBySearchCategoryAndDateRange(
+            @Param("visitorId") UUID visitorId,
+            @Param("search") String search,
+            @Param("category") BookingType category,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate,
+            @Param("page") Integer page,
+            @Param("size") Integer size
+    );
+
+    // Repository methods for counting (same WHERE conditions, but COUNT(*))
+    @Select("""
+    SELECT COUNT(*)
+    FROM bookings bk
+    INNER JOIN museum_owners mo ON mo.museum_id = bk.museum_id
+    WHERE bk.visitor_id = #{visitorId}::UUID
+      AND LOWER(mo.name) LIKE LOWER(CONCAT('%', #{search}, '%'))
+""")
+    Integer countVisitorBookingHistoryBySearch(
+            @Param("visitorId") UUID visitorId,
+            @Param("search") String search
+    );
+
+    @Select("""
+    SELECT COUNT(*)
+    FROM bookings bk
+    INNER JOIN museum_owners mo ON mo.museum_id = bk.museum_id
+    WHERE bk.visitor_id = #{visitorId}::UUID
+      AND LOWER(mo.name) LIKE LOWER(CONCAT('%', #{search}, '%'))
+      AND bk.booking_type = #{category}::text
+""")
+    Integer countVisitorBookingHistoryBySearchAndCategory(
+            @Param("visitorId") UUID visitorId,
+            @Param("search") String search,
+            @Param("category") BookingType category
+    );
+
+    @Select("""
+    SELECT COUNT(*)
+    FROM bookings bk
+    INNER JOIN museum_owners mo ON mo.museum_id = bk.museum_id
+    WHERE bk.visitor_id = #{visitorId}::UUID
+      AND LOWER(mo.name) LIKE LOWER(CONCAT('%', #{search}, '%'))
+      AND bk.booking_date BETWEEN #{startDate}::date AND #{endDate}::date
+""")
+    Integer countVisitorBookingHistoryBySearchAndDateRange(
+            @Param("visitorId") UUID visitorId,
+            @Param("search") String search,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate
+    );
+
+    @Select("""
+    SELECT COUNT(*)
+    FROM bookings bk
+    INNER JOIN museum_owners mo ON mo.museum_id = bk.museum_id
+    WHERE bk.visitor_id = #{visitorId}::UUID
+      AND LOWER(mo.name) LIKE LOWER(CONCAT('%', #{search}, '%'))
+      AND bk.booking_type = #{category}::text
+      AND bk.booking_date BETWEEN #{startDate}::date AND #{endDate}::date
+""")
+    Integer countVisitorBookingHistoryBySearchCategoryAndDateRange(
+            @Param("visitorId") UUID visitorId,
+            @Param("search") String search,
+            @Param("category") BookingType category,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate
+    );
+
+    @Select("""
+        SELECT bk.booking_id,
+               vt.full_name,
+               bk.ticket_price,
+               bk.ticket_type,
+               bk.ticket_status,
+               bk.booking_date,
+               bk.expired_date
+        FROM bookings bk
+        INNER JOIN visitors vt ON vt.visitor_id = bk.visitor_id
+        INNER JOIN museum_owners mo ON mo.museum_id = bk.museum_id
+        WHERE mo.museum_id = #{museumId}::UUID
+          AND LOWER(vt.full_name) LIKE LOWER(CONCAT('%', #{search}, '%'))
+        ORDER BY bk.booking_date DESC
+        LIMIT #{size} OFFSET #{page} * #{size};
+    """)
+    @Results(id = "BookingDetail2", value = {
+            @Result(property = "bookingId", column = "booking_id"),
+            @Result(property = "visitorName", column = "full_name"),
+            @Result(property = "ticketPrice", column = "ticket_price"),
+            @Result(property = "ticketType", column = "ticket_type"),
+            @Result(property = "ticketStatus", column = "ticket_status"),
+            @Result(property = "bookingDate", column = "booking_date"),
+            @Result(property = "expiredDate", column = "expired_date"),
+    })
+    List<BookingV2> getMuseumBookingHistoryByMuseumId(UUID museumId, String search, Integer page, Integer size);
+
+    @Select("""
+        SELECT COUNT(*)
+        FROM bookings bk
+        INNER JOIN visitors vt ON vt.visitor_id = bk.visitor_id
+        INNER JOIN museum_owners mo ON mo.museum_id = bk.museum_id
+        WHERE mo.museum_id = #{museumId}::UUID
+          AND LOWER(vt.full_name) LIKE LOWER(CONCAT('%', #{search}, '%'));
+    """)
+    Integer countMuseumBookingHistory(UUID museumId, String search);
 }
