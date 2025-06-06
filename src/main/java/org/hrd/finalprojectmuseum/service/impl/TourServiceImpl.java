@@ -31,9 +31,7 @@ public class TourServiceImpl implements TourService {
     private final TourRepository tourRepository;
     private final UniqueTextCodeGenerator uniqueTextCodeGenerator;
     private final BookingRepository bookingRepository;
-    private final TicketInfoService ticketInfoService;
     private final TicketInfoRepository ticketInfoRepository;
-    private final AppUserService appUserService;
     private final ProfileService profileService;
 
     @Override
@@ -137,6 +135,4 @@ public class TourServiceImpl implements TourService {
         }
         return tourRepository.findTourByTourId(tourId);
     }
-
-
 }

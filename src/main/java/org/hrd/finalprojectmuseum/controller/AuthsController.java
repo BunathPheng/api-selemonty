@@ -164,9 +164,10 @@ public class AuthsController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @Transactional
     @Operation(summary = "For send re-send otp to verify account", description = "This endpoint use for send otp to verify account if user request to resend again")
     @PostMapping("/resend-otp")
-    public ResponseEntity<ApiResponse<Otps>> sendOtp(@RequestParam @Email(message = "Email form is incorrect") @NotBlank(message = "Email is required") String email) {
+    public ResponseEntity<ApiResponse<Otps>> sendOtp(@RequestParam @Email(message = "Email form is incorrect") @NotBlank(message = "Email is required") String email) throws IOException {
         String otp = sendEmailService.generateOtp();
         appUserService.checkEmailBeforeOpt(email);
 //        try {
@@ -184,8 +185,6 @@ public class AuthsController {
                 .payload(opts)
                 .status(HttpStatus.CREATED)
                 .build();
-
-        otpService.removeOtp(email);
         otpService.storeOtp(email, otp);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -212,9 +211,10 @@ public class AuthsController {
         return ResponseEntity.ok(response);
     }
 
+    @Transactional
     @Operation(summary = "For forgot password feature", description = "After input email, OTP will send to email. Then use OTP to verify in verify-otp/forgot-password endpoint. NOTE: if you dont see OTP email send in inbox please kinda check in spam. ")
     @PostMapping("/forgot-password")
-    public ResponseEntity<ApiResponse<Otps>> forgotPassword(@RequestBody @Valid ForgotPasswordRequest forgotPasswordRequest) {
+    public ResponseEntity<ApiResponse<Otps>> forgotPassword(@RequestBody @Valid ForgotPasswordRequest forgotPasswordRequest) throws IOException {
         String otp = sendEmailService.generateOtp();
         appUserService.checkEmail(forgotPasswordRequest.getEmail());
 //        try {
