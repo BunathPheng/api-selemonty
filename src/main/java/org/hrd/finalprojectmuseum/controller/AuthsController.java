@@ -212,6 +212,7 @@ public class AuthsController {
         return ResponseEntity.ok(response);
     }
 
+    @Transactional
     @Operation(summary = "For forgot password feature", description = "After input email, OTP will send to email. Then use OTP to verify in verify-otp/forgot-password endpoint. NOTE: if you dont see OTP email send in inbox please kinda check in spam. ")
     @PostMapping("/forgot-password")
     public ResponseEntity<ApiResponse<Otps>> forgotPassword(@RequestBody @Valid ForgotPasswordRequest forgotPasswordRequest) {
