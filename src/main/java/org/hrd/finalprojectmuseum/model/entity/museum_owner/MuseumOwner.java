@@ -34,6 +34,8 @@ public class MuseumOwner {
     private List<Schedule> schedule;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private Schedule todaySchedule;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private MuseumArtifact museumArtifact;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
