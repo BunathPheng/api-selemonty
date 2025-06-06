@@ -31,10 +31,10 @@ public interface MuseumRepository {
             @Result(property = "isApproved", column = "is_approved"),
             @Result(property = "createdAt", column = "created_at"),
             @Result(property = "updatedAt", column = "updated_at"),
+            @Result(property = "museumArtifact", column = "museum_id",
+                    one = @One(select = "org.hrd.finalprojectmuseum.repository.ArtifactRepository.findMuseumArtifactByMuseumId")
+            )
     })
-    @Result(property = "museumArtifact", column = "museum_id",
-            one = @One(select = "org.hrd.finalprojectmuseum.repository.ArtifactRepository.findMuseumArtifactByMuseumId")
-    )
     @Select("""
         SELECT museum_owners.*, 
                CASE WHEN favorites.visitor_id IS NOT NULL THEN true ELSE false END AS is_favorite
