@@ -3,6 +3,7 @@ package org.hrd.finalprojectmuseum.service.impl;
 import lombok.RequiredArgsConstructor;
 import org.hrd.finalprojectmuseum.exception.AppBadRequestException;
 import org.hrd.finalprojectmuseum.exception.AppNotFoundException;
+import org.hrd.finalprojectmuseum.model.entity.museum_owner.FavoriteMuseum;
 import org.hrd.finalprojectmuseum.model.entity.visitor.VisitorFavorite;
 import org.hrd.finalprojectmuseum.model.enums.FavoriteType;
 import org.hrd.finalprojectmuseum.repository.FavoriteRepository;
@@ -10,6 +11,7 @@ import org.hrd.finalprojectmuseum.repository.ReviewRepository;
 import org.hrd.finalprojectmuseum.service.FavoriteService;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -52,5 +54,13 @@ public class FavoriteServiceImpl implements FavoriteService {
             throw new AppBadRequestException("Visitor haven't been add museum to favorite yet");
         }
         return favoriteRepository.getFavoriteByIds(museumId, visitorId);
+    }
+
+    @Override
+    public List<FavoriteMuseum> getAllFavoriteMuseums(UUID visitorId) {
+        if(favoriteRepository.retrieveFavoriteMuseums(visitorId).isEmpty()) {
+            throw new AppNotFoundException("Museum not found");
+        }
+        return favoriteRepository.retrieveFavoriteMuseums(visitorId);
     }
 }

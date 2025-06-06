@@ -6,7 +6,6 @@ import org.hrd.finalprojectmuseum.jwt.CustomAccessDeniedHandler;
 import org.hrd.finalprojectmuseum.jwt.JwtAuthEntryPoint;
 import org.hrd.finalprojectmuseum.jwt.JwtAuthFilter;
 import org.hrd.finalprojectmuseum.jwt.JwtUtils;
-import org.hrd.finalprojectmuseum.security.OAuth2AuthenticationSuccessHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -30,7 +29,6 @@ public class SecurityConfig {
     private final JwtAuthFilter jwtAuthFilter;
     private final JwtAuthEntryPoint jwtAuthEntryPoint;
     private final CustomAccessDeniedHandler customAccessDeniedHandler;
-    private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, JwtUtils jwtUtils) throws Exception {
@@ -56,8 +54,9 @@ public class SecurityConfig {
                                 "/api/v1/museums/popular",
 
                                 // Event endpoints
-                                "/api/v1/events",
+                                "/api/v1/events/filter",
                                 "/api/v1/events/**",
+                                "/api/v1/events",
 
                                 // Artifact endpoints (public read access)
                                 "/api/v1/artifacts",
@@ -99,7 +98,7 @@ public class SecurityConfig {
                         .userInfoEndpoint()
                         .userService(oauth2UserService())
                         .and()
-                        .successHandler(oAuth2AuthenticationSuccessHandler)
+//                        .successHandler(oAuth2AuthenticationSuccessHandler)
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling(e -> e

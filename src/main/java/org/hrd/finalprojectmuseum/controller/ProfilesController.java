@@ -1,6 +1,5 @@
 package org.hrd.finalprojectmuseum.controller;
 
-import com.alibaba.fastjson2.JSONObject;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
@@ -10,9 +9,11 @@ import org.hrd.finalprojectmuseum.model.dto.request.admin.AdminRequest;
 import org.hrd.finalprojectmuseum.model.dto.request.museum_owner.MuseumOwnerRequest;
 import org.hrd.finalprojectmuseum.model.dto.request.visitor.VisitorRequest;
 import org.hrd.finalprojectmuseum.model.dto.response.ApiResponse;
+import org.hrd.finalprojectmuseum.model.entity.PaymentCredential;
 import org.hrd.finalprojectmuseum.model.entity.admin.Admin;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
 import org.hrd.finalprojectmuseum.model.entity.visitor.Visitor;
+import org.hrd.finalprojectmuseum.service.AppUserService;
 import org.hrd.finalprojectmuseum.service.ProfileService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,6 +31,7 @@ import java.util.UUID;
 public class ProfilesController {
 
     private final ProfileService profileService;
+    private final AppUserService appUserService;
 
     // Museum Owner
     @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
@@ -67,15 +69,31 @@ public class ProfilesController {
     @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
     @PutMapping("/museum-owner/payment")
     @Operation(summary = "Use to update museum payment. For only museum owner")
-    public ResponseEntity<ApiResponse<MuseumOwner>> updateMuseumOwnerPayment(@RequestBody @Valid PaymentAccountRequest paymentAccountRequest) {
+    public ResponseEntity<ApiResponse<PaymentCredential>> updateMuseumOwnerPayment(@RequestBody @Valid PaymentAccountRequest paymentAccountRequest) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UUID userId = UUID.fromString((String) auth.getCredentials());
-        MuseumOwner museumOwner = profileService.updateMuseumOwnerPaymentByUserId(userId, paymentAccountRequest);
-        ApiResponse<MuseumOwner> response = ApiResponse.<MuseumOwner>builder()
+        PaymentCredential museumOwner = profileService.updateMuseumOwnerPaymentByUserId(userId, paymentAccountRequest);
+        ApiResponse<PaymentCredential> response = ApiResponse.<PaymentCredential>builder()
                 .success(true)
                 .message("Museum owner payment has been updated successfully")
                 .status(HttpStatus.OK)
                 .payload(museumOwner)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
+    @Operation(summary = "Use to get museum payment credential. For only museum owner")
+    @GetMapping("/museum-owner/payment")
+    public ResponseEntity<ApiResponse<PaymentCredential>> getMuseumOwnerPaymentCredential() {
+        UUID userId = appUserService.getUserId();
+        MuseumOwner museumOwner = profileService.getMuseumOwnerByUserId(userId);
+        PaymentCredential paymentCredential = profileService.getMuseumPaymentCredential(museumOwner.getMuseumId());
+        ApiResponse<PaymentCredential> response = ApiResponse.<PaymentCredential>builder()
+                .success(true)
+                .message("Museum payment credential has been fetched successfully")
+                .status(HttpStatus.OK)
+                .payload(paymentCredential)
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
