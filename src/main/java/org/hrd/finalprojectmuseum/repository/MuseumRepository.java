@@ -115,7 +115,7 @@ public interface MuseumRepository {
     // Popular Sort - Non-visitor methods
     @ResultMap("museumMapper")
     @Select("""
-        SELECT m.*, COUNT(b.booking_id) AS booking_count, false AS is_favorite
+        SELECT m.*, COUNT(b.booking_id) AS booking_count
         FROM museum_owners m
         INNER JOIN user_info ui ON ui.user_id = m.user_id
         LEFT JOIN bookings b ON m.museum_id = b.museum_id

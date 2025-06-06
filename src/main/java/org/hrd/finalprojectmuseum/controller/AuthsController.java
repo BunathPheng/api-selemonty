@@ -166,7 +166,7 @@ public class AuthsController {
 
     @Operation(summary = "For send re-send otp to verify account", description = "This endpoint use for send otp to verify account if user request to resend again")
     @PostMapping("/resend-otp")
-    public ResponseEntity<ApiResponse<Otps>> sendOtp(@RequestParam @Email(message = "Email form is incorrect") @NotBlank(message = "Email is required") String email) {
+    public ResponseEntity<ApiResponse<Otps>> sendOtp(@RequestParam @Email(message = "Email form is incorrect") @NotBlank(message = "Email is required") String email) throws IOException {
         String otp = sendEmailService.generateOtp();
         appUserService.checkEmailBeforeOpt(email);
 //        try {
