@@ -19,7 +19,6 @@ public class MuseumOwner {
     private AppUserRegister appUserRegister;
     private MuseumCategory museumCategory;
     private VisitorReviewStatistics review;
-    @JsonInclude(JsonInclude.Include.NON_NULL)
     private Boolean isFavorite;
     private String name;
     private String address;
