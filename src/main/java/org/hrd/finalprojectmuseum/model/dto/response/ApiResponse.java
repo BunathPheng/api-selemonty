@@ -18,6 +18,4 @@ public class ApiResponse<T> {
     private HttpStatus status;
     @Builder.Default
     private LocalDateTime timestamp = LocalDateTime.now();
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    private Pagination pagination;
 }
