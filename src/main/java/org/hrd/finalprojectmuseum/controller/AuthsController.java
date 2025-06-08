@@ -157,8 +157,10 @@ public class AuthsController {
                 .status(HttpStatus.CREATED)
                 .build();
         String otp = sendEmailService.generateOtp();
-        emailService.sendMailAsHTML(museumOwnerRegisterRequest.getEmail(), otp);
-//        sendEmailService.sendOtpEmail(museumOwnerRegisterRequest.getEmail(), otp);
+        String result = emailService.sendMailAsHTML(museumOwnerRegisterRequest.getEmail(), otp);
+        System.out.println(result);
+
+        //        sendEmailService.sendOtpEmail(museumOwnerRegisterRequest.getEmail(), otp);
         otpService.storeOtp(museumOwnerRegisterRequest.getEmail(), otp);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
