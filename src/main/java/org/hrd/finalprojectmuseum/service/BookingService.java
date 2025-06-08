@@ -33,5 +33,5 @@ public interface BookingService {
 
     Booking findBookingByCodeQr(String codeQr, UUID museumId);
 
-    Booking requestTourByMuseumId(@Valid UUID museumId, UUID visitorId, RequestTourRequest requestTourRequest);
+    BookingV2 tourRequest(UUID museumId, UUID visitorId, RequestTourRequest requestTourRequest);
 }

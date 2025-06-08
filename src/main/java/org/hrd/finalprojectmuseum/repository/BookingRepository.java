@@ -102,8 +102,8 @@ public interface BookingRepository {
     Booking findBookingByCodeQrAndMuseumId(String codeQr, UUID museumId);
 
     @Select("""
-        INSERT INTO bookings (museum_id, visitor_id, slot_amount, booking_date)
-        VALUES (#{museumId}::UUID, #{visitorId}::UUID, #{booking.slotAmount}, #{booking.bookingDate})
+        INSERT INTO bookings (museum_id, visitor_id, booking_type, slot_amount, booking_date)
+        VALUES (#{museumId}::UUID, #{visitorId}::UUID, 'TOUR', #{booking.slotAmount}, #{booking.bookingDate})
         RETURNING booking_id;
     """)
     UUID insertBookingForTourRequest(UUID museumId, UUID visitorId, @Param("booking") RequestTourRequest requestTourRequest);
@@ -376,4 +376,11 @@ public interface BookingRepository {
             @Result(property = "museumLogo", column = "logo_link"),
     })
     BookingV2 insertBookingIndividual(UUID museumId, UUID visitorId, TicketType ticketType, @Param("bookingRequest") BookingRequestV2 bookingRequest, String code, LocalDateTime expiredDate);
+
+    @Select("""
+        SELECT * FROM bookings 
+        WHERE booking_id = #{bookingId}::UUID
+    """)
+    @ResultMap("IndividualBooking")
+    BookingV2 getBookingByBookingId(UUID bookingId);
 }

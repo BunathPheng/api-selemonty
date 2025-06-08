@@ -121,8 +121,15 @@ public class BookingServiceImpl implements BookingService {
             bookings = bookingRepository.findVisitorBookingHistoryBySearchCategoryAndDateRange(visitorId, search.trim(), category, startDate, endDate, page, size);
         }
 
+//        for (BookingV2 booking : bookings) {
+//            checkAndUpdateExpirationV2(booking.getBookingId());
+//        }
+
         for (BookingV2 booking : bookings) {
             checkAndUpdateExpirationV2(booking.getBookingId());
+            if (category == BookingType.TOUR){
+                booking.setTotalPrice(tourRepository.getTourPriceByBookingId(booking.getBookingId()));
+            }
         }
 
         return bookings;
@@ -156,13 +163,6 @@ public class BookingServiceImpl implements BookingService {
         search = search == null ? "" : search;
 
         List<BookingV2> museumHistoryBooking = bookingRepository.getMuseumBookingHistoryByMuseumId(museumId, search, page, size);
-
-//        for (Booking booking : bookings) {
-//            checkAndUpdateExpiration(booking.getBookingId());
-//            if (category == BookingType.TOUR){
-//                booking.setTotalPrice(tourRepository.getTourPriceByBookingId(booking.getBookingId()));
-//            }
-//        }
 
         for (BookingV2 booking : museumHistoryBooking) {
             checkAndUpdateExpirationV2(booking.getBookingId());
@@ -221,18 +221,35 @@ public class BookingServiceImpl implements BookingService {
 
     @Transactional
     @Override
-    public Booking requestTourByMuseumId(UUID museumId, UUID visitorId, RequestTourRequest requestTourRequest) {
-        TicketInfo ticketInfo = ticketInfoRepository.findTicketInfoByMuseumId(museumId);
-        if (ticketInfo.getTotalSlot() < requestTourRequest.getSlotAmount()){
-            throw new AppBadRequestException("Not enough slots available. Available slots: "+ ticketInfo.getTotalSlot());
+    public BookingV2 tourRequest(UUID museumId, UUID visitorId, RequestTourRequest requestTourRequest) {
+        IndividualBookingInfo individualBookingInfo = bookingRepository.BooingIndividualInfo(museumId);
+        if (individualBookingInfo == null) {
+            throw new AppNotFoundException("Booking failed. This museum is not approved by admin");
         }
-        MuseumOwner museumOwner = museumRepository.findMuseumOwnerByMuseumId(museumId);
-        if (museumOwner == null) {
+        if (individualBookingInfo.getTicketId() == null) {
+            throw new AppBadRequestException("Booking failed. Museum doesn't have ticket information");
+        }
+        if(!individualBookingInfo.getMuseumId().equals(museumId)) {
             throw new AppNotFoundException("Museum with id " + museumId + " not exists");
         }
+        if (individualBookingInfo.getMuseumSchedule() == null) {
+            throw new AppNotFoundException("Booking failed. Museum doesn't have schedule");
+        }
+
+        LocalDateTime bookingDate = requestTourRequest.getBookingDate();
+        String bookingDayName = bookingDate.getDayOfWeek().name(); // e.g., "MONDAY"
+
+        boolean isClosed = individualBookingInfo.getMuseumSchedule().stream()
+                .anyMatch(schedule ->
+                        schedule.getDay().equalsIgnoreCase(bookingDayName) && Boolean.TRUE.equals(schedule.getDayOff()));
+
+        if (isClosed) {
+            throw new AppBadRequestException("Booking failed. Museum is closed on " + bookingDayName);
+        }
+
         UUID bookingId = bookingRepository.insertBookingForTourRequest(museumId, visitorId, requestTourRequest);
         tourRepository.insertNewTourRequest(bookingId);
-        return bookingRepository.findBookingByBookingIdAndMuseumId(bookingId, museumId);
+        return bookingRepository.getBookingByBookingId(bookingId);
     }
 
     public void checkAndUpdateExpiration(UUID bookingId) {

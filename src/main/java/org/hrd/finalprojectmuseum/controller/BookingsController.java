@@ -82,23 +82,21 @@ public class BookingsController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    @PreAuthorize("hasRole('ROLE_VISITOR')")
+    @PostMapping("tour/{museum-id}")
     @SecurityRequirement(name = "bearerAuth")
-    @Operation(summary = "For RequestTour. Only visitor can use.")
-    @PostMapping("/tour/{museum-id}")
-    public ResponseEntity<ApiResponse<Booking>> requestTourByMuseumId(
-            @PathVariable("museum-id") @Valid UUID museumId,
-            @RequestBody @Valid RequestTourRequest requestTourRequest
-    ) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        UUID userId = UUID.fromString((String) auth.getCredentials());
-        Visitor visitor = profileService.getProfile(userId);
-        Booking booking = bookingService.requestTourByMuseumId(museumId, visitor.getVisitorId(), requestTourRequest);
-        ApiResponse<Booking> response = ApiResponse.<Booking>builder()
+    @PreAuthorize("hasRole('ROLE_VISITOR')")
+    @Operation(summary = "For Request Tour. Only visitor can use")
+    public ResponseEntity<ApiResponse<BookingV2>> tourRequest(
+            @PathVariable("museum-id") UUID museumId,
+            @RequestBody @Valid RequestTourRequest requestTourRequest){
+        UUID visitorId = reviewService.getVisitorIdByUserId(appUserService.getUserId());
+        BookingV2 tourRequest = bookingService.tourRequest(museumId, visitorId, requestTourRequest);
+
+        ApiResponse<BookingV2> response = ApiResponse.<BookingV2>builder()
                 .success(true)
                 .message("Booking successfully")
                 .status(HttpStatus.CREATED)
-                .payload(booking)
+                .payload(tourRequest)
                 .build();
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
