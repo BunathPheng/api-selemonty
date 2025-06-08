@@ -5,12 +5,14 @@ import org.hrd.finalprojectmuseum.exception.AppBadRequestException;
 import org.hrd.finalprojectmuseum.exception.AppNotFoundException;
 import org.hrd.finalprojectmuseum.model.dto.request.BookingRequest;
 import org.hrd.finalprojectmuseum.model.dto.request.RequestTourRequest;
+import org.hrd.finalprojectmuseum.model.dto.request.visitor.BookingRequestV2;
 import org.hrd.finalprojectmuseum.model.dto.response.ListResponse;
 import org.hrd.finalprojectmuseum.model.entity.Booking;
 import org.hrd.finalprojectmuseum.model.entity.Pagination;
 import org.hrd.finalprojectmuseum.model.entity.TicketInfo;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
 import org.hrd.finalprojectmuseum.model.entity.visitor.BookingV2;
+import org.hrd.finalprojectmuseum.model.entity.visitor.IndividualBookingInfo;
 import org.hrd.finalprojectmuseum.model.enums.BookingType;
 import org.hrd.finalprojectmuseum.model.enums.TicketType;
 import org.hrd.finalprojectmuseum.repository.BookingRepository;
@@ -25,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -41,39 +44,59 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     @Transactional
-    public Booking makeABookingByMuseumId(UUID museumId, UUID visitorId, BookingRequest bookingRequest) {
-        TicketInfo ticketInfo = ticketInfoRepository.findTicketInfoByMuseumId(museumId);
-        if (bookingRequest.getTicketType() == TicketType.LOCAL){
-            if (ticketInfo.getLocalPrice().compareTo(bookingRequest.getTicketPrice()) != 0){
-                throw new AppBadRequestException("LocalTicket price is wrong. Right LocalTicket price is: "+ ticketInfo.getLocalPrice());
-            }
-        } else if(bookingRequest.getTicketType() == TicketType.FOREIGNER){
-            if (ticketInfo.getForeignPrice().compareTo(bookingRequest.getTicketPrice()) != 0){
-                throw new AppBadRequestException("Ticket price is wrong. Right ForeignTicket price is: "+ ticketInfo.getForeignPrice());
-            }
+    public BookingV2 bookingIndividualTicket(UUID museumId, UUID visitorId, TicketType ticketType, BookingRequestV2 bookingRequest) {
+        IndividualBookingInfo individualBookingInfo = bookingRepository.BooingIndividualInfo(museumId);
+        if (individualBookingInfo == null) {
+            throw new AppNotFoundException("Booking failed. This museum is not approved by admin");
         }
-
-        if (ticketInfo.getTotalSlot() < bookingRequest.getSlotAmount()){
-            throw new AppBadRequestException("Not enough slots available. Available slots: "+ ticketInfo.getTotalSlot());
+        if (individualBookingInfo.getTicketId() == null) {
+            throw new AppBadRequestException("Booking failed. Museum doesn't have ticket information");
         }
-        MuseumOwner museum = museumRepository.findMuseumOwnerByMuseumId(museumId);
-        if (museum == null) {
+        if(!individualBookingInfo.getMuseumId().equals(museumId)) {
             throw new AppNotFoundException("Museum with id " + museumId + " not exists");
         }
-        if (!museum.getIsApproved()) {
-            throw new AppBadRequestException("Booking failed. This museum is not approved by admin");
+        if (ticketType != TicketType.LOCAL && ticketType != TicketType.FOREIGNER) {
+            throw new AppBadRequestException("Invalid ticket type for individual booking");
+        }
+        if (ticketType == TicketType.FOREIGNER){
+            if (individualBookingInfo.getForeignPrice().compareTo(bookingRequest.getTicketPrice()) != 0){
+                throw new AppBadRequestException("Foreigner Ticket price is wrong. Right LocalTicket price is: "+ individualBookingInfo.getForeignPrice());
+            }
+        }
+        if (ticketType == TicketType.LOCAL) {
+            if (individualBookingInfo.getForeignPrice().compareTo(bookingRequest.getTicketPrice()) != 0){
+                throw new AppBadRequestException("Local Ticket price is wrong. Right LocalTicket price is: "+ individualBookingInfo.getLocalPrice());
+            }
+        }
+        if (individualBookingInfo.getMuseumSchedule() == null) {
+            throw new AppNotFoundException("Booking failed. Museum doesn't have schedule");
+        }
+
+        LocalDateTime bookingDate = bookingRequest.getBookingDate();
+        String bookingDayName = bookingDate.getDayOfWeek().name(); // e.g., "MONDAY"
+
+        boolean isClosed = individualBookingInfo.getMuseumSchedule().stream()
+                .anyMatch(schedule ->
+                        schedule.getDay().equalsIgnoreCase(bookingDayName) && Boolean.TRUE.equals(schedule.getDayOff()));
+
+        if (isClosed) {
+            throw new AppBadRequestException("Booking failed. Museum is closed on " + bookingDayName);
+        }
+
+        if (individualBookingInfo.getTotalSlots() < bookingRequest.getSlotAmount()) {
+            throw new AppBadRequestException("Not enough slots available. Available slots: "+ individualBookingInfo.getTotalSlots());
         }
 
         String code = uniqueTextCodeGenerator.generateUniqueTextCode();
         LocalDateTime expiredDate = bookingRequest.getBookingDate().plusHours(12);
-        Booking booking = bookingRepository.insertBookingByMuseumId(museumId, visitorId, code, expiredDate, bookingRequest);
-        booking.setTour(null);
-        Integer updateSlot = ticketInfo.getTotalSlot() - bookingRequest.getSlotAmount();
+        BookingV2 booking = bookingRepository.insertBookingIndividual(museumId, visitorId, ticketType, bookingRequest, code, expiredDate);
+        Integer updateSlot = individualBookingInfo.getTotalSlots() - bookingRequest.getSlotAmount();
         ticketInfoRepository.updateSlotAmount(museumId, updateSlot);
 
         if (booking == null) {
             throw new AppBadRequestException("Booking failed! Please try again");
         }
+
         return booking;
     }
 

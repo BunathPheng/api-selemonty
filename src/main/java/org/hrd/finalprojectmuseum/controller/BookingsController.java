@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.hrd.finalprojectmuseum.model.dto.request.BookingRequest;
 import org.hrd.finalprojectmuseum.model.dto.request.PaymentAccountRequest;
 import org.hrd.finalprojectmuseum.model.dto.request.RequestTourRequest;
+import org.hrd.finalprojectmuseum.model.dto.request.visitor.BookingRequestV2;
 import org.hrd.finalprojectmuseum.model.dto.response.ApiResponse;
 import org.hrd.finalprojectmuseum.model.entity.AppUserRegister;
 import org.hrd.finalprojectmuseum.model.entity.Booking;
@@ -19,6 +20,7 @@ import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
 import org.hrd.finalprojectmuseum.model.entity.visitor.Visitor;
 import org.hrd.finalprojectmuseum.model.enums.BookingType;
 import org.hrd.finalprojectmuseum.model.enums.Role;
+import org.hrd.finalprojectmuseum.model.enums.TicketType;
 import org.hrd.finalprojectmuseum.service.*;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -42,19 +44,19 @@ public class BookingsController {
     private final ReviewService reviewService;
     private final ZoneService zoneService;
 
-    @Operation(summary = "For booking a ticket. Only visitor can use.", description = "Need to input right ticket price and total price")
     @SecurityRequirement(name = "bearerAuth")
     @PreAuthorize("hasRole('ROLE_VISITOR')")
-    @PostMapping("/individual/{museum-id}")
-    public ResponseEntity<ApiResponse<Booking>> bookingIndividualByMuseumId(
-            @PathVariable("museum-id") @Valid UUID museumId,
-            @RequestBody @Valid BookingRequest bookingRequest
-    ) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        UUID userId = UUID.fromString((String) auth.getCredentials());
-        Visitor visitor = profileService.getProfile(userId);
-        Booking booking = bookingService.makeABookingByMuseumId(museumId, visitor.getVisitorId(), bookingRequest);
-        ApiResponse<Booking> response = ApiResponse.<Booking>builder()
+    @PostMapping("individual/{museum-id}")
+    @Operation(summary = "Booking individual ticket for visitor")
+    public ResponseEntity<ApiResponse<BookingV2>> IndividualBookingByMuseumId(
+            @PathVariable("museum-id") UUID museumId,
+            @RequestParam("ticketType") TicketType ticketType,
+            @RequestBody @Valid BookingRequestV2 bookingRequest) {
+
+        UUID visitorId = reviewService.getVisitorIdByUserId(appUserService.getUserId());
+        BookingV2 booking = bookingService.bookingIndividualTicket(museumId, visitorId, ticketType, bookingRequest);
+
+        ApiResponse<BookingV2> response = ApiResponse.<BookingV2>builder()
                 .success(true)
                 .message("Booking successfully")
                 .status(HttpStatus.CREATED)

@@ -4,9 +4,14 @@ import org.apache.ibatis.annotations.*;
 import org.apache.ibatis.type.JdbcType;
 import org.hrd.finalprojectmuseum.model.dto.request.BookingRequest;
 import org.hrd.finalprojectmuseum.model.dto.request.RequestTourRequest;
+import org.hrd.finalprojectmuseum.model.dto.request.visitor.BookingRequestV2;
 import org.hrd.finalprojectmuseum.model.entity.Booking;
+import org.hrd.finalprojectmuseum.model.entity.Schedule;
 import org.hrd.finalprojectmuseum.model.entity.visitor.BookingV2;
+import org.hrd.finalprojectmuseum.model.entity.visitor.IndividualBookingInfo;
+import org.hrd.finalprojectmuseum.model.entity.visitor.MuseumSchedule;
 import org.hrd.finalprojectmuseum.model.enums.BookingType;
+import org.hrd.finalprojectmuseum.model.enums.TicketType;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -110,13 +115,23 @@ public interface BookingRepository {
 
     @Select("""
         SELECT bk.booking_id, mo.name, bk.booking_type, bk.ticket_type, bk.booking_date, bk.ticket_type,
-                      bk.ticket_price, bk.created_at, bk.slot_amount, bk.ticket_status, bk.qr_code
+                      bk.ticket_price, bk.created_at, bk.slot_amount, bk.ticket_status, bk.qr_code, bk.total_price
         FROM bookings bk
         INNER JOIN museum_owners mo ON mo.museum_id = bk.museum_id
         INNer JOIN visitors vt ON bk.visitor_id = vt.visitor_id
         WHERE bk.booking_id = #{bookingId}::UUID
         AND bk.visitor_id = #{visitorId}::UUID;
     """)
+
+    @ResultMap("IndividualBooking")
+    BookingV2 retrieveBookingDetailByVisitorId(UUID bookingId, UUID visitorId);
+
+    @Select("""
+        SELECT b.* FROM bookings b
+        INNER JOIN museum_owners m ON b.museum_id = m.museum_id
+        WHERE b.booking_id = #{bookingId}::UUID
+    """)
+//    @ResultMap("BookingDetail")
     @Results(id = "BookingDetail", value = {
             @Result(property = "bookingId", column = "booking_id"),
             @Result(property = "museumName", column = "name"),
@@ -129,14 +144,6 @@ public interface BookingRepository {
             @Result(property = "ticketStatus", column = "ticket_status"),
             @Result(property = "qrCode", column = "qr_code"),
     })
-    BookingV2 retrieveBookingDetailByVisitorId(UUID bookingId, UUID visitorId);
-
-    @Select("""
-        SELECT b.* FROM bookings b 
-        INNER JOIN museum_owners m ON b.museum_id = m.museum_id
-        WHERE b.booking_id = #{bookingId}::UUID
-    """)
-    @ResultMap("BookingDetail")
     BookingV2 retrieveBookingByBookingId(UUID bookingId);
 
     // Repository methods for finding bookings
@@ -320,4 +327,71 @@ public interface BookingRepository {
           AND LOWER(vt.full_name) LIKE LOWER(CONCAT('%', #{search}, '%'));
     """)
     Integer countMuseumBookingHistory(UUID museumId, String search);
+
+    @Select("""
+        SELECT mo.museum_id, ticket_info_id, ti.local_price, ti.foreign_price, ti.total_slot
+        FROM museum_owners mo
+                 LEFT JOIN ticket_info ti ON mo.museum_id = ti.museum_id
+        WHERE mo.museum_id = #{museumId}::UUID
+        AND mo.is_approved = true;
+    """)
+    @Results(id = "Individual", value = {
+            @Result(property = "museumId", column = "museum_id"),
+            @Result(property = "ticketId", column = "ticket_info_id"),
+            @Result(property = "localPrice", column = "local_price"),
+            @Result(property = "foreignPrice", column = "foreign_price"),
+            @Result(property = "totalSlots", column = "total_slot"),
+            @Result(property = "museumSchedule", column = "museum_id",
+                    many = @Many(select = "getScheduleByMuseumId")),
+    })
+    IndividualBookingInfo BooingIndividualInfo(UUID museumId);
+
+    @Select("""
+        SELECT schedule_id, day, opening_time, closing_time, day_off FROM schedules
+        WHERE museum_id = #{museumId}::UUID;
+    """)
+    @Results(id = "MuseumSchedule", value = {
+            @Result(property = "scheduleId", column = "schedule_id"),
+            @Result(property = "day", column = "day"),
+            @Result(property = "openingTime", column = "opening_time"),
+            @Result(property = "closingTime", column = "closing_time"),
+            @Result(property = "dayOff", column = "day_off"),
+    })
+    List<MuseumSchedule> getScheduleByMuseumId(UUID museumId);
+
+    @Select("""
+        INSERT INTO bookings (
+            museum_id, visitor_id, ticket_price, ticket_type,
+            ticket_status, booking_type, slot_amount, booking_date,
+            expired_date, qr_code, total_price
+        )
+        VALUES (
+            #{museumId}::UUID, #{visitorId}::UUID,
+            #{bookingRequest.ticketPrice}, #{ticketType},
+            default, 'INDIVIDUAL',
+            #{bookingRequest.slotAmount}, #{bookingRequest.bookingDate},
+            #{expiredDate}, #{code},
+            #{bookingRequest.ticketPrice} * #{bookingRequest.slotAmount}
+        )
+        RETURNING *;
+    """)
+    @Results(id = "IndividualBooking", value = {
+            @Result(property = "bookingId", column = "booking_id"),
+            @Result(property = "museumId", column = "museum_id"),
+            @Result(property = "museumName", column = "name"),
+            @Result(property = "visitorId", column = "visitor_id"),
+            @Result(property = "visitorName", column = "full_name"),
+            @Result(property = "bookingType", column = "booking_type"),
+            @Result(property = "bookingDate", column = "booking_date"),
+            @Result(property = "ticketType", column = "ticket_type"),
+            @Result(property = "purchasedDate", column = "created_at"),
+            @Result(property = "ticketPrice", column = "ticket_price"),
+            @Result(property = "slotAmount", column = "slot_amount"),
+            @Result(property = "qrCode", column = "qr_code"),
+            @Result(property = "totalPrice", column = "total_price"),
+            @Result(property = "ticketStatus", column = "ticket_status"),
+            @Result(property = "expiredDate", column = "expired_date"),
+            @Result(property = "museumLogo", column = "museum_logo")
+    })
+    BookingV2 insertBookingIndividual(UUID museumId, UUID visitorId, TicketType ticketType, @Param("bookingRequest") BookingRequestV2 bookingRequest, String code, LocalDateTime expiredDate);
 }

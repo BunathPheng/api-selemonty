@@ -2,8 +2,8 @@ package org.hrd.finalprojectmuseum.model.entity.visitor;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
-import org.hrd.finalprojectmuseum.model.enums.TicketStatus;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -11,7 +11,11 @@ import java.util.UUID;
 public class BookingV2 {
     private UUID bookingId;
     @JsonInclude(JsonInclude.Include.NON_NULL)
+    private UUID museumId;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private String museumName;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private UUID visitorId;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private String visitorName;
     @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -22,11 +26,15 @@ public class BookingV2 {
     private String ticketType;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private LocalDateTime purchasedDate;
-    private Double ticketPrice;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private BigDecimal ticketPrice;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private Integer slotAmount;
     @JsonInclude(JsonInclude.Include.NON_NULL)
+    private BigDecimal totalPrice;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private String qrCode;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private String ticketStatus;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private LocalDateTime expiredDate;
