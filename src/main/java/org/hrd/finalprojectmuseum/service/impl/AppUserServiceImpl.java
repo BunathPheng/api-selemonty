@@ -121,14 +121,14 @@ public class AppUserServiceImpl implements AppUserService {
     public void checkEmail(String email) {
         AppUserRegister appUser = appUserRepository.findUserByEmail(email);
         if (appUser == null) {
-            throw new AppBadRequestException("Email not found.");
+            throw new AppNotFoundException("Email not found.");
         }
     }
 
     @Override
     public String getToken(String email) {
         appUserRepository.getUserByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("Email not found"));
+                .orElseThrow(() -> new AppNotFoundException("Email not found"));
         return jwtUtils.generateResetToken(email);
     }
 

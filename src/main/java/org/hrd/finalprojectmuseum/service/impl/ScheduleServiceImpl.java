@@ -29,7 +29,7 @@ public class ScheduleServiceImpl implements ScheduleService {
     @Override
     public void addSchedule(UUID museumId) {
         for(DayOfWeek dayOfWeek : DayOfWeek.values()) {
-            scheduleRepository.insertSchedule(museumId, dayOfWeek.getValue());
+            scheduleRepository.insertSchedule(museumId, dayOfWeek.name());
         }
     }
 

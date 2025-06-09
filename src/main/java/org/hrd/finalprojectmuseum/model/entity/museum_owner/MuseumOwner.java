@@ -19,7 +19,6 @@ public class MuseumOwner {
     private AppUserRegister appUserRegister;
     private MuseumCategory museumCategory;
     private VisitorReviewStatistics review;
-    @JsonInclude(JsonInclude.Include.NON_NULL)
     private Boolean isFavorite;
     private String name;
     private String address;
@@ -35,6 +34,8 @@ public class MuseumOwner {
     private List<Schedule> schedule;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private Schedule todaySchedule;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private MuseumArtifact museumArtifact;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
