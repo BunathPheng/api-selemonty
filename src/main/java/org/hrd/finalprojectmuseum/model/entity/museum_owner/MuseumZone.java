@@ -19,6 +19,7 @@ public class MuseumZone {
     private String description;
     private String pictureLink;
     private String videoLink;
+    private Integer countArtifact;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private boolean isDeleted;
