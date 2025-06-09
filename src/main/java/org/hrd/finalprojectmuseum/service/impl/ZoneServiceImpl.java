@@ -7,6 +7,7 @@ import org.hrd.finalprojectmuseum.model.dto.request.museum_owner.MuseumArtifactR
 import org.hrd.finalprojectmuseum.model.dto.request.museum_owner.MuseumZoneRequest;
 import org.hrd.finalprojectmuseum.model.dto.request.museum_owner.MuseumZoneUpdateRequest;
 import org.hrd.finalprojectmuseum.model.dto.response.MuseumZoneResponse;
+import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumArtifact;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumZone;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumZoneCategory;
@@ -77,6 +78,8 @@ public class ZoneServiceImpl implements ZoneService {
         if (museumZone == null) {
             throw new AppNotFoundException("Museum zone ID not found");
         }
+        Integer countArtifact = artifactRepository.countArtifact(museumZone.getZoneId(), "");
+        museumZone.setCountArtifact(countArtifact);
         return museumZone;
     };
 
@@ -122,6 +125,10 @@ public class ZoneServiceImpl implements ZoneService {
         }
         if (museumZoneResponses == null) {
             throw new AppNotFoundException("Museum Zone Not Found");
+        }
+        for(MuseumZoneResponse museumZoneResponse : museumZoneResponses){
+            Integer countArtifact = artifactRepository.countArtifact(museumZoneResponse.getZoneId(), "");
+            museumZoneResponse.setCountArtifact(countArtifact);
         }
         return museumZoneResponses;
     }

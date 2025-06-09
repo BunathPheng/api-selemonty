@@ -235,4 +235,15 @@ public class MuseumServiceImpl implements MuseumService {
         setFullData(museum);
         return museum;
     }
+
+    @Override
+    public ListResponse<MuseumOwner> getAllMuseumOrderbyPopular(Integer page, Integer size) {
+        List<MuseumOwner> museumOwners = museumRepository.findAllMuseumOrderbyPopular(page, size);
+        Pagination pagination = new Pagination();
+        Integer countMuseum = museumRepository.countAllMuseumOrderbyPopular();
+        return ListResponse.<MuseumOwner>builder()
+                .items(museumOwners)
+                .pagination(pagination.calculatePagination(countMuseum, page, size))
+                .build();
+    }
 }

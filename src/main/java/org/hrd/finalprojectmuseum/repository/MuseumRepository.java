@@ -31,9 +31,18 @@ public interface MuseumRepository {
             @Result(property = "isApproved", column = "is_approved"),
             @Result(property = "createdAt", column = "created_at"),
             @Result(property = "updatedAt", column = "updated_at"),
+            @Result(property = "museumArtifact", column = "museum_id",
+                    one = @One(select = "org.hrd.finalprojectmuseum.repository.ArtifactRepository.findMuseumArtifactByMuseumId")
+            )
     })
     @Select("""
-        SELECT * FROM museum_owners WHERE museum_id = #{museumId}::UUID;
+        SELECT museum_owners.*, 
+               CASE WHEN favorites.visitor_id IS NOT NULL THEN true ELSE false END AS is_favorite
+        FROM museum_owners
+        INNER JOIN user_info ON user_info.user_id = museum_owners.user_id
+        LEFT JOIN favorites ON museum_owners.museum_id = favorites.museum_id 
+                            AND favorites.visitor_id = #{visitorId}::UUID
+        WHERE user_info.is_verified = true AND museum_owners.museum_id = #{museumId}::UUID;
     """)
     MuseumOwner findMuseumOwnerByMuseumId(UUID museumId);
 

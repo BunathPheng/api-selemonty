@@ -3,6 +3,8 @@ package org.hrd.finalprojectmuseum.service.impl;
 import lombok.RequiredArgsConstructor;
 import org.hrd.finalprojectmuseum.exception.AppBadRequestException;
 import org.hrd.finalprojectmuseum.exception.AppNotFoundException;
+import org.hrd.finalprojectmuseum.model.dto.response.ListResponse;
+import org.hrd.finalprojectmuseum.model.entity.Pagination;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.FavoriteMuseum;
 import org.hrd.finalprojectmuseum.model.entity.visitor.VisitorFavorite;
 import org.hrd.finalprojectmuseum.model.enums.FavoriteType;
@@ -57,10 +59,16 @@ public class FavoriteServiceImpl implements FavoriteService {
     }
 
     @Override
-    public List<FavoriteMuseum> getAllFavoriteMuseums(UUID visitorId) {
-        if(favoriteRepository.retrieveFavoriteMuseums(visitorId).isEmpty()) {
+    public ListResponse<FavoriteMuseum> getAllFavoriteMuseums(UUID visitorId, Integer page, Integer size) {
+        if(favoriteRepository.retrieveFavoriteMuseums(visitorId, page, size).isEmpty()) {
             throw new AppNotFoundException("Museum not found");
         }
-        return favoriteRepository.retrieveFavoriteMuseums(visitorId);
+        List<FavoriteMuseum> favoriteMuseums = favoriteRepository.retrieveFavoriteMuseums(visitorId, page, size);
+        Integer total = favoriteRepository.countFavoriteMuseum(visitorId);
+        Pagination pagination = new Pagination();
+        return ListResponse.<FavoriteMuseum>builder()
+                .items(favoriteMuseums)
+                .pagination(pagination.calculatePagination(total, page, size))
+                .build();
     }
 }

@@ -27,6 +27,10 @@ public class OtpCacheServiceImpl implements OtpCacheService {
     public void storeOtp(String email, String otp) {
         LocalDateTime expiredDate = LocalDateTime.now().plusMinutes(2);
         AppUserRegister appUser = appUserRepository.findUserByEmail(email);
+        Otps otps = otpRepository.getOptByUserId(appUser.getUserId());
+        if (otps != null) {
+            otpRepository.removeOptByUserId(appUser.getUserId());
+        }
         otpRepository.saveOpt(appUser.getUserId(), expiredDate, otp);
     }
 

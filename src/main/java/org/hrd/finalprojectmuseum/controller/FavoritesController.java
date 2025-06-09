@@ -2,10 +2,14 @@ package org.hrd.finalprojectmuseum.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.hrd.finalprojectmuseum.model.dto.response.ApiResponse;
+import org.hrd.finalprojectmuseum.model.dto.response.ListResponse;
+import org.hrd.finalprojectmuseum.model.entity.Pagination;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.FavoriteMuseum;
 import org.hrd.finalprojectmuseum.model.entity.visitor.VisitorFavorite;
+import org.hrd.finalprojectmuseum.model.entity.visitor.VisitorReview;
 import org.hrd.finalprojectmuseum.model.enums.FavoriteType;
 import org.hrd.finalprojectmuseum.service.FavoriteService;
 import org.hrd.finalprojectmuseum.service.ReviewService;
@@ -78,12 +82,16 @@ public class FavoritesController {
     @PreAuthorize("hasRole('ROLE_VISITOR')")
     @GetMapping
     @Operation(summary = "Get all visitor favorite museum")
-    public ResponseEntity<ApiResponse<List<FavoriteMuseum>>> getAllFavoriteMuseums() {
+    public ResponseEntity<ApiResponse<ListResponse<FavoriteMuseum>>> getAllFavoriteMuseums(
+            @RequestParam(defaultValue = "1") @Min(value = 1, message = "must be greater than 0") Integer page,
+            @RequestParam(defaultValue = "10") @Min(value = 1, message = "must be greater than 0") Integer size
+    ) {
         UUID visitorId = getVisitorIdByUserId();
 
-        List<FavoriteMuseum> favoriteMuseums = favoriteService.getAllFavoriteMuseums(visitorId);
+        ListResponse<FavoriteMuseum> favoriteMuseums = favoriteService.getAllFavoriteMuseums(visitorId, page, size);
 
-        ApiResponse<List<FavoriteMuseum>> response = ApiResponse.<List<FavoriteMuseum>>builder()
+
+        ApiResponse<ListResponse<FavoriteMuseum>> response = ApiResponse.<ListResponse<FavoriteMuseum>>builder()
                 .success(true)
                 .message("All visitor favorite museums fetched successfully")
                 .payload(favoriteMuseums)

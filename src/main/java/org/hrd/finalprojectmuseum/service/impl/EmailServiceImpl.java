@@ -1,6 +1,8 @@
 package org.hrd.finalprojectmuseum.service.impl;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
@@ -9,6 +11,7 @@ import org.hrd.finalprojectmuseum.model.entity.EmailDetails;
 import org.hrd.finalprojectmuseum.service.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -56,11 +59,11 @@ public class EmailServiceImpl implements EmailService {
     }
 
     @Override
-    public String sendMailAsHTML(String email, String otp){
+    public String sendMailAsHTML(String email, String otp) throws IOException {
         EmailDetails details = EmailDetails.builder()
                 .recipient(email)
                 .subject("Your OTP Verification Code")
-                .msgBody("<!DOCTYPE html><html><body><p>Your OTP is: <b>" + otp + "</b></p><p>Please do not share it with anyone.</p></body></html>")
+                .msgBody(loadTemplate(otp))
                 .plainTextBody("Your OTP is: " + otp + ". Please do not share it with anyone.")
                 .isHtml(true) // Add this flag to differentiate formats
                 .build();
@@ -79,6 +82,12 @@ public class EmailServiceImpl implements EmailService {
             throw new RuntimeException(e);
         }
 
+    }
+
+    public String loadTemplate(String otp) throws IOException {
+        ClassPathResource resource = new ClassPathResource("templates/otpTemplate.html");
+        String content = new String(resource.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+        return content.replace("{{otp}}", otp);
     }
 
     // Method 2

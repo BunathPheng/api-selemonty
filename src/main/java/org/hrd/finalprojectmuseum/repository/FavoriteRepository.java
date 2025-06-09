@@ -70,7 +70,8 @@ public interface FavoriteRepository {
         FROM museum_owners mo
         INNER JOIN user_info ui ON mo.user_id = ui.user_id
         INNER JOIN favorites f ON f.museum_id = mo.museum_id
-        WHERE f.visitor_id = #{visitorId}::UUID;
+        WHERE f.visitor_id = #{visitorId}::UUID
+        OFFSET (#{page}-1) * #{size} LIMIT #{size};
     """)
     @Results(id = "AllFavoriteMuseums", value = {
             @Result(property = "museumId", column = "museum_id"),
@@ -83,7 +84,7 @@ public interface FavoriteRepository {
                     many = @Many(select = "getFavoriteMuseumSchedule")
             )
     })
-    List<FavoriteMuseum> retrieveFavoriteMuseums(UUID visitorId);
+    List<FavoriteMuseum> retrieveFavoriteMuseums(UUID visitorId, Integer page, Integer size);
 
     @Select("""
         SELECT day, opening_time, closing_time
@@ -97,4 +98,13 @@ public interface FavoriteRepository {
             @Result(property = "closingTime", column = "closing_time")
     })
     List<FavoriteMuseumSchedule> getFavoriteMuseumSchedule(UUID museumId);
+
+    @Select("""
+        SELECT COUNT(mo.museum_id)
+        FROM museum_owners mo
+        INNER JOIN user_info ui ON mo.user_id = ui.user_id
+        INNER JOIN favorites f ON f.museum_id = mo.museum_id
+        WHERE f.visitor_id = #{visitorId}::UUID
+    """)
+    Integer countFavoriteMuseum(UUID visitorId);
 }
