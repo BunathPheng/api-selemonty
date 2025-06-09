@@ -126,6 +126,10 @@ public class ZoneServiceImpl implements ZoneService {
         if (museumZoneResponses == null) {
             throw new AppNotFoundException("Museum Zone Not Found");
         }
+        for(MuseumZoneResponse museumZoneResponse : museumZoneResponses){
+            Integer countArtifact = artifactRepository.countArtifact(museumZoneResponse.getZoneId(), "");
+            museumZoneResponse.setCountArtifact(countArtifact);
+        }
         return museumZoneResponses;
     }
 
