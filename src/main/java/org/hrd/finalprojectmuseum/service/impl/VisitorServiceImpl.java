@@ -28,7 +28,7 @@ public class VisitorServiceImpl implements VisitorService {
             throw new AppNotFoundException("User with id " + userId + " not found");
         }
         List<Visitor> visitors = visitorRepository.findVisitorByMuseumId(museumOwner.getMuseumId(), search, page, size);
-        Integer allItem = visitorRepository.countAllVisitor(museumOwner.getMuseumId(), search);
+        Integer allItem = visitorRepository.countAllVisitorByMuseumId(museumOwner.getMuseumId(), search);
         Pagination pagination = new Pagination();
         return ListResponse.<Visitor>builder()
                 .items(visitors)
@@ -39,7 +39,13 @@ public class VisitorServiceImpl implements VisitorService {
     @Override
     public ListResponse<Visitor> getAllVisitor(String search, Integer page, Integer size) {
         search = search == null ? "" : search;
-        return visitorRepository.findAllVisitor(search, page, size);
+        List<Visitor> visitors = visitorRepository.findAllVisitor(search, page, size);
+        Integer allItem = visitorRepository.countAllVisitor(search);
+        Pagination pagination = new Pagination();
+        return ListResponse.<Visitor>builder()
+                .items(visitors)
+                .pagination(pagination.calculatePagination(allItem, page, size))
+                .build();
     }
 
     @Override

@@ -37,7 +37,7 @@ public interface VisitorRepository {
         WHERE b.museum_id = #{museumId}::UUID
         AND full_name ILIKE CONCAT('%', #{search}, '%')
     """)
-    Integer countAllVisitor(UUID museumId, String search);
+    Integer countAllVisitorByMuseumId(UUID museumId, String search);
 
     @ResultMap("visitorMapper")
     @Select("""
@@ -45,11 +45,16 @@ public interface VisitorRepository {
         WHERE full_name ILIKE CONCAT('%', #{search}, '%')
         OFFSET (#{page}-1)* #{size} LIMIT #{size};
     """)
-    ListResponse<Visitor> findAllVisitor(String search, Integer page, Integer size);
+    List<Visitor> findAllVisitor(String search, Integer page, Integer size);
 
     @ResultMap("visitorMapper")
     @Select("""
         SELECT * FROM visitors WHERE visitor_id = #{visitorId}::UUID;
     """)
     Visitor findVisitorById(UUID visitorId);
+
+    @Select("""
+        SELECT COUNT(*) FROM visitors WHERE full_name ILIKE CONCAT('%', #{search}, '%')
+    """)
+    Integer countAllVisitor(String search);
 }
