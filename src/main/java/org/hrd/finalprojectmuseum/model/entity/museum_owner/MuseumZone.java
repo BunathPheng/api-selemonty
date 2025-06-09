@@ -23,5 +23,4 @@ public class MuseumZone {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private boolean isDeleted;
-    private List<MuseumArtifact> artifacts;
 }

@@ -66,9 +66,6 @@ public interface ZoneRepository {
             @Result(property = "createdAt", column = "created_at"),
             @Result(property = "updatedAt", column = "updated_at"),
             @Result(property = "isDeleted", column = "is_deleted"),
-            @Result(property = "artifacts", column = "museum_zone_id",
-                    many = @Many(select = "org.hrd.finalprojectmuseum.repository.ArtifactRepository.retrieveMuseumArtifactByZoneId")
-            )
     })
     MuseumZone retrieveMuseumZoneDetailByZoneId(UUID zoneID);
 
