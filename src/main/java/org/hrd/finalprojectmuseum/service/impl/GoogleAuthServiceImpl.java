@@ -42,7 +42,8 @@ public class GoogleAuthServiceImpl implements GoogleAuthService {
 
     @Override
     @Transactional
-    public LoginToken<?> verifyAndExtractUserInfo(String idTokenString, String role) throws GeneralSecurityException, IOException {
+    public LoginToken<?>
+    verifyAndExtractUserInfo(String idTokenString, String role) throws GeneralSecurityException, IOException {
         GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(transport, jsonFactory)
                 .setAudience(Collections.singletonList(webClientId))
                 .build();
