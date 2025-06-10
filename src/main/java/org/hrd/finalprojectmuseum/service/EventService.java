@@ -10,7 +10,7 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 public interface EventService {
-    ListResponse<Event> findAllEvents(String search, Integer page, Integer size, LocalDate dateFiler, EventStatus eventStatus);
+    ListResponse<Event> findAllEvents(String search, Integer page, Integer size, LocalDate dateFilter, EventStatus eventStatus);
 
     Event findEventsByEventId(UUID eventId);
 

@@ -25,49 +25,49 @@ public class EventServiceImpl implements EventService {
     private final EventRepository eventRepository;
 
     @Override
-    public ListResponse<Event> findAllEvents(String search, Integer page, Integer size, LocalDate dateFiler, EventStatus eventStatus) {
+    public ListResponse<Event> findAllEvents(String search, Integer page, Integer size, LocalDate dateFilter, EventStatus eventStatus) {
         search = search == null ? "" : search;
         Integer totalItems;
         List<Event> events;
         if (eventStatus == EventStatus.ALL) {
-            if (dateFiler == null) {
+            if (dateFilter == null) {
                 events = eventRepository.findAllEvents(search, page, size);
                 totalItems = eventRepository.countAllEvent(search);
             } else {
-                events = eventRepository.findAllEventsWithDateFilter(search, page, size, dateFiler);
-                totalItems = eventRepository.countAllEventWithFilter(search, dateFiler);
+                events = eventRepository.findAllEventsWithDateFilter(search, page, size, dateFilter);
+                totalItems = eventRepository.countAllEventWithFilter(search, dateFilter);
             }
         }else if(eventStatus == EventStatus.AVAILABLE ){
-            if (dateFiler == null) {
+            if (dateFilter == null) {
                 events = eventRepository.findAllEventsAvailable(search, page, size);
                 totalItems = eventRepository.countAllEventAvailable(search);
             } else {
-                events = eventRepository.findAllEventsWithDateFilterAvailable(search, page, size, dateFiler);
-                totalItems = eventRepository.countAllEventWithFilterAvailable(search, dateFiler);
+                events = eventRepository.findAllEventsWithDateFilterAvailable(search, page, size, dateFilter);
+                totalItems = eventRepository.countAllEventWithFilterAvailable(search, dateFilter);
             }
         }else if(eventStatus == EventStatus.UPCOMING ){
-            if (dateFiler == null) {
+            if (dateFilter == null) {
                 events = eventRepository.findAllEventsUpComing(search, page, size);
                 totalItems = eventRepository.countAllEventUpComing(search);
             } else {
-                events = eventRepository.findAllEventsWithDateFilterUpComing(search, page, size, dateFiler);
-                totalItems = eventRepository.countAllEventWithFilterUpComing(search, dateFiler);
+                events = eventRepository.findAllEventsWithDateFilterUpComing(search, page, size, dateFilter);
+                totalItems = eventRepository.countAllEventWithFilterUpComing(search, dateFilter);
             }
         }else if(eventStatus == EventStatus.ONGOING ){
-            if (dateFiler == null) {
+            if (dateFilter == null) {
                 events = eventRepository.findAllEventsOnGoing(search, page, size);
                 totalItems = eventRepository.countAllEventOnGoing(search);
             } else {
-                events = eventRepository.findAllEventsWithDateFilterOngoing(search, page, size, dateFiler);
-                totalItems = eventRepository.countAllEventWithFilterOnGoing(search, dateFiler);
+                events = eventRepository.findAllEventsWithDateFilterOngoing(search, page, size, dateFilter);
+                totalItems = eventRepository.countAllEventWithFilterOnGoing(search, dateFilter);
             }
         }else {
-            if (dateFiler == null) {
+            if (dateFilter == null) {
                 events = eventRepository.findAllEventsEnded(search, page, size);
                 totalItems = eventRepository.countAllEventEnded(search);
             } else {
-                events = eventRepository.findAllEventsWithDateFilterEnded(search, page, size, dateFiler);
-                totalItems = eventRepository.countAllEventWithFilterEnded(search, dateFiler);
+                events = eventRepository.findAllEventsWithDateFilterEnded(search, page, size, dateFilter);
+                totalItems = eventRepository.countAllEventWithFilterEnded(search, dateFilter);
             }
         }
         for (Event event : events) {

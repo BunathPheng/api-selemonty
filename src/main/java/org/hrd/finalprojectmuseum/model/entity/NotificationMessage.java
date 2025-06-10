@@ -6,22 +6,16 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class NotificationMessage {
-    private String notificationMessageId;
-    private String subscriptionId;
-    private String userId;
-    private String title;
-    private String message;
-    private String notificationType; // info, warning, success, error
-    private String priority; // low, normal, high
-    private Boolean isRead;
-    private LocalDateTime scheduledAt;
-    private LocalDateTime sentAt;
-    private String onesignalId;
+    private UUID notificationId;
+    private UUID subscriptionId;
+    private String subscriptionCode; // OneSignal Player ID
     private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }

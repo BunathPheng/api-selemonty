@@ -38,7 +38,7 @@ public interface EventRepository {
     @Select("""
         SELECT * FROM events
         WHERE is_deleted = false
-        AND title LIKE CONCAT('%', #{search}, '%')
+        AND title ILIKE CONCAT('%', #{search}, '%')
         ORDER BY start_date
         OFFSET (#{page} - 1) * #{size}
         LIMIT #{size}
@@ -49,7 +49,7 @@ public interface EventRepository {
     @Select("""
         SELECT * FROM events 
         WHERE is_deleted = false
-        AND title LIKE CONCAT('%', #{search}, '%')
+        AND title ILIKE CONCAT('%', #{search}, '%')
         AND DATE(start_date) = #{dateFilter}
         ORDER BY start_date
         OFFSET (#{page} - 1) * #{size} 
@@ -60,7 +60,7 @@ public interface EventRepository {
     @ResultMap("eventMapper")
     @Select("""
         SELECT * FROM events WHERE museum_id = #{museumId}::UUID AND is_deleted = false
-                             AND title LIKE CONCAT('%', #{search}, '%')
+                             AND title ILIKE CONCAT('%', #{search}, '%')
                              offset (#{page}-1)* #{size} limit #{size};
     """)
     List<Event> findAllEventsByMuseumId(String search, UUID museumId, Integer page, Integer size);
@@ -68,7 +68,7 @@ public interface EventRepository {
 
     @Select("""
         SELECT count(*) FROM events WHERE museum_id = #{museumId}::UUID
-        AND is_deleted = false AND title LIKE CONCAT('%', #{search}, '%');
+        AND is_deleted = false AND title ILIKE CONCAT('%', #{search}, '%');
     """)
     Integer countAllEventByMuseumId(String search, UUID museumId);
 
@@ -110,7 +110,7 @@ public interface EventRepository {
     @Select("""
         SELECT * FROM events 
         WHERE is_deleted = false
-        AND title LIKE CONCAT('%', #{search}, '%')
+        AND title ILIKE CONCAT('%', #{search}, '%')
         AND (
             (start_date <= NOW() AND end_date >= NOW())  -- ongoing
             OR (start_date > NOW())                      -- upcoming
@@ -134,7 +134,7 @@ public interface EventRepository {
     @Select("""
         SELECT * FROM events 
         WHERE is_deleted = false
-        AND title LIKE CONCAT('%', #{search}, '%')
+        AND title ILIKE CONCAT('%', #{search}, '%')
         AND DATE(start_date) = #{dateFilter}
         AND (
             (start_date <= NOW() AND end_date >= NOW())  -- ongoing
@@ -144,7 +144,7 @@ public interface EventRepository {
         OFFSET (#{page} - 1) * #{size} 
         LIMIT #{size}
     """)
-    List<Event> findAllEventsWithDateFilterAvailable(String search, Integer page, Integer size, LocalDate dateFiler);
+    List<Event> findAllEventsWithDateFilterAvailable(String search, Integer page, Integer size, LocalDate dateFilter);
 
     @Select("""
         SELECT count(*) FROM events WHERE title ILIKE CONCAT('%', #{search}, '%')
@@ -154,13 +154,13 @@ public interface EventRepository {
             OR (start_date > NOW())                      -- upcoming
           )
     """)
-    Integer countAllEventWithFilterAvailable(String search, LocalDate dateFiler);
+    Integer countAllEventWithFilterAvailable(String search, LocalDate dateFilter);
 
     @ResultMap("eventMapper")
     @Select("""
         SELECT * FROM events 
         WHERE is_deleted = false
-        AND title LIKE CONCAT('%', #{search}, '%')
+        AND title ILIKE CONCAT('%', #{search}, '%')
         AND start_date <= NOW() 
         AND end_date >= NOW()
         ORDER BY start_date
@@ -180,7 +180,7 @@ public interface EventRepository {
     @Select("""
         SELECT * FROM events 
         WHERE is_deleted = false
-        AND title LIKE CONCAT('%', #{search}, '%')
+        AND title ILIKE CONCAT('%', #{search}, '%')
         AND DATE(start_date) = #{dateFilter}
         AND start_date <= NOW() 
         AND end_date >= NOW()
@@ -188,7 +188,7 @@ public interface EventRepository {
         OFFSET (#{page} - 1) * #{size} 
         LIMIT #{size}
     """)
-    List<Event> findAllEventsWithDateFilterOngoing(String search, Integer page, Integer size, LocalDate dateFiler);
+    List<Event> findAllEventsWithDateFilterOngoing(String search, Integer page, Integer size, LocalDate dateFilter);
 
     @Select("""
         SELECT count(*) FROM events WHERE title ILIKE CONCAT('%', #{search}, '%')
@@ -196,13 +196,13 @@ public interface EventRepository {
         AND start_date <= NOW() 
         AND end_date >= NOW()
     """)
-    Integer countAllEventWithFilterOnGoing(String search, LocalDate dateFiler);
+    Integer countAllEventWithFilterOnGoing(String search, LocalDate dateFilter);
 
     @ResultMap("eventMapper")
     @Select("""
         SELECT * FROM events 
         WHERE is_deleted = false
-        AND title LIKE CONCAT('%', #{search}, '%')
+        AND title ILIKE CONCAT('%', #{search}, '%')
         AND start_date > now()
         ORDER BY start_date
         OFFSET (#{page} - 1) * #{size} 
@@ -220,28 +220,28 @@ public interface EventRepository {
     @Select("""
         SELECT * FROM events 
         WHERE is_deleted = false
-        AND title LIKE CONCAT('%', #{search}, '%')
+        AND title ILIKE CONCAT('%', #{search}, '%')
         AND DATE(start_date) = #{dateFilter}
         AND start_date > now()
         ORDER BY start_date
         OFFSET (#{page} - 1) * #{size} 
         LIMIT #{size}
     """)
-    List<Event> findAllEventsWithDateFilterUpComing(String search, Integer page, Integer size, LocalDate dateFiler);
+    List<Event> findAllEventsWithDateFilterUpComing(String search, Integer page, Integer size, LocalDate dateFilter);
 
     @Select("""
         SELECT count(*) FROM events WHERE title ILIKE CONCAT('%', #{search}, '%')
         AND DATE(start_date) = #{dateFilter}
         AND start_date > now()
     """)
-    Integer countAllEventWithFilterUpComing(String search, LocalDate dateFiler);
+    Integer countAllEventWithFilterUpComing(String search, LocalDate dateFilter);
 
 
     @ResultMap("eventMapper")
     @Select("""
         SELECT * FROM events
         WHERE is_deleted = false
-        AND title LIKE CONCAT('%', #{search}, '%')
+        AND title ILIKE CONCAT('%', #{search}, '%')
         AND end_date < now()
         ORDER BY start_date
         OFFSET (#{page} - 1) * #{size}
@@ -259,19 +259,19 @@ public interface EventRepository {
     @Select("""
         SELECT * FROM events 
         WHERE is_deleted = false
-        AND title LIKE CONCAT('%', #{search}, '%')
+        AND title ILIKE CONCAT('%', #{search}, '%')
         AND DATE(start_date) = #{dateFilter}
         AND end_date < now()
         ORDER BY start_date
         OFFSET (#{page} - 1) * #{size} 
         LIMIT #{size}
     """)
-    List<Event> findAllEventsWithDateFilterEnded(String search, Integer page, Integer size, LocalDate dateFiler);
+    List<Event> findAllEventsWithDateFilterEnded(String search, Integer page, Integer size, LocalDate dateFilter);
 
     @Select("""
         SELECT count(*) FROM events WHERE title ILIKE CONCAT('%', #{search}, '%')
         AND DATE(start_date) = #{dateFilter}
         AND end_date < now()
     """)
-    Integer countAllEventWithFilterEnded(String search, LocalDate dateFiler);
+    Integer countAllEventWithFilterEnded(String search, LocalDate dateFilter);
 }
