@@ -76,6 +76,10 @@ public class EmailServiceImpl implements EmailService {
             helper.setSubject(details.getSubject());
             helper.setText(details.getPlainTextBody(), details.getMsgBody()); // (text, html)
 
+            // Add the QR code image as inline attachment
+//            ClassPathResource qrImage = new ClassPathResource("static/ticket-qr.png");
+//            helper.addInline("qrcode", qrImage);
+
             javaMailSender.send(mimeMessage);
             return "Mail Sent Successfully...";
         } catch (MessagingException e) {
@@ -86,6 +90,7 @@ public class EmailServiceImpl implements EmailService {
 
     public String loadTemplate(String otp) throws IOException {
         ClassPathResource resource = new ClassPathResource("templates/otpTemplate.html");
+
         String content = new String(resource.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
         return content.replace("{{otp}}", otp);
     }
