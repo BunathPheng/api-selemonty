@@ -173,4 +173,10 @@ public interface ReviewRepository {
         WHERE review_id = #{reviewId}::UUID AND museum_id = #{museumId}::UUID;
     """)
     void deleteVisitorReviewByMuseumOwner(UUID reviewId, UUID museumId);
+
+    @ResultMap("visitorReview")
+    @Select("""
+        SELECT * FROM reviews WHERE museum_id = #{museumId}::UUID AND visitor_id = #{visitorId}::UUID;
+    """)
+    VisitorReview retrieveReviewByVisitorId(UUID museumId, UUID visitorId);
 }
