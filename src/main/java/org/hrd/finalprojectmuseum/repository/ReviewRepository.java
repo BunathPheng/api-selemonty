@@ -59,6 +59,9 @@ public interface ReviewRepository {
             @Result(property = "museumId", column = "museum_id"),
             @Result(property = "fullName", column = "visitor_id",
                     one = @One(select = "retrieveVisitorName")),
+            @Result(property = "profileImageLink", column = "visitor_id",
+                    one = @One(select = "retrieveProfileImageLink")
+            ),
             @Result(property = "comment", column = "comment"),
             @Result(property = "rating", column = "rating"),
             @Result(property = "createdAt", column = "created_at"),
@@ -74,6 +77,11 @@ public interface ReviewRepository {
         WHERE visitor_id = #{visitorId}::UUID
     """)
     String retrieveVisitorName(UUID visitorId);
+
+    @Select("""
+        SELECT profile_image_link FROM visitors WHERE visitor_id = #{visitorId}::UUID
+    """)
+    String retrieveProfileImageLink(UUID visitorId);
 
     @Select("""
         SELECT * FROM reviews
