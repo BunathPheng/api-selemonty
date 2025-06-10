@@ -11,6 +11,7 @@ public class VisitorReview {
     private UUID reviewId;
     private UUID museumId;
     private String fullName;
+    private String profileImageLink;
     private String comment;
     private BigDecimal rating;
     private LocalDateTime createdAt;
