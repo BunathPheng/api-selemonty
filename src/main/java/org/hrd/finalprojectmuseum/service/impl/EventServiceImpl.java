@@ -148,4 +148,66 @@ public class EventServiceImpl implements EventService {
         findEventsByEventId(eventId);
         eventRepository.updateDeleteStatus(eventId, LocalDateTime.now());
     }
+
+    @Override
+    public ListResponse<Event> findAllEventsByMuseumId(UUID museumId, String search, Integer page, Integer size, LocalDate dateFiler, EventStatus eventStatus) {
+        search = search == null ? "" : search;
+        Integer totalItems;
+        List<Event> events;
+
+        if (eventStatus == EventStatus.ALL) {
+            if (dateFiler == null) {
+                events = eventRepository.findAllEventsByMuseumId(museumId, search, page, size);
+                totalItems = eventRepository.countAllEventByMuseumId(museumId, search);
+            } else {
+                events = eventRepository.findAllEventsWithDateFilterByMuseumId(museumId, search, page, size, dateFiler);
+                totalItems = eventRepository.countAllEventWithFilterByMuseumId(museumId, search, dateFiler);
+            }
+        } else if (eventStatus == EventStatus.AVAILABLE) {
+            if (dateFiler == null) {
+                events = eventRepository.findAllEventsAvailableByMuseumId(museumId, search, page, size);
+                totalItems = eventRepository.countAllEventAvailableByMuseumId(museumId, search);
+            } else {
+                events = eventRepository.findAllEventsWithDateFilterAvailableByMuseumId(museumId, search, page, size, dateFiler);
+                totalItems = eventRepository.countAllEventWithFilterAvailableByMuseumId(museumId, search, dateFiler);
+            }
+        } else if (eventStatus == EventStatus.UPCOMING) {
+            if (dateFiler == null) {
+                events = eventRepository.findAllEventsUpComingByMuseumId(museumId, search, page, size);
+                totalItems = eventRepository.countAllEventUpComingByMuseumId(museumId, search);
+            } else {
+                events = eventRepository.findAllEventsWithDateFilterUpComingByMuseumId(museumId, search, page, size, dateFiler);
+                totalItems = eventRepository.countAllEventWithFilterUpComingByMuseumId(museumId, search, dateFiler);
+            }
+        } else if (eventStatus == EventStatus.ONGOING) {
+            if (dateFiler == null) {
+                events = eventRepository.findAllEventsOnGoingByMuseumId(museumId, search, page, size);
+                totalItems = eventRepository.countAllEventOnGoingByMuseumId(museumId, search);
+            } else {
+                events = eventRepository.findAllEventsWithDateFilterOngoingByMuseumId(museumId, search, page, size, dateFiler);
+                totalItems = eventRepository.countAllEventWithFilterOnGoingByMuseumId(museumId, search, dateFiler);
+            }
+        } else {
+            if (dateFiler == null) {
+                events = eventRepository.findAllEventsEndedByMuseumId(museumId, search, page, size);
+                totalItems = eventRepository.countAllEventEndedByMuseumId(museumId, search);
+            } else {
+                events = eventRepository.findAllEventsWithDateFilterEndedByMuseumId(museumId, search, page, size, dateFiler);
+                totalItems = eventRepository.countAllEventWithFilterEndedByMuseumId(museumId, search, dateFiler);
+            }
+        }
+
+        for (Event event : events) {
+            event.updateStatus();
+        }
+
+        Pagination pagination = new Pagination();
+        totalItems = totalItems == null ? 0 : totalItems;
+        pagination = pagination.calculatePagination(totalItems, page, size);
+
+        return ListResponse.<Event>builder()
+                .items(events)
+                .pagination(pagination)
+                .build();
+    }
 }

@@ -1,5 +1,6 @@
 package org.hrd.finalprojectmuseum.service;
 
+import jakarta.validation.constraints.Min;
 import org.hrd.finalprojectmuseum.model.dto.request.EventRequest;
 import org.hrd.finalprojectmuseum.model.dto.response.ListResponse;
 import org.hrd.finalprojectmuseum.model.entity.Event;
@@ -19,4 +20,6 @@ public interface EventService {
     Event updateEventByEventId(UUID eventId, EventRequest eventRequest, UUID museumId);
 
     void updateDeleteStatus(UUID eventId, UUID museumId);
+
+    ListResponse<Event> findAllEventsByMuseumId(UUID museumId, String search, @Min(value = 1, message = "must be greater than 0") Integer page, @Min(value = 1, message = "must be greater than 0") Integer size, LocalDate dateFilter, EventStatus eventStatus);
 }

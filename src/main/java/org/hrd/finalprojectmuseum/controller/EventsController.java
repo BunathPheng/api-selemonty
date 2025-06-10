@@ -55,6 +55,8 @@ public class EventsController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+
+
     @GetMapping("/filter")
     public ResponseEntity<ApiResponse<ListResponse<Event>>> getAllEventsWithFilter(
             @RequestParam(required = false) String search,
@@ -64,6 +66,44 @@ public class EventsController {
             @RequestParam(name = "event-status") EventStatus eventStatus
     ) {
         ListResponse<Event> listEventResponse = eventService.findAllEvents(search, page, size, dateFilter, eventStatus);
+        ApiResponse<ListResponse<Event>> response = ApiResponse.<ListResponse<Event>>builder()
+                .success(true)
+                .message("All events have been fetched")
+                .status(HttpStatus.OK)
+                .payload(listEventResponse)
+                .timestamp(LocalDateTime.now())
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @GetMapping("/museum/{museum-id}")
+    public ResponseEntity<ApiResponse<ListResponse<Event>>> getAllEventsByMuseumId(
+                @PathVariable("museum-id") UUID museumId,
+            @RequestParam(defaultValue = "1") @Min(value = 1, message = "must be greater than 0") Integer page,
+            @RequestParam(defaultValue = "10") @Min(value = 1, message = "must be greater than 0") Integer size,
+            @RequestParam(name = "event-status") EventStatus eventStatus
+    ) {
+        ListResponse<Event> listEventResponse = eventService.findAllEventsByMuseumId(museumId, null, page, size, null, eventStatus);
+        ApiResponse<ListResponse<Event>> response = ApiResponse.<ListResponse<Event>>builder()
+                .success(true)
+                .message("All events have been fetched")
+                .status(HttpStatus.OK)
+                .payload(listEventResponse)
+                .timestamp(LocalDateTime.now())
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @GetMapping("/museum/{museum-id}/filter")
+    public ResponseEntity<ApiResponse<ListResponse<Event>>> getAllEventsWithFilterByMuseumId(
+            @PathVariable("museum-id") UUID museumId,
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "1") @Min(value = 1, message = "must be greater than 0") Integer page,
+            @RequestParam(defaultValue = "10") @Min(value = 1, message = "must be greater than 0") Integer size,
+            @RequestParam(required = false, name = "date-filter") LocalDate dateFilter,
+            @RequestParam(name = "event-status") EventStatus eventStatus
+    ) {
+        ListResponse<Event> listEventResponse = eventService.findAllEventsByMuseumId(museumId, search, page, size, dateFilter, eventStatus);
         ApiResponse<ListResponse<Event>> response = ApiResponse.<ListResponse<Event>>builder()
                 .success(true)
                 .message("All events have been fetched")

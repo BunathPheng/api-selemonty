@@ -110,9 +110,9 @@ public class AuthsController {
 
     @Operation(summary = "Login with google with IdToken as museum", description = "This endpoint need google IdToken from frontend to verify to register or login. Can use google oauth2 playground website to get IdToken for testing.")
     @PostMapping("/google/sign-in/museum-owner")
-    public ResponseEntity<ApiResponse<LoginToken>> handleGoogleLoginAsMuseumOwner(@RequestBody @Valid IdTokenRequest request) throws Exception {
-        LoginToken userInfo = googleAuthService.verifyAndExtractUserInfo(request.getIdToken(), "MUSEUM-OWNER");
-        ApiResponse<LoginToken> response = ApiResponse.<LoginToken>builder()
+    public ResponseEntity<ApiResponse<LoginToken<?>>> handleGoogleLoginAsMuseumOwner(@RequestBody @Valid IdTokenRequest request) throws Exception {
+        LoginToken<?> userInfo = googleAuthService.verifyAndExtractUserInfo(request.getIdToken(), "MUSEUM-OWNER");
+        ApiResponse<LoginToken<?>> response = ApiResponse.<LoginToken<?>>builder()
                 .success(true)
                 .message("Logged in successfully")
                 .status(HttpStatus.OK)

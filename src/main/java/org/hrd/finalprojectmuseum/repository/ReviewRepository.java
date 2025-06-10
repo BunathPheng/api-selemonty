@@ -59,6 +59,9 @@ public interface ReviewRepository {
             @Result(property = "museumId", column = "museum_id"),
             @Result(property = "fullName", column = "visitor_id",
                     one = @One(select = "retrieveVisitorName")),
+            @Result(property = "profileImageLink", column = "visitor_id",
+                    one = @One(select = "retrieveProfileImageLink")
+            ),
             @Result(property = "comment", column = "comment"),
             @Result(property = "rating", column = "rating"),
             @Result(property = "createdAt", column = "created_at"),
@@ -74,6 +77,11 @@ public interface ReviewRepository {
         WHERE visitor_id = #{visitorId}::UUID
     """)
     String retrieveVisitorName(UUID visitorId);
+
+    @Select("""
+        SELECT profile_image_link FROM visitors WHERE visitor_id = #{visitorId}::UUID
+    """)
+    String retrieveProfileImageLink(UUID visitorId);
 
     @Select("""
         SELECT * FROM reviews
@@ -173,4 +181,10 @@ public interface ReviewRepository {
         WHERE review_id = #{reviewId}::UUID AND museum_id = #{museumId}::UUID;
     """)
     void deleteVisitorReviewByMuseumOwner(UUID reviewId, UUID museumId);
+
+    @ResultMap("visitorReview")
+    @Select("""
+        SELECT * FROM reviews WHERE museum_id = #{museumId}::UUID AND visitor_id = #{visitorId}::UUID;
+    """)
+    VisitorReview retrieveReviewByVisitorId(UUID museumId, UUID visitorId);
 }
