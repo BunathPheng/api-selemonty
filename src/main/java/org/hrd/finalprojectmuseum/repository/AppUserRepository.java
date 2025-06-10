@@ -24,7 +24,6 @@ public interface AppUserRepository {
             @Result(property = "role", column = "role"),
             @Result(property = "isVerified", column = "is_verified"),
             @Result(property = "password", column = "password"),
-//            @Result(property = "isApprove", column = "is_approve"),
             @Result(property = "updatedAt", column = "updated_at"),
             @Result(property = "createdAt", column = "created_at"),
     })

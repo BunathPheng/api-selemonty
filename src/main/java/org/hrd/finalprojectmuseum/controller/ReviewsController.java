@@ -149,4 +149,21 @@ public class ReviewsController {
 
         return ResponseEntity.ok(response);
     }
+
+    @SecurityRequirement(name = "bearerAuth")
+    @PreAuthorize("hasRole('ROLE_VISITOR') or hasRole('ROLE_MUSEUM_OWNER')")
+    @GetMapping("/museum/{museum-id}/visitor/{visitor-id}")
+    public ResponseEntity<ApiResponse<VisitorReview>> getVisitorReviewByVisitorId(
+            @PathVariable("museum-id") UUID museumId,
+            @PathVariable("visitor-id") UUID visitorId
+    ){
+        VisitorReview visitorReview = reviewService.getVisitorReviewByVisitorId(museumId, visitorId);
+        ApiResponse<VisitorReview> response = ApiResponse.<VisitorReview>builder()
+                .success(true)
+                .message("Visitor review retrieved successfully")
+                .payload(visitorReview)
+                .status(HttpStatus.OK)
+                .build();
+        return ResponseEntity.ok(response);
+    }
 }
