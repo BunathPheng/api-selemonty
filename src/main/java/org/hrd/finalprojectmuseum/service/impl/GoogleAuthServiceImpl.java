@@ -42,7 +42,8 @@ public class GoogleAuthServiceImpl implements GoogleAuthService {
 
     @Override
     @Transactional
-    public LoginToken<?> verifyAndExtractUserInfo(String idTokenString, String role) throws GeneralSecurityException, IOException {
+    public LoginToken<?>
+    verifyAndExtractUserInfo(String idTokenString, String role) throws GeneralSecurityException, IOException {
         GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(transport, jsonFactory)
                 .setAudience(Collections.singletonList(webClientId))
                 .build();
@@ -55,6 +56,7 @@ public class GoogleAuthServiceImpl implements GoogleAuthService {
             if(appUserRegister == null) {
                 String encodedPass = passwordEncoder.encode("Kom@3");
                 Role roleEnum = role.equals("VISITOR") ? Role.ROLE_VISITOR : Role.ROLE_MUSEUM_OWNER;
+                System.out.println(roleEnum);
                 AppUserRegister registerUser = appUserRepository.registerUser(payload.getEmail(), encodedPass, roleEnum, true);
                 LoginToken<?> loginToken;
                 if (role.equals("VISITOR")){
@@ -65,6 +67,7 @@ public class GoogleAuthServiceImpl implements GoogleAuthService {
                             .user(visitor)
                             .build();
                 }else {
+                    System.out.println(roleEnum);
                     appUserRepository.storeMeseumOwner(registerUser.getUserId(), (String) payload.get("name"), (String) payload.get("picture"), null, null, null, null);
                     MuseumOwner museumOwner = profileService.getMuseumOwnerByUserId(registerUser.getUserId());
                     loginToken = LoginToken.<MuseumOwner>builder()

@@ -110,9 +110,9 @@ public class AuthsController {
 
     @Operation(summary = "Login with google with IdToken as museum", description = "This endpoint need google IdToken from frontend to verify to register or login. Can use google oauth2 playground website to get IdToken for testing.")
     @PostMapping("/google/sign-in/museum-owner")
-    public ResponseEntity<ApiResponse<LoginToken>> handleGoogleLoginAsMuseumOwner(@RequestBody @Valid IdTokenRequest request) throws Exception {
-        LoginToken userInfo = googleAuthService.verifyAndExtractUserInfo(request.getIdToken(), "MUSEUM-OWNER");
-        ApiResponse<LoginToken> response = ApiResponse.<LoginToken>builder()
+    public ResponseEntity<ApiResponse<LoginToken<?>>> handleGoogleLoginAsMuseumOwner(@RequestBody @Valid IdTokenRequest request) throws Exception {
+        LoginToken<?> userInfo = googleAuthService.verifyAndExtractUserInfo(request.getIdToken(), "MUSEUM-OWNER");
+        ApiResponse<LoginToken<?>> response = ApiResponse.<LoginToken<?>>builder()
                 .success(true)
                 .message("Logged in successfully")
                 .status(HttpStatus.OK)
@@ -157,16 +157,19 @@ public class AuthsController {
                 .status(HttpStatus.CREATED)
                 .build();
         String otp = sendEmailService.generateOtp();
-        emailService.sendMailAsHTML(museumOwnerRegisterRequest.getEmail(), otp);
-//        sendEmailService.sendOtpEmail(museumOwnerRegisterRequest.getEmail(), otp);
+        String result = emailService.sendMailAsHTML(museumOwnerRegisterRequest.getEmail(), otp);
+        System.out.println(result);
+
+        //        sendEmailService.sendOtpEmail(museumOwnerRegisterRequest.getEmail(), otp);
         otpService.storeOtp(museumOwnerRegisterRequest.getEmail(), otp);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @Transactional
     @Operation(summary = "For send re-send otp to verify account", description = "This endpoint use for send otp to verify account if user request to resend again")
     @PostMapping("/resend-otp")
-    public ResponseEntity<ApiResponse<Otps>> sendOtp(@RequestParam @Email(message = "Email form is incorrect") @NotBlank(message = "Email is required") String email) {
+    public ResponseEntity<ApiResponse<Otps>> sendOtp(@RequestParam @Email(message = "Email form is incorrect") @NotBlank(message = "Email is required") String email) throws IOException {
         String otp = sendEmailService.generateOtp();
         appUserService.checkEmailBeforeOpt(email);
 //        try {
@@ -184,8 +187,6 @@ public class AuthsController {
                 .payload(opts)
                 .status(HttpStatus.CREATED)
                 .build();
-
-        otpService.removeOtp(email);
         otpService.storeOtp(email, otp);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -215,7 +216,7 @@ public class AuthsController {
     @Transactional
     @Operation(summary = "For forgot password feature", description = "After input email, OTP will send to email. Then use OTP to verify in verify-otp/forgot-password endpoint. NOTE: if you dont see OTP email send in inbox please kinda check in spam. ")
     @PostMapping("/forgot-password")
-    public ResponseEntity<ApiResponse<Otps>> forgotPassword(@RequestBody @Valid ForgotPasswordRequest forgotPasswordRequest) {
+    public ResponseEntity<ApiResponse<Otps>> forgotPassword(@RequestBody @Valid ForgotPasswordRequest forgotPasswordRequest) throws IOException {
         String otp = sendEmailService.generateOtp();
         appUserService.checkEmail(forgotPasswordRequest.getEmail());
 //        try {

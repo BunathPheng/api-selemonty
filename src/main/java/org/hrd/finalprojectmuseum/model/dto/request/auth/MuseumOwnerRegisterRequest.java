@@ -45,13 +45,13 @@ public class MuseumOwnerRegisterRequest {
     @NotNull(message = "Latitude is required")
     @DecimalMin(value = "-90.0", message = "Latitude must be between -90 and 90")
     @DecimalMax(value = "90.0", message = "Latitude must be between -90 and 90")
-    @Digits(integer = 2, fraction = 6, message = "Latitude must have up to 2 integer digits and 6 fractional digits")
+    @Digits(integer = 3, fraction = 8, message = "Latitude must have up to 3 integer digits and 8 fractional digits")
     private BigDecimal lat;
 
     @NotNull(message = "Longitude is required")
     @DecimalMin(value = "-180.0", message = "Longitude must be between -180 and 180")
     @DecimalMax(value = "180.0", message = "Longitude must be between -180 and 180")
-    @Digits(integer = 3, fraction = 6, message = "Longitude must have up to 3 integer digits and 6 fractional digits")
+    @Digits(integer = 4, fraction = 8, message = "Longitude must have up to 4 integer digits and 8 fractional digits")
     private BigDecimal lng;
 
     @NotBlank(message = "Description is required")

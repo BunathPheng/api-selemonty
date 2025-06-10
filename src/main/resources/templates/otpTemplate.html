@@ -1,36 +1,152 @@
 <!DOCTYPE html>
-<html lang="en" style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 0; margin: 0;">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Your OTP Code</title>
+    <!--[if mso]>
+    <noscript>
+        <xml>
+            <o:OfficeDocumentSettings>
+                <o:AllowPNG/>
+                <o:PixelsPerInch>96</o:PixelsPerInch>
+            </o:OfficeDocumentSettings>
+        </xml>
+    </noscript>
+    <![endif]-->
+    <style>
+        @media only screen and (max-width: 600px) {
+            .container {
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+            .content {
+                padding: 20px !important;
+            }
+            .otp-code {
+                font-size: 20px !important;
+                padding: 12px 20px !important;
+                letter-spacing: 3px !important;
+            }
+        }
+
+        /* Dark mode support */
+        @media (prefers-color-scheme: dark) {
+            .dark-mode-text {
+                color: #ffffff !important;
+            }
+        }
+    </style>
 </head>
-<body style="margin: 0; padding: 0;">
-<table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f4f4f4; padding: 20px 0;">
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; background-color: #f8f9fa; line-height: 1.6;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8f9fa; padding: 20px 0; min-height: 100vh;">
     <tr>
-        <td align="center">
-            <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
+        <td align="center" valign="top">
+            <!-- Main Container -->
+            <table role="presentation" class="container" width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 8px 32px rgba(181, 0, 0, 0.1); border: 1px solid #f0f0f0; max-width: 600px;">
+
+                <!-- Header -->
                 <tr>
-                    <td style="background-color: #4a90e2; padding: 20px; text-align: center; color: #ffffff;">
-                        <h2 style="margin: 0;">Your Verification Code</h2>
+                    <td style="background: linear-gradient(135deg, #b50000 0%, #d32f2f 100%); padding: 40px 30px; text-align: center; position: relative;">
+                        <!-- Decorative elements -->
+                        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: radial-gradient(circle at 20% 20%, rgba(255,255,255,0.1) 1px, transparent 1px), radial-gradient(circle at 80% 80%, rgba(255,255,255,0.1) 1px, transparent 1px); background-size: 30px 30px;"></div>
+
+                        <!-- Lock Icon -->
+                        <div style="margin-bottom: 15px; position: relative; z-index: 1;">
+                            <div style="display: inline-block; width: 50px; height: 50px; background-color: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M6 10V8C6 5.79086 7.79086 4 10 4H14C16.2091 4 18 5.79086 18 8V10" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                                    <rect x="4" y="10" width="16" height="10" rx="2" fill="white" fill-opacity="0.9"/>
+                                    <circle cx="12" cy="15" r="2" fill="#b50000"/>
+                                </svg>
+                            </div>
+                        </div>
+
+                        <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 700; text-shadow: 0 2px 4px rgba(0,0,0,0.1); position: relative; z-index: 1;">
+                            Verification Code
+                        </h1>
+                        <p style="margin: 8px 0 0 0; color: rgba(255,255,255,0.9); font-size: 16px; position: relative; z-index: 1;">
+                            Secure access to your account
+                        </p>
                     </td>
                 </tr>
+
+                <!-- Content -->
                 <tr>
-                    <td style="padding: 30px; color: #333;">
-                        <p style="font-size: 16px;">Hi User,</p>
-                        <p style="font-size: 16px;">To verify your identity, please use the One-Time Password (OTP) below. This code is valid for <strong>2 minutes</strong>. Do not share it with anyone.</p>
-                        <div style="text-align: center; margin: 30px 0;">
-                            <p style="font-size: 24px; letter-spacing: 4px; font-weight: bold; color: #4a90e2; border: 2px dashed #4a90e2; display: inline-block; padding: 15px 25px; border-radius: 6px;">
-                                {{otp}}
+                    <td class="content" style="padding: 40px 30px; color: #333333;">
+                        <p style="font-size: 18px; margin: 0 0 10px 0; color: #2c3e50;">
+                            Hello there! 👋
+                        </p>
+
+                        <p style="font-size: 16px; margin: 0 0 30px 0; color: #555555; line-height: 1.6;">
+                            We've generated a secure verification code for you. Please use the code below to complete your authentication. This code will expire in <strong style="color: #b50000;">2 minutes</strong> for your security.
+                        </p>
+
+                        <!-- OTP Code Section -->
+                        <div style="text-align: center; margin: 40px 0;">
+                            <div style="background: linear-gradient(145deg, #fff5f5, #ffffff); border: 2px solid #b50000; border-radius: 12px; display: inline-block; padding: 25px 35px; box-shadow: 0 4px 15px rgba(181, 0, 0, 0.15); position: relative; overflow: hidden;">
+                                <!-- Background pattern -->
+                                <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(181,0,0,0.03) 10px, rgba(181,0,0,0.03) 20px);"></div>
+
+                                <p style="margin: 0 0 8px 0; font-size: 14px; color: #888888; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; position: relative; z-index: 1;">
+                                    Your OTP Code
+                                </p>
+                                <p class="otp-code" style="margin: 0; font-size: 32px; letter-spacing: 6px; font-weight: 800; color: #b50000; font-family: 'Courier New', monospace; text-shadow: 0 1px 2px rgba(0,0,0,0.1); position: relative; z-index: 1;">
+                                    {{otp}}
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Security Notice -->
+                        <div style="background-color: #fff8f0; border-left: 4px solid #ff9800; padding: 16px 20px; margin: 30px 0; border-radius: 0 8px 8px 0;">
+                            <p style="margin: 0; font-size: 14px; color: #e65100; font-weight: 600;">
+                                🔐 Security Notice
+                            </p>
+                            <p style="margin: 8px 0 0 0; font-size: 14px; color: #bf360c; line-height: 1.5;">
+                                Never share this code with anyone. We will never ask you for this code via email, phone, or text message.
                             </p>
                         </div>
-                        <p style="font-size: 14px; color: #777;">If you didn’t request this code, you can safely ignore this email.</p>
-                        <p style="font-size: 16px;">Thank you 🥰</p>
+
+                        <p style="font-size: 14px; margin: 20px 0 0 0; color: #777777; line-height: 1.5;">
+                            If you didn't request this verification code, please ignore this email. Your account remains secure.
+                        </p>
+
+                        <p style="font-size: 16px; margin: 25px 0 0 0; color: #2c3e50;">
+                            Best regards,<br>
+                            <strong style="color: #b50000;">The SelaMonty Team</strong> ❤️
+                        </p>
                     </td>
                 </tr>
+
+                <!-- Footer -->
                 <tr>
-                    <td style="background-color: #f4f4f4; padding: 20px; text-align: center; font-size: 12px; color: #aaa;">
-                        © 2025 Sela Monty Team. All rights reserved.
+
+                    <td style="background-color: #f8f9fa; padding: 30px; text-align: center; border-top: 1px solid #e9ecef;">
+                        <p style="margin: 0 0 10px 0; font-size: 14px; color: #6c757d;">
+                            This is an automated message from SelaMonty
+                        </p>
+                        <p style="margin: 0 0 15px 0; font-size: 12px; color: #adb5bd; line-height: 1.4;">
+                            © 2025 SelaMonty Team. All rights reserved.<br>
+                            This email was sent to verify your identity for security purposes.
+                        </p>
+
+                        <!-- Social Links (Optional) -->
+                        <div style="margin-top: 20px;">
+                            <a href="#" style="display: inline-block; margin: 0 10px; width: 32px; height: 32px; background-color: #b50000; border-radius: 50%; text-decoration: none;">
+                                <span style="display: block; color: white; font-size: 16px; line-height: 32px; text-align: center;">📧</span>
+                            </a>
+                            <a href="#" style="display: inline-block; margin: 0 10px; width: 32px; height: 32px; background-color: #b50000; border-radius: 50%; text-decoration: none;">
+                                <span style="display: block; color: white; font-size: 16px; line-height: 32px; text-align: center;">🌐</span>
+                            </a>
+                        </div>
                     </td>
+                </tr>
+            </table>
+
+            <!-- Spacing -->
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                    <td style="height: 20px;"></td>
                 </tr>
             </table>
         </td>

@@ -18,4 +18,6 @@ public interface ReviewService {
     VisitorReviewStatistics getVisitorReviewStatistics(UUID museumId);
 
     void deleteVisitorReviewByMuseumOwner(UUID reviewId, UUID museumId);
+
+    VisitorReview getVisitorReviewByVisitorId(UUID museumId, UUID visitorId);
 }

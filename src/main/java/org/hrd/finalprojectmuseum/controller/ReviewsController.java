@@ -8,6 +8,7 @@ import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.hrd.finalprojectmuseum.model.dto.request.visitor.VisitorReviewRequest;
 import org.hrd.finalprojectmuseum.model.dto.response.ApiResponse;
+import org.hrd.finalprojectmuseum.model.dto.response.ListResponse;
 import org.hrd.finalprojectmuseum.model.entity.AppUserRegister;
 import org.hrd.finalprojectmuseum.model.entity.Pagination;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
@@ -62,7 +63,7 @@ public class ReviewsController {
 
     @GetMapping("/{museum-id}")
     @Operation(summary = "Get all reviews of a museum")
-    public ResponseEntity<ApiResponse<List<VisitorReview>>> getVisitorReview(
+    public ResponseEntity<ApiResponse<ListResponse<VisitorReview>>> getVisitorReview(
             @PathVariable("museum-id") UUID museumId,
             @RequestParam(defaultValue = "1") @Positive @Min(value = 1, message = "must greater than 0") Integer page,
             @RequestParam(defaultValue = "3") @Positive @Min(value = 1, message = "must greater than 0") Integer size,
@@ -74,12 +75,15 @@ public class ReviewsController {
 
         Pagination pagination = new Pagination();
         pagination = pagination.calculatePagination(totalReviews, page, size);
+        ListResponse<VisitorReview> listResponse = ListResponse.<VisitorReview>builder()
+                .items(reviews)
+                .pagination(pagination)
+                .build();
 
-        ApiResponse<List<VisitorReview>> response = ApiResponse.<List<VisitorReview>>builder()
+        ApiResponse<ListResponse<VisitorReview>> response = ApiResponse.<ListResponse<VisitorReview>>builder()
                 .success(true)
                 .message("Review retrieve successfully")
-                .payload(reviews)
-                .pagination(pagination)
+                .payload(listResponse)
                 .status(HttpStatus.OK)
                 .build();
 
@@ -143,6 +147,23 @@ public class ReviewsController {
                 .status(HttpStatus.OK)
                 .build();
 
+        return ResponseEntity.ok(response);
+    }
+
+    @SecurityRequirement(name = "bearerAuth")
+    @PreAuthorize("hasRole('ROLE_VISITOR') or hasRole('ROLE_MUSEUM_OWNER')")
+    @GetMapping("/museum/{museum-id}/visitor/{visitor-id}")
+    public ResponseEntity<ApiResponse<VisitorReview>> getVisitorReviewByVisitorId(
+            @PathVariable("museum-id") UUID museumId,
+            @PathVariable("visitor-id") UUID visitorId
+    ){
+        VisitorReview visitorReview = reviewService.getVisitorReviewByVisitorId(museumId, visitorId);
+        ApiResponse<VisitorReview> response = ApiResponse.<VisitorReview>builder()
+                .success(true)
+                .message("Visitor review retrieved successfully")
+                .payload(visitorReview)
+                .status(HttpStatus.OK)
+                .build();
         return ResponseEntity.ok(response);
     }
 }

@@ -43,7 +43,7 @@ public class MuseumsController {
     @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
     @Operation(summary = "For check and verify booking ticket by bookingId which provide by qr scan. Only museum owner can use.")
     @PatchMapping("/management/verify/qr")
-    public ResponseEntity<ApiResponse<Booking>> verifyScanQrCodeBookingId(@RequestParam("scan") @NotNull UUID bookingId) {
+    public ResponseEntity<ApiResponse<Booking>> verifyScanQrCodeBookingId(@RequestParam("scannedBookingId") @NotNull UUID bookingId) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UUID userId = UUID.fromString((String) auth.getCredentials());
         MuseumOwner museum = profileService.getMuseumOwnerByUserId(userId);

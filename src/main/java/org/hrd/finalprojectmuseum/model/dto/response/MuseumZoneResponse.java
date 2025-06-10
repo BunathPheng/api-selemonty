@@ -13,6 +13,7 @@ public class MuseumZoneResponse {
     private String zoneName;
     private String description;
     private String pictureLink;
+    private Integer countArtifact;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
