@@ -61,7 +61,25 @@ public class EventServiceImpl implements EventService {
                 events = eventRepository.findAllEventsWithDateFilterOngoing(search, page, size, dateFiler);
                 totalItems = eventRepository.countAllEventWithFilterOnGoing(search, dateFiler);
             }
-        }else {
+        }else if(eventStatus == EventStatus.ONGOING ){
+            if (dateFiler == null) {
+                events = eventRepository.findAllEventsOnGoing(search, page, size);
+                totalItems = eventRepository.countAllEventOnGoing(search);
+            } else {
+                events = eventRepository.findAllEventsWithDateFilterOngoing(search, page, size, dateFiler);
+                totalItems = eventRepository.countAllEventWithFilterOnGoing(search, dateFiler);
+            }
+        }
+        else if(eventStatus == EventStatus.ONGOING ){
+            if (dateFiler == null) {
+                events = eventRepository.findAllEventsOnGoing(search, page, size);
+                totalItems = eventRepository.countAllEventOnGoing(search);
+            } else {
+                events = eventRepository.findAllEventsWithDateFilterOngoing(search, page, size, dateFiler);
+                totalItems = eventRepository.countAllEventWithFilterOnGoing(search, dateFiler);
+            }
+        }
+        else {
             if (dateFiler == null) {
                 events = eventRepository.findAllEventsEnded(search, page, size);
                 totalItems = eventRepository.countAllEventEnded(search);
