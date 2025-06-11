@@ -2,10 +2,13 @@ package org.hrd.finalprojectmuseum.repository;
 
 import org.apache.ibatis.annotations.*;
 import org.hrd.finalprojectmuseum.model.entity.Subscriptions;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.UUID;
 
+@Mapper
+@Repository
 public interface SubscriptionRepository {
     @Select("SELECT * FROM subscriptions WHERE user_id = #{userId}::UUID")
     List<Subscriptions> findByUserId(@Param("userId") UUID userId);

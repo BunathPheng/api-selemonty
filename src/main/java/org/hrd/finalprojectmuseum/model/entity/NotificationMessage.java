@@ -13,9 +13,12 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class NotificationMessage {
-    private UUID notificationId;
+    private UUID notificationMessageId;
     private UUID subscriptionId;
-    private String subscriptionCode; // OneSignal Player ID
+    private String title;
+    private String message;
+    private Boolean isRead;
     private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+
+    private Subscriptions subscription;
 }
