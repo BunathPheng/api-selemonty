@@ -51,12 +51,10 @@ public class GoogleAuthServiceImpl implements GoogleAuthService {
         GoogleIdToken idToken = verifier.verify(idTokenString);
         if (idToken != null) {
             Payload payload = idToken.getPayload();
-            System.out.println((String) payload.get("name"));
             AppUserRegister appUserRegister = appUserRepository.findUserByEmail(payload.getEmail());
             if(appUserRegister == null) {
                 String encodedPass = passwordEncoder.encode("Kom@3");
                 Role roleEnum = role.equals("VISITOR") ? Role.ROLE_VISITOR : Role.ROLE_MUSEUM_OWNER;
-                System.out.println(roleEnum);
                 AppUserRegister registerUser = appUserRepository.registerUser(payload.getEmail(), encodedPass, roleEnum, true);
                 LoginToken<?> loginToken;
                 if (role.equals("VISITOR")){
