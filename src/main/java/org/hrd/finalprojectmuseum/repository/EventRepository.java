@@ -38,7 +38,7 @@ public interface EventRepository {
     @Select("""
         SELECT * FROM events
         WHERE is_deleted = false
-        AND title LIKE CONCAT('%', #{search}, '%')
+        AND title ILIKE CONCAT('%', #{search}, '%')
         ORDER BY start_date
         OFFSET (#{page} - 1) * #{size}
         LIMIT #{size}
@@ -49,7 +49,7 @@ public interface EventRepository {
     @Select("""
         SELECT * FROM events
         WHERE is_deleted = false
-        AND title LIKE CONCAT('%', #{search}, '%')
+        AND title ILIKE CONCAT('%', #{search}, '%')
         AND DATE(start_date) = #{dateFilter}
         ORDER BY start_date
         OFFSET (#{page} - 1) * #{size}
@@ -60,7 +60,7 @@ public interface EventRepository {
     @ResultMap("eventMapper")
     @Select("""
         SELECT * FROM events WHERE museum_id = #{museumId}::UUID AND is_deleted = false
-                             AND title LIKE CONCAT('%', #{search}, '%')
+                             AND title ILIKE CONCAT('%', #{search}, '%')
                              ORDER BY start_date
                              offset (#{page}-1)* #{size} limit #{size}
     """)
@@ -69,7 +69,7 @@ public interface EventRepository {
     // Fixed parameter order to match service call
     @Select("""
         SELECT count(*) FROM events WHERE museum_id = #{museumId}::UUID
-        AND is_deleted = false AND title LIKE CONCAT('%', #{search}, '%')
+        AND is_deleted = false AND title ILIKE CONCAT('%', #{search}, '%')
     """)
     Integer countAllEventByMuseumId(@Param("museumId") UUID museumId, @Param("search") String search);
 
@@ -79,7 +79,7 @@ public interface EventRepository {
         SELECT * FROM events
         WHERE museum_id = #{museumId}::UUID
         AND is_deleted = false
-        AND title LIKE CONCAT('%', #{search}, '%')
+        AND title ILIKE CONCAT('%', #{search}, '%')
         AND DATE(start_date) = #{dateFilter}
         ORDER BY start_date
         OFFSET (#{page} - 1) * #{size}
@@ -134,7 +134,7 @@ public interface EventRepository {
     @Select("""
         SELECT * FROM events
         WHERE is_deleted = false
-        AND title LIKE CONCAT('%', #{search}, '%')
+        AND title ILIKE CONCAT('%', #{search}, '%')
         AND (
             (start_date <= NOW() AND end_date >= NOW())  -- ongoing
             OR (start_date > NOW())                      -- upcoming
@@ -158,7 +158,7 @@ public interface EventRepository {
     @Select("""
         SELECT * FROM events
         WHERE is_deleted = false
-        AND title LIKE CONCAT('%', #{search}, '%')
+        AND title ILIKE CONCAT('%', #{search}, '%')
         AND DATE(start_date) = #{dateFilter}
         AND (
             (start_date <= NOW() AND end_date >= NOW())  -- ongoing
@@ -186,7 +186,7 @@ public interface EventRepository {
         SELECT * FROM events
         WHERE museum_id = #{museumId}::UUID
         AND is_deleted = false
-        AND title LIKE CONCAT('%', #{search}, '%')
+        AND title ILIKE CONCAT('%', #{search}, '%')
         AND (
             (start_date <= NOW() AND end_date >= NOW())  -- ongoing
             OR (start_date > NOW())                      -- upcoming
@@ -213,7 +213,7 @@ public interface EventRepository {
         SELECT * FROM events
         WHERE museum_id = #{museumId}::UUID
         AND is_deleted = false
-        AND title LIKE CONCAT('%', #{search}, '%')
+        AND title ILIKE CONCAT('%', #{search}, '%')
         AND DATE(start_date) = #{dateFilter}
         AND (
             (start_date <= NOW() AND end_date >= NOW())  -- ongoing
@@ -242,7 +242,7 @@ public interface EventRepository {
     @Select("""
         SELECT * FROM events 
         WHERE is_deleted = false
-        AND title LIKE CONCAT('%', #{search}, '%')
+        AND title ILIKE CONCAT('%', #{search}, '%')
         AND start_date <= NOW() 
         AND end_date >= NOW()
         ORDER BY start_date
@@ -264,7 +264,7 @@ public interface EventRepository {
     @Select("""
         SELECT * FROM events 
         WHERE is_deleted = false
-        AND title LIKE CONCAT('%', #{search}, '%')
+        AND title ILIKE CONCAT('%', #{search}, '%')
         AND #{dateFilter} BETWEEN DATE(start_date) AND DATE(end_date)
         AND start_date <= NOW() 
         AND end_date >= NOW()
@@ -290,7 +290,7 @@ public interface EventRepository {
         SELECT * FROM events 
         WHERE museum_id = #{museumId}::UUID 
         AND is_deleted = false
-        AND title LIKE CONCAT('%', #{search}, '%')
+        AND title ILIKE CONCAT('%', #{search}, '%')
         AND start_date <= NOW() 
         AND end_date >= NOW()
         ORDER BY start_date
@@ -313,7 +313,7 @@ public interface EventRepository {
         SELECT * FROM events 
         WHERE museum_id = #{museumId}::UUID 
         AND is_deleted = false
-        AND title LIKE CONCAT('%', #{search}, '%')
+        AND title ILIKE CONCAT('%', #{search}, '%')
         AND #{dateFilter} BETWEEN DATE(start_date) AND DATE(end_date)                               
         AND start_date <= NOW() 
         AND end_date >= NOW()
@@ -338,7 +338,7 @@ public interface EventRepository {
     @Select("""
         SELECT * FROM events 
         WHERE is_deleted = false
-        AND title LIKE CONCAT('%', #{search}, '%')
+        AND title ILIKE CONCAT('%', #{search}, '%')
         AND start_date > now()
         ORDER BY start_date
         OFFSET (#{page} - 1) * #{size} 
@@ -358,7 +358,7 @@ public interface EventRepository {
     @Select("""
         SELECT * FROM events 
         WHERE is_deleted = false
-        AND title LIKE CONCAT('%', #{search}, '%')
+        AND title ILIKE CONCAT('%', #{search}, '%')
         AND start_date::date = #{dateFilter}
         AND start_date > now()
         ORDER BY start_date
@@ -382,7 +382,7 @@ public interface EventRepository {
         SELECT * FROM events 
         WHERE museum_id = #{museumId}::UUID 
         AND is_deleted = false
-        AND title LIKE CONCAT('%', #{search}, '%')
+        AND title ILIKE CONCAT('%', #{search}, '%')
         AND start_date > now()
         ORDER BY start_date
         OFFSET (#{page} - 1) * #{size} 
@@ -403,7 +403,7 @@ public interface EventRepository {
         SELECT * FROM events 
         WHERE museum_id = #{museumId}::UUID 
         AND is_deleted = false
-        AND title LIKE CONCAT('%', #{search}, '%')
+        AND title ILIKE CONCAT('%', #{search}, '%')
         AND start_date::date = #{dateFilter}
         AND start_date > now()
         ORDER BY start_date
@@ -426,7 +426,7 @@ public interface EventRepository {
     @Select("""
         SELECT * FROM events
         WHERE is_deleted = false
-        AND title LIKE CONCAT('%', #{search}, '%')
+        AND title ILIKE CONCAT('%', #{search}, '%')
         AND end_date < now()
         ORDER BY start_date
         OFFSET (#{page} - 1) * #{size}
@@ -446,7 +446,7 @@ public interface EventRepository {
     @Select("""
         SELECT * FROM events 
         WHERE is_deleted = false
-        AND title LIKE CONCAT('%', #{search}, '%')
+        AND title ILIKE CONCAT('%', #{search}, '%')
         AND DATE(start_date) = #{dateFilter}
         AND end_date < now()
         ORDER BY start_date
@@ -470,7 +470,7 @@ public interface EventRepository {
         SELECT * FROM events
         WHERE museum_id = #{museumId}::UUID 
         AND is_deleted = false
-        AND title LIKE CONCAT('%', #{search}, '%')
+        AND title ILIKE CONCAT('%', #{search}, '%')
         AND end_date < now()
         ORDER BY start_date
         OFFSET (#{page} - 1) * #{size}
@@ -491,7 +491,7 @@ public interface EventRepository {
         SELECT * FROM events 
         WHERE museum_id = #{museumId}::UUID 
         AND is_deleted = false
-        AND title LIKE CONCAT('%', #{search}, '%')
+        AND title ILIKE CONCAT('%', #{search}, '%')
         AND DATE(start_date) = #{dateFilter}
         AND end_date < now()
         ORDER BY start_date
