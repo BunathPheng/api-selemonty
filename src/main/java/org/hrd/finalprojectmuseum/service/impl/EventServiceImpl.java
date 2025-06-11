@@ -61,22 +61,22 @@ public class EventServiceImpl implements EventService {
                 events = eventRepository.findAllEventsWithDateFilterOngoing(search, page, size, dateFiler);
                 totalItems = eventRepository.countAllEventWithFilterOnGoing(search, dateFiler);
             }
-        }else if(eventStatus == EventStatus.ONGOING ){
+        }else if(eventStatus == EventStatus.LATEST ){
             if (dateFiler == null) {
-                events = eventRepository.findAllEventsOnGoing(search, page, size);
-                totalItems = eventRepository.countAllEventOnGoing(search);
+                events = eventRepository.findAllEventsLatest(search, page, size);
+                totalItems = eventRepository.countAllEventLatest(search);
             } else {
-                events = eventRepository.findAllEventsWithDateFilterOngoing(search, page, size, dateFiler);
-                totalItems = eventRepository.countAllEventWithFilterOnGoing(search, dateFiler);
+                events = eventRepository.findAllEventsWithDateFilterLatest(search, page, size, dateFiler);
+                totalItems = eventRepository.countAllEventWithFilterLatest(search, dateFiler);
             }
         }
-        else if(eventStatus == EventStatus.ONGOING ){
+        else if(eventStatus == EventStatus.NEARLY_EXPIRED ){
             if (dateFiler == null) {
-                events = eventRepository.findAllEventsOnGoing(search, page, size);
-                totalItems = eventRepository.countAllEventOnGoing(search);
+                events = eventRepository.findAllEventsNearlyExpired(search, page, size);
+                totalItems = eventRepository.countAllEventNearlyExpired(search);
             } else {
-                events = eventRepository.findAllEventsWithDateFilterOngoing(search, page, size, dateFiler);
-                totalItems = eventRepository.countAllEventWithFilterOnGoing(search, dateFiler);
+                events = eventRepository.findAllEventsWithDateFilterNearlyExpired(search, page, size, dateFiler);
+                totalItems = eventRepository.countAllEventWithFilterNearlyExpired(search, dateFiler);
             }
         }
         else {
