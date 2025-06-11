@@ -90,7 +90,6 @@ public interface FavoriteRepository {
         SELECT day, opening_time, closing_time
         FROM schedules
         WHERE museum_id = #{museumId}::UUID
-        AND day_off = true;
     """)
     @Results({
             @Result(property = "day", column = "day"),
