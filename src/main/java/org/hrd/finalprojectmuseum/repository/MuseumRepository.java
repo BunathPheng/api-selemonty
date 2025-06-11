@@ -497,13 +497,14 @@ public interface MuseumRepository {
             @Result(property = "name", column = "name"),
             @Result(property = "address", column = "address"),
             @Result(property = "logoLink", column = "logo_link"),
+            @Result(property = "isFavorite", column = "is_favorite"),
             @Result(property = "lat", column = "lat"),
             @Result(property = "lng", column = "lng"),
             @Result(property = "distanceKm", column = "distance_km")
     })
     @Select("""
         SELECT m.museum_id, m.name, m.address, m.logo_link,
-               m.lat, m.lng,
+               m.lat, m.lng, false AS is_favorite,
                ROUND(CAST((6371 * acos(
                    cos(radians(#{lat})) * cos(radians(m.lat)) *
                    cos(radians(m.lng) - radians(#{lng})) +
@@ -525,6 +526,40 @@ public interface MuseumRepository {
         LIMIT 50
     """)
     List<MuseumWithDistanceResponse> findNearbyMuseumsOptimized(
+            @Param("lat") BigDecimal latitude,
+            @Param("lng") BigDecimal longitude,
+            @Param("distance") Integer distanceKm
+    );
+
+    @ResultMap("MuseumWithDistanceMapper")
+    @Select("""
+        SELECT m.museum_id, m.name, m.address, m.logo_link,
+               m.lat, m.lng,
+               ROUND(CAST((6371 * acos(
+                   cos(radians(#{lat})) * cos(radians(m.lat)) *
+                   cos(radians(m.lng) - radians(#{lng})) +
+                   sin(radians(#{lat})) * sin(radians(m.lat))
+               )) AS NUMERIC), 2) AS distance_km,
+        CASE WHEN f.visitor_id IS NOT NULL THEN true ELSE false END AS is_favorite
+        FROM museum_owners m
+        LEFT JOIN favorites f ON m.museum_id = f.museum_id
+            AND f.visitor_id = #{visitorId}::UUID
+        WHERE m.is_approved = true
+          -- More generous bounding box (add small buffer)
+          AND m.lat BETWEEN #{lat} - (#{distance}/110.0) AND #{lat} + (#{distance}/110.0)
+          AND m.lng BETWEEN #{lng} - (#{distance}/(110.0*cos(radians(#{lat}))))
+                              AND #{lng} + (#{distance}/(110.0*cos(radians(#{lat}))))
+          -- Accurate distance filter with small buffer for precision
+          AND (6371 * acos(
+                   cos(radians(#{lat})) * cos(radians(m.lat)) * 
+                   cos(radians(m.lng) - radians(#{lng})) + 
+                   sin(radians(#{lat})) * sin(radians(m.lat))
+               )) <= #{distance} + 0.01
+        ORDER BY distance_km ASC
+        LIMIT 50
+    """)
+    List<MuseumWithDistanceResponse> findNearbyMuseumsOptimizedForVisitor(
+            UUID visitorId,
             @Param("lat") BigDecimal latitude,
             @Param("lng") BigDecimal longitude,
             @Param("distance") Integer distanceKm

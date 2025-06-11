@@ -137,6 +137,7 @@ public class MuseumsController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    @SecurityRequirement(name = "bearerAuth")
     @Operation(summary = "For get all approved museums filter by distance. Allowed all role and guest")
     @GetMapping("/nearby")
     public ResponseEntity<ApiResponse<List<MuseumWithDistanceResponse>>> getAllMuseumOwnersByLocation(

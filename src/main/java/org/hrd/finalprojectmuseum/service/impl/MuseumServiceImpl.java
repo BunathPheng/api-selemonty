@@ -5,19 +5,21 @@ import org.hrd.finalprojectmuseum.exception.AppBadRequestException;
 import org.hrd.finalprojectmuseum.exception.AppNotFoundException;
 import org.hrd.finalprojectmuseum.model.dto.response.ListResponse;
 import org.hrd.finalprojectmuseum.model.dto.response.MuseumWithDistanceResponse;
+import org.hrd.finalprojectmuseum.model.entity.AppUserRegister;
 import org.hrd.finalprojectmuseum.model.entity.Pagination;
 import org.hrd.finalprojectmuseum.model.entity.Schedule;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
+import org.hrd.finalprojectmuseum.model.entity.visitor.Visitor;
 import org.hrd.finalprojectmuseum.model.entity.visitor.VisitorReviewStatistics;
 
 import org.hrd.finalprojectmuseum.model.enums.MuseumStatus;
+import org.hrd.finalprojectmuseum.model.enums.Role;
 import org.hrd.finalprojectmuseum.model.enums.SortMuseum;
 import org.hrd.finalprojectmuseum.repository.MuseumRepository;
+import org.hrd.finalprojectmuseum.repository.ProfileRepository;
 import org.hrd.finalprojectmuseum.repository.ReviewRepository;
 import org.hrd.finalprojectmuseum.repository.ScheduleRepository;
-import org.hrd.finalprojectmuseum.service.MuseumService;
-import org.hrd.finalprojectmuseum.service.ScheduleService;
-import org.hrd.finalprojectmuseum.service.ReviewService;
+import org.hrd.finalprojectmuseum.service.*;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -33,6 +35,8 @@ public class MuseumServiceImpl implements MuseumService {
     private final ReviewService reviewService;
     private final ReviewRepository reviewRepository;
     private final ScheduleRepository scheduleRepository;
+    private final AppUserService appUserService;
+    private final ProfileRepository profileRepository;
 
     @Override
     public MuseumOwner setFullData(MuseumOwner museumOwner) {
@@ -208,8 +212,16 @@ public class MuseumServiceImpl implements MuseumService {
 
     @Override
     public List<MuseumWithDistanceResponse> getAllMuseumByLocation(BigDecimal lat, BigDecimal lng, Integer distance) {
-        List<MuseumWithDistanceResponse> nearbyMuseums = museumRepository
-                .findNearbyMuseumsOptimized(lat, lng, distance);
+        AppUserRegister appUser = appUserService.getAppUserRegister();
+        List<MuseumWithDistanceResponse> nearbyMuseums;
+        if (appUser != null && appUser.getRole() == Role.ROLE_VISITOR){
+            Visitor visitor = profileRepository.findVisitor(appUser.getUserId());
+            nearbyMuseums = museumRepository.findNearbyMuseumsOptimizedForVisitor(visitor.getVisitorId(), lat, lng, distance);
+        }else{
+            nearbyMuseums = museumRepository.findNearbyMuseumsOptimized(lat, lng, distance);
+        }
+
+
         String day = LocalDateTime.now().getDayOfWeek().toString();
         for (MuseumWithDistanceResponse museum : nearbyMuseums) {
             Schedule schedule = scheduleService.getScheduleByDay(museum.getMuseumId(), day);
