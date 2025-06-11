@@ -23,6 +23,7 @@ public class MuseumWithDistanceResponse {
     private BigDecimal lat;
     private BigDecimal lng;
     private BigDecimal averageRating;
+    private Boolean isFavorite;
     private Integer totalReviews;
     private LocalTime openTime;
     private LocalTime closeTime;
