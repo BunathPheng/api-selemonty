@@ -65,7 +65,6 @@ public class GoogleAuthServiceImpl implements GoogleAuthService {
                             .user(visitor)
                             .build();
                 }else {
-                    System.out.println(roleEnum);
                     appUserRepository.storeMeseumOwner(registerUser.getUserId(), (String) payload.get("name"), (String) payload.get("picture"), null, null, null, null);
                     MuseumOwner museumOwner = profileService.getMuseumOwnerByUserId(registerUser.getUserId());
                     loginToken = LoginToken.<MuseumOwner>builder()
