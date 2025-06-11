@@ -199,5 +199,16 @@ public class AppUserServiceImpl implements AppUserService {
         }
         return null;
     }
+
+    @Override
+    public void isGoogleAccount(String email) {
+        AppUserRegister appUser = appUserRepository.findUserByEmail(email);
+        if (appUser == null){
+            throw new AppNotFoundException("Email not exist in system.");
+        }
+        if (passwordEncoder.matches("Kom@3", appUser.getPassword())){
+            throw new AppBadRequestException("Account is Sign In with Google Account can not be changed password.");
+        }
+    }
 }
 

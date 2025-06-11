@@ -158,7 +158,6 @@ public class AuthsController {
                 .build();
         String otp = sendEmailService.generateOtp();
         String result = emailService.sendMailAsHTML(museumOwnerRegisterRequest.getEmail(), otp);
-        System.out.println(result);
 
         //        sendEmailService.sendOtpEmail(museumOwnerRegisterRequest.getEmail(), otp);
         otpService.storeOtp(museumOwnerRegisterRequest.getEmail(), otp);
@@ -224,6 +223,7 @@ public class AuthsController {
 //        } catch (Exception e) {
 //            throw new AppBadRequestException("Failed to send OTP: " + e.getMessage());
 //        }
+        appUserService.isGoogleAccount(forgotPasswordRequest.getEmail());
         emailService.sendMailAsHTML(forgotPasswordRequest.getEmail(), otp);
         otpService.storeOtp(forgotPasswordRequest.getEmail(), otp);
         Otps opts = otpService.getOtpByUserId(forgotPasswordRequest.getEmail());
