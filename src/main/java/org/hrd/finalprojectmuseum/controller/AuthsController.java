@@ -158,8 +158,6 @@ public class AuthsController {
                 .build();
         String otp = sendEmailService.generateOtp();
         String result = emailService.sendMailAsHTML(museumOwnerRegisterRequest.getEmail(), otp);
-
-        //        sendEmailService.sendOtpEmail(museumOwnerRegisterRequest.getEmail(), otp);
         otpService.storeOtp(museumOwnerRegisterRequest.getEmail(), otp);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -171,12 +169,6 @@ public class AuthsController {
     public ResponseEntity<ApiResponse<Otps>> sendOtp(@RequestParam @Email(message = "Email form is incorrect") @NotBlank(message = "Email is required") String email) throws IOException {
         String otp = sendEmailService.generateOtp();
         appUserService.checkEmailBeforeOpt(email);
-//        try {
-////            sendEmailService.sendOtpEmail(email, otp);
-//
-//        } catch (Exception e) {
-//            throw new AppBadRequestException("Failed to send OTP: " + e.getMessage());
-//        }
         String result = emailService.sendMailAsHTML(email, otp);
 
         Otps opts = otpService.getOtpByUserId(email);
@@ -218,11 +210,6 @@ public class AuthsController {
     public ResponseEntity<ApiResponse<Otps>> forgotPassword(@RequestBody @Valid ForgotPasswordRequest forgotPasswordRequest) throws IOException {
         String otp = sendEmailService.generateOtp();
         appUserService.checkEmail(forgotPasswordRequest.getEmail());
-//        try {
-//            sendEmailService.sendOtpEmail(forgotPasswordRequest.getEmail(), otp);
-//        } catch (Exception e) {
-//            throw new AppBadRequestException("Failed to send OTP: " + e.getMessage());
-//        }
         appUserService.isGoogleAccount(forgotPasswordRequest.getEmail());
         emailService.sendMailAsHTML(forgotPasswordRequest.getEmail(), otp);
         otpService.storeOtp(forgotPasswordRequest.getEmail(), otp);
