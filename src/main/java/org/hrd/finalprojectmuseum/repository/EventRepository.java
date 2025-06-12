@@ -14,7 +14,9 @@ import java.util.UUID;
 public interface EventRepository {
 
     @Select("""
-        SELECT count(*) FROM events WHERE title ILIKE CONCAT('%', #{search}, '%')
+        SELECT count(*) FROM events 
+        WHERE title ILIKE CONCAT('%', #{search}, '%')
+        AND is_deleted = false
     """)
     Integer countAllEvent(String search);
 
@@ -124,7 +126,9 @@ public interface EventRepository {
     void updateDeleteStatus(UUID eventId, LocalDateTime updatedAt);
 
     @Select("""
-        SELECT count(*) FROM events WHERE title ILIKE CONCAT('%', #{search}, '%')
+        SELECT count(*) FROM events 
+        WHERE title ILIKE CONCAT('%', #{search}, '%')
+        AND is_deleted = false
         AND DATE(start_date) = #{dateFilter}
     """)
     Integer countAllEventWithFilter(String search, LocalDate dateFilter);
@@ -146,7 +150,9 @@ public interface EventRepository {
     List<Event> findAllEventsAvailable(String search, Integer page, Integer size);
 
     @Select("""
-        SELECT count(*) FROM events WHERE title ILIKE CONCAT('%', #{search}, '%')
+        SELECT count(*) FROM events 
+        WHERE title ILIKE CONCAT('%', #{search}, '%')
+        AND is_deleted = false
         AND (
             (start_date <= NOW() AND end_date >= NOW())  -- ongoing
             OR (start_date > NOW())                      -- upcoming
@@ -171,7 +177,9 @@ public interface EventRepository {
     List<Event> findAllEventsWithDateFilterAvailable(String search, Integer page, Integer size, LocalDate dateFilter);
 
     @Select("""
-        SELECT count(*) FROM events WHERE title ILIKE CONCAT('%', #{search}, '%')
+        SELECT count(*) FROM events 
+        WHERE title ILIKE CONCAT('%', #{search}, '%')
+        AND is_deleted = false
         AND DATE(start_date) = #{dateFilter}
         AND (
             (start_date <= NOW() AND end_date >= NOW())  -- ongoing
