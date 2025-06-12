@@ -5,5 +5,7 @@ public enum EventStatus {
     AVAILABLE,
     ONGOING,
     UPCOMING,
+    LATEST,
+    NEARLY_EXPIRED,
     ENDED
 }
