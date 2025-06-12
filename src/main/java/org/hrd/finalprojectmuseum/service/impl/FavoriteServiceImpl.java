@@ -60,9 +60,6 @@ public class FavoriteServiceImpl implements FavoriteService {
 
     @Override
     public ListResponse<FavoriteMuseum> getAllFavoriteMuseums(UUID visitorId, Integer page, Integer size) {
-        if(favoriteRepository.retrieveFavoriteMuseums(visitorId, page, size).isEmpty()) {
-            throw new AppNotFoundException("Museum not found");
-        }
         List<FavoriteMuseum> favoriteMuseums = favoriteRepository.retrieveFavoriteMuseums(visitorId, page, size);
         Integer total = favoriteRepository.countFavoriteMuseum(visitorId);
         Pagination pagination = new Pagination();
