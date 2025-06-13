@@ -77,9 +77,18 @@ public class TicketsInfoController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-//    @Operation(summary = "Museum Dashboard ticket sold")
-//    @GetMapping("/stat")
-//    public ResponseEntity<ApiResponse<TicketStat>> getTicketInfoStat() {
-//        TicketStat ticketStat = ticketInfoService.
-//    }
+    @Operation(summary = "Museum Dashboard ticket sold")
+    @SecurityRequirement(name = "bearerAuth")
+    @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
+    @GetMapping("/stat")
+    public ResponseEntity<ApiResponse<TicketStat>> getTicketInfoStat() {
+        TicketStat ticketStat = ticketInfoService.getTicketStat();
+        ApiResponse<TicketStat> response = ApiResponse.<TicketStat>builder()
+                .success(true)
+                .message("Ticket statistic has been fetched")
+                .payload(ticketStat)
+                .status(HttpStatus.OK)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
 }

@@ -585,13 +585,14 @@ public interface MuseumRepository {
 
     @Select("""
         SELECT COUNT(museum_id) FROM museum_owners
-        WHERE created_at <= #{endDate}
+        WHERE created_at <= #{endDate} AND is_approved = true
     """)
     Integer retrieveTotalMuseumByDateRange(LocalDate endDate);
 
     @Select("""
         SELECT COUNT(museum_id) FROM museum_owners
         WHERE created_at BETWEEN #{startDate} AND #{endDate}
+        AND is_approved = true
     """)
     Integer retrieveMuseumByDateRange(LocalDate startDate, LocalDate endDate);
 }

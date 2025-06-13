@@ -7,6 +7,6 @@ import org.hrd.finalprojectmuseum.model.dto.response.StatItem;
 @Data
 @Builder
 public class TicketStat {
-    private StatItem totalSold;
+    private StatItem totalSales;
     private StatItem totalTicket;
 }
