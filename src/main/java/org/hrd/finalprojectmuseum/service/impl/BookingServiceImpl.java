@@ -96,8 +96,7 @@ public class BookingServiceImpl implements BookingService {
         if (booking == null) {
             throw new AppBadRequestException("Booking failed! Please try again");
         }
-
-        return booking;
+        return bookingRepository.retrieveBookingDetailByVisitorId(booking.getBookingId(), visitorId);
     }
 
     @Override
@@ -297,4 +296,6 @@ public class BookingServiceImpl implements BookingService {
         }
         return booking.getBookingType();
     }
+
+
 }

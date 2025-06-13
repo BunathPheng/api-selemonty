@@ -152,7 +152,7 @@ public class EmailServiceImpl implements EmailService {
             String museumEmail = visitorEmail;
 
             // Set email properties
-            helper.setFrom(sender);
+            helper.setFrom(museumEmail);
             helper.setTo(visitorEmail); // ✅ USE THE PARAMETER INSTEAD
             helper.setSubject("Booking Confirmation - " + booking.getMuseumName());
 
@@ -179,7 +179,7 @@ public class EmailServiceImpl implements EmailService {
     }
 
     private String loadBookingTemplate(BookingV2 booking) throws IOException {
-        ClassPathResource resource = new ClassPathResource("templates/sendBookingQR.html");
+        ClassPathResource resource = new ClassPathResource("templates/ticketQr.html");
         String content = new String(resource.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
 
         // Replace template placeholders

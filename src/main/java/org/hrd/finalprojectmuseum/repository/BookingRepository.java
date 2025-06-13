@@ -115,7 +115,7 @@ public interface BookingRepository {
     void setTicketCode(UUID bookingId, String code);
 
     @Select("""
-        SELECT bk.booking_id, mo.name, bk.booking_type, bk.ticket_type, bk.booking_date, bk.ticket_type,
+        SELECT bk.booking_id, mo.name, bk.booking_type, vt.full_name, bk.ticket_type, bk.booking_date, bk.ticket_type,
                       bk.ticket_price, bk.created_at, bk.slot_amount, bk.ticket_status, bk.qr_code, bk.total_price,
                       bk.expired_date
         FROM bookings bk
@@ -390,4 +390,19 @@ public interface BookingRepository {
     """)
     @ResultMap("IndividualBooking")
     BookingV2 getBookingByBookingId(UUID bookingId, UUID visitorId);
+
+    @Select("""
+        SELECT COUNT(b.booking_id) FROM bookings b
+        LEFT JOIN tours t ON b.booking_id = t.booking_id
+        WHERE (t.booking_id IS NULL OR (t.booking_id IS NOT NULL AND t.status = 'PAID'))
+        AND b.created_at >= #{startDate} AND b.created_at <= #{endDate}
+    """)
+    Integer countBookingsByDateRange(LocalDate startDate, LocalDate endDate);
+
+    @Select("""
+        SELECT COUNT(booking_id) FROM bookings WHERE museum_id = #{museumId}::UUID
+        AND created_at BETWEEN #{startDate} AND #{endDate}
+    """)
+    Integer countNewBookingByMuseumId(UUID museumId, LocalDate startDate, LocalDate endDate);
+
 }

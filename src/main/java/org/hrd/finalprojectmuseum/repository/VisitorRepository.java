@@ -181,4 +181,5 @@ public interface VisitorRepository {
         WHERE created_at < #{endDate}
     """)
     Integer countTotalVisitors(LocalDate endDate);
+
 }
