@@ -210,5 +210,14 @@ public class AppUserServiceImpl implements AppUserService {
             throw new AppBadRequestException("Account is Sign In with Google Account can not be changed password.");
         }
     }
+
+    @Override
+    public String getUserEmailByUserId(UUID visitorId) {
+        String email = appUserRepository.getEmailByVisitorId(visitorId);
+        if (email == null) {
+            throw new AppNotFoundException("Email not found.");
+        }
+        return email;
+    }
 }
 

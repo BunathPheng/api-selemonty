@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.hrd.finalprojectmuseum.model.dto.response.*;
 import org.hrd.finalprojectmuseum.model.entity.AppUserRegister;
 import org.hrd.finalprojectmuseum.model.entity.Booking;
+import org.hrd.finalprojectmuseum.model.entity.MuseumStat;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
 import org.hrd.finalprojectmuseum.model.entity.visitor.Visitor;
 import org.hrd.finalprojectmuseum.model.enums.MuseumStatus;
@@ -188,5 +189,21 @@ public class MuseumsController {
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
+
+    @SecurityRequirement(name = "bearerAuth")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @GetMapping("/stat")
+    public ResponseEntity<ApiResponse<MuseumStat>> getMuseumStat() {
+        MuseumStat museumStat = museumService.getMuseumStat();
+        ApiResponse<MuseumStat> response = ApiResponse.<MuseumStat>builder()
+                .success(true)
+                .message("Museum stat fetched successfully")
+                .payload(museumStat)
+                .status(HttpStatus.OK)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+
 
 }

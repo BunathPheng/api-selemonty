@@ -55,8 +55,6 @@ public class EventsController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-
-
     @GetMapping("/filter")
     public ResponseEntity<ApiResponse<ListResponse<Event>>> getAllEventsWithFilter(
             @RequestParam(required = false) String search,

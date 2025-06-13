@@ -5,6 +5,7 @@ import org.hrd.finalprojectmuseum.model.entity.museum_owner.FavoriteMuseum;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.FavoriteMuseumSchedule;
 import org.hrd.finalprojectmuseum.model.entity.visitor.VisitorFavorite;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -90,6 +91,7 @@ public interface FavoriteRepository {
         SELECT day, opening_time, closing_time
         FROM schedules
         WHERE museum_id = #{museumId}::UUID
+        AND day_off = false;
     """)
     @Results({
             @Result(property = "day", column = "day"),
@@ -106,4 +108,16 @@ public interface FavoriteRepository {
         WHERE f.visitor_id = #{visitorId}::UUID
     """)
     Integer countFavoriteMuseum(UUID visitorId);
+
+    @Select("""
+        SELECT COUNT(favorite_id) FROM favorites WHERE museum_id = #{museumId}::UUID
+        AND created_at <= #{endDate}
+    """)
+    Integer countFollowerByMuseumIdAndEndDate(UUID museumId, LocalDate endDate);
+
+    @Select("""
+        SELECT COUNT(favorite_id) FROM favorites WHERE museum_id = #{museumId}::UUID
+        AND created_at BETWEEN #{startDate} AND #{endDate}
+    """)
+    Integer countFollowerByMuseumIdAndDateRange(UUID museumId, LocalDate startDate, LocalDate endDate);
 }

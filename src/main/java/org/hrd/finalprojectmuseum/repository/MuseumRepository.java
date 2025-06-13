@@ -6,6 +6,7 @@ import org.hrd.finalprojectmuseum.model.dto.response.MuseumWithDistanceResponse;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumCategory;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -581,4 +582,17 @@ public interface MuseumRepository {
         SELECT COUNT(*) FROM museum_owners WHERE is_approved = true
     """)
     Integer countAllMuseumOrderbyPopular();
+
+    @Select("""
+        SELECT COUNT(museum_id) FROM museum_owners
+        WHERE created_at <= #{endDate} AND is_approved = true
+    """)
+    Integer retrieveTotalMuseumByDateRange(LocalDate endDate);
+
+    @Select("""
+        SELECT COUNT(museum_id) FROM museum_owners
+        WHERE created_at BETWEEN #{startDate} AND #{endDate}
+        AND is_approved = true
+    """)
+    Integer retrieveMuseumByDateRange(LocalDate startDate, LocalDate endDate);
 }
