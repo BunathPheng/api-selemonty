@@ -59,6 +59,7 @@ public interface ZoneRepository {
             @Result(property = "zoneCategoryName", column = "zone_category_id",
                     one = @One(select = "retrieveZoneCategoryNameByCategoryId")
             ),
+            @Result(property = "zoneCategoryId", column = "zone_category_id"),
             @Result(property = "zoneName", column = "name"),
             @Result(property = "description", column = "description"),
             @Result(property = "pictureLink", column = "picture_link"),
@@ -73,7 +74,7 @@ public interface ZoneRepository {
         SELECT name FROM zone_categories
         WHERE zone_category_id = #{zoneCategoryId}::UUID;
     """)
-    String retrieveZoneCategoryNameByCategoryId(UUID categoryId);
+    String retrieveZoneCategoryNameByCategoryId(UUID zoneCategoryId);
 
     @Update("""
         UPDATE museum_zones
@@ -125,6 +126,7 @@ public interface ZoneRepository {
             @Result(property = "zoneCategoryName", column = "zone_category_id",
                     one = @One(select = "retrieveZoneCategoryNameByCategoryId")
             ),
+            @Result(property = "zoneCategoryId", column = "zone_category_id"),
             @Result(property = "zoneName", column = "name"),
             @Result(property = "description", column = "description"),
             @Result(property = "pictureLink", column = "picture_link"),
