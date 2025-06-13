@@ -78,6 +78,7 @@ public interface BookingRepository {
     """)
     Boolean existsByTextCode(String code);
 
+    // ===== VISITOR BOOKING HISTORY (WITH PAGINATION) =====
     @ResultMap("bookingMapper")
     @Select("""
         SELECT * FROM bookings
