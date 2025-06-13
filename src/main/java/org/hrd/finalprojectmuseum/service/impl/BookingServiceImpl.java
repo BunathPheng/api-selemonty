@@ -5,12 +5,14 @@ import org.hrd.finalprojectmuseum.exception.AppBadRequestException;
 import org.hrd.finalprojectmuseum.exception.AppNotFoundException;
 import org.hrd.finalprojectmuseum.model.dto.request.BookingRequest;
 import org.hrd.finalprojectmuseum.model.dto.request.RequestTourRequest;
+import org.hrd.finalprojectmuseum.model.dto.request.visitor.BookingRequestV2;
 import org.hrd.finalprojectmuseum.model.dto.response.ListResponse;
 import org.hrd.finalprojectmuseum.model.entity.Booking;
 import org.hrd.finalprojectmuseum.model.entity.Pagination;
 import org.hrd.finalprojectmuseum.model.entity.TicketInfo;
-import org.hrd.finalprojectmuseum.model.entity.Tour;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
+import org.hrd.finalprojectmuseum.model.entity.visitor.BookingV2;
+import org.hrd.finalprojectmuseum.model.entity.visitor.IndividualBookingInfo;
 import org.hrd.finalprojectmuseum.model.enums.BookingType;
 import org.hrd.finalprojectmuseum.model.enums.TicketType;
 import org.hrd.finalprojectmuseum.repository.BookingRepository;
@@ -23,9 +25,9 @@ import org.hrd.finalprojectmuseum.utils.UniqueTextCodeGenerator;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -42,131 +44,160 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     @Transactional
-    public Booking makeABookingByMuseumId(UUID museumId, UUID visitorId, BookingRequest bookingRequest) {
-        TicketInfo ticketInfo = ticketInfoRepository.findTicketInfoByMuseumId(museumId);
-        if (bookingRequest.getTicketType() == TicketType.LOCAL){
-            if (ticketInfo.getLocalPrice().compareTo(bookingRequest.getTicketPrice()) != 0){
-                throw new AppBadRequestException("LocalTicket price is wrong. Right LocalTicket price is: "+ ticketInfo.getLocalPrice());
-            }
-        } else if(bookingRequest.getTicketType() == TicketType.FOREIGNER){
-            if (ticketInfo.getForeignPrice().compareTo(bookingRequest.getTicketPrice()) != 0){
-                throw new AppBadRequestException("Ticket price is wrong. Right ForeignTicket price is: "+ ticketInfo.getForeignPrice());
-            }
+    public BookingV2 bookingIndividualTicket(UUID museumId, UUID visitorId, TicketType ticketType, BookingRequestV2 bookingRequest) {
+        IndividualBookingInfo individualBookingInfo = bookingRepository.BooingIndividualInfo(museumId);
+        if (individualBookingInfo == null) {
+            throw new AppNotFoundException("Booking failed. This museum is not approved by admin");
         }
-
-        if (ticketInfo.getTotalSlot() < bookingRequest.getSlotAmount()){
-            throw new AppBadRequestException("Not enough slots available. Available slots: "+ ticketInfo.getTotalSlot());
+        if (individualBookingInfo.getTicketId() == null) {
+            throw new AppBadRequestException("Booking failed. Museum doesn't have ticket information");
         }
-        MuseumOwner museum = museumRepository.findMuseumOwnerByMuseumId(museumId);
-        if (museum == null) {
+        if(!individualBookingInfo.getMuseumId().equals(museumId)) {
             throw new AppNotFoundException("Museum with id " + museumId + " not exists");
         }
-        if (!museum.getIsApproved()) {
-            throw new AppBadRequestException("Booking failed. This museum is not approved by admin");
+        if (ticketType != TicketType.LOCAL && ticketType != TicketType.FOREIGNER) {
+            throw new AppBadRequestException("Invalid ticket type for individual booking");
+        }
+        if (ticketType == TicketType.FOREIGNER){
+            if (individualBookingInfo.getForeignPrice().compareTo(bookingRequest.getTicketPrice()) != 0){
+                throw new AppBadRequestException("Foreigner Ticket price is wrong. Right LocalTicket price is: "+ individualBookingInfo.getForeignPrice());
+            }
+        }
+        if (ticketType == TicketType.LOCAL) {
+            if (individualBookingInfo.getLocalPrice().compareTo(bookingRequest.getTicketPrice()) != 0){
+                throw new AppBadRequestException("Local Ticket price is wrong. Right LocalTicket price is: "+ individualBookingInfo.getLocalPrice());
+            }
+        }
+        if (individualBookingInfo.getMuseumSchedule() == null) {
+            throw new AppNotFoundException("Booking failed. Museum doesn't have schedule");
+        }
+
+        LocalDateTime bookingDate = bookingRequest.getBookingDate();
+        String bookingDayName = bookingDate.getDayOfWeek().name(); // e.g., "MONDAY"
+
+        boolean isClosed = individualBookingInfo.getMuseumSchedule().stream()
+                .anyMatch(schedule ->
+                        schedule.getDay().equalsIgnoreCase(bookingDayName) && Boolean.TRUE.equals(schedule.getDayOff()));
+
+        if (isClosed) {
+            throw new AppBadRequestException("Booking failed. Museum is closed on " + bookingDayName);
+        }
+
+        if (individualBookingInfo.getTotalSlots() < bookingRequest.getSlotAmount()) {
+            throw new AppBadRequestException("Not enough slots available. Available slots: "+ individualBookingInfo.getTotalSlots());
         }
 
         String code = uniqueTextCodeGenerator.generateUniqueTextCode();
         LocalDateTime expiredDate = bookingRequest.getBookingDate().plusHours(12);
-        Booking booking = bookingRepository.insertBookingByMuseumId(museumId, visitorId, code, expiredDate, bookingRequest);
-        booking.setTour(null);
-        Integer updateSlot = ticketInfo.getTotalSlot() - bookingRequest.getSlotAmount();
+        BookingV2 booking = bookingRepository.insertBookingIndividual(museumId, visitorId, ticketType, bookingRequest, code, expiredDate);
+        Integer updateSlot = individualBookingInfo.getTotalSlots() - bookingRequest.getSlotAmount();
         ticketInfoRepository.updateSlotAmount(museumId, updateSlot);
 
         if (booking == null) {
             throw new AppBadRequestException("Booking failed! Please try again");
         }
-        return booking;
+        return bookingRepository.retrieveBookingDetailByVisitorId(booking.getBookingId(), visitorId);
     }
 
     @Override
-    public ListResponse<Booking> getBookingHistoryByVisitorId(UUID visitorId, String search, Integer page, Integer size, BookingType category, LocalDate startDate, LocalDate endDate) {
+    public List<BookingV2> getVisitorBookingHistory(UUID visitorId, String search, BookingType category, Integer page, Integer size, LocalDate startDate, LocalDate endDate) {
         search = search == null ? "" : search;
-        boolean hasBookingType = category != null;
+        page = page == null ? 0 : page;
+        size = size == null ? 10 : size;
+
+        boolean hasCategory = category != null;
         boolean hasDateRange = startDate != null && endDate != null;
 
-        List<Booking> bookings;
-        Integer totalItems;
+        List<BookingV2> bookings = null;
 
-        // Get bookings with appropriate filters
-        if (!hasBookingType && !hasDateRange) {
-            bookings = bookingRepository.findByVisitorIdAndSearchWithPagination(visitorId, search.trim(), page, size);
-            totalItems = bookingRepository.countByVisitorIdAndSearch(visitorId, search.trim());
-        } else if (hasBookingType && !hasDateRange) {
-            bookings = bookingRepository.findByVisitorIdSearchAndBookingTypeWithPagination(visitorId, search.trim(), category, page, size);
-            totalItems = bookingRepository.countByVisitorIdSearchAndBookingType(visitorId, search.trim(), category);
-        } else if (!hasBookingType && hasDateRange) {
-            bookings = bookingRepository.findByVisitorIdSearchAndDateRangeWithPagination(visitorId, search.trim(), startDate, endDate, page, size);
-            totalItems = bookingRepository.countByVisitorIdSearchAndDateRange(visitorId, search.trim(), startDate, endDate);
+        if (!hasCategory && !hasDateRange) {
+            bookings = bookingRepository.findVisitorBookingHistoryBySearch(visitorId, search.trim(), page, size);
+        } else if (hasCategory && !hasDateRange) {
+            bookings = bookingRepository.findVisitorBookingHistoryBySearchAndCategory(visitorId, search.trim(), category, page, size);
+        } else if (!hasCategory && hasDateRange) {
+            bookings = bookingRepository.findVisitorBookingHistoryBySearchAndDateRange(visitorId, search.trim(), startDate, endDate, page, size);
         } else {
-            bookings = bookingRepository.findByVisitorIdSearchBookingTypeAndDateRangeWithPagination(visitorId, search.trim(), category, startDate, endDate, page, size);
-            totalItems = bookingRepository.countByVisitorIdSearchBookingTypeAndDateRange(visitorId, search.trim(), category, startDate, endDate);
+            bookings = bookingRepository.findVisitorBookingHistoryBySearchCategoryAndDateRange(visitorId, search.trim(), category, startDate, endDate, page, size);
         }
 
-        for (Booking booking : bookings) {
-            checkAndUpdateExpiration(booking.getBookingId());
+//        for (BookingV2 booking : bookings) {
+//            checkAndUpdateExpirationV2(booking.getBookingId());
+//        }
+
+        for (BookingV2 booking : bookings) {
+            checkAndUpdateExpirationV2(booking.getBookingId());
             if (category == BookingType.TOUR){
                 booking.setTotalPrice(tourRepository.getTourPriceByBookingId(booking.getBookingId()));
             }
         }
 
-
-        // Calculate pagination
-        Pagination pagination = new Pagination();
-        pagination = pagination.calculatePagination(totalItems, page, size);
-
-        return ListResponse.<Booking>builder()
-                .items(bookings)
-                .pagination(pagination)
-                .build();
+        return bookings;
     }
 
     @Override
-    public ListResponse<Booking> getAllBookingByMuseumId(UUID museumId, String search, Integer page, Integer size, BookingType bookingType, LocalDate startDate, LocalDate endDate) {
+    public Integer countVisitorBookingHistory(UUID visitorId, String search, BookingType category, Integer page, Integer size, LocalDate startDate, LocalDate endDate) {
         search = search == null ? "" : search;
-        boolean hasBookingType = bookingType != null;
+        page = page == null ? 0 : page;
+        size = size == null ? 10 : size;
+
+        boolean hasCategory = category != null;
         boolean hasDateRange = startDate != null && endDate != null;
 
-        List<Booking> bookings;
         Integer totalItems;
 
-        // Get bookings with appropriate filters
-        if (!hasBookingType && !hasDateRange) {
-            bookings = bookingRepository.findAllBookingByMuseumIdAndSearchWithPagination(museumId, search.trim(), page, size);
-            totalItems = bookingRepository.countAllBookingByMuseumIdAndSearch(museumId, search.trim());
-        } else if (hasBookingType && !hasDateRange) {
-            bookings = bookingRepository.findAllBookingByMuseumIdSearchAndBookingTypeWithPagination(museumId, search.trim(), bookingType, page, size);
-            totalItems = bookingRepository.countAllBookingByMuseumIdSearchAndBookingType(museumId, search.trim(), bookingType);
-        } else if (!hasBookingType && hasDateRange) {
-            bookings = bookingRepository.findAllBookingByMuseumIdSearchAndDateRangeWithPagination(museumId, search.trim(), startDate, endDate, page, size);
-            totalItems = bookingRepository.countAllBookingByMuseumIdSearchAndDateRange(museumId, search.trim(), startDate, endDate);
+        if (!hasCategory && !hasDateRange) {
+            totalItems = bookingRepository.countVisitorBookingHistoryBySearch(visitorId, search.trim());
+        } else if (hasCategory && !hasDateRange) {
+            totalItems = bookingRepository.countVisitorBookingHistoryBySearchAndCategory(visitorId, search.trim(), category);
+        } else if (!hasCategory && hasDateRange) {
+            totalItems = bookingRepository.countVisitorBookingHistoryBySearchAndDateRange(visitorId, search.trim(), startDate, endDate);
         } else {
-            // hasBookingType && hasDateRange
-            bookings = bookingRepository.findAllBookingByMuseumIdSearchBookingTypeAndDateRangeWithPagination(museumId, search.trim(), bookingType, startDate, endDate, page, size);
-            totalItems = bookingRepository.countAllBookingByMuseumIdSearchBookingTypeAndDateRange(museumId, search.trim(), bookingType, startDate, endDate);
+            totalItems = bookingRepository.countVisitorBookingHistoryBySearchCategoryAndDateRange(visitorId, search.trim(), category, startDate, endDate);
         }
-
-        // Update expiration status for each booking
-        for (Booking booking : bookings) {
-            checkAndUpdateExpiration(booking.getBookingId());
-        }
-
-        Pagination pagination = new Pagination();
-        pagination = pagination.calculatePagination(totalItems, page, size);
-
-        return ListResponse.<Booking>builder()
-                .items(bookings)
-                .pagination(pagination)
-                .build();
+        return totalItems;
     }
 
     @Override
-    public Booking getBookingByVisitorId(UUID bookingId, UUID visitorId) {
-        Booking bookingDetail = bookingRepository.findBookingByBookingIdAndVisitorId(bookingId, visitorId);
-        if (bookingDetail == null) {
-            throw new AppNotFoundException("Booking with id " + bookingId + " not exists");
+    public List<BookingV2> getMuseumBookingHistory(UUID museumId, String search, Integer page, Integer size) {
+        search = search == null ? "" : search;
+
+        List<BookingV2> museumHistoryBooking = bookingRepository.getMuseumBookingHistoryByMuseumId(museumId, search, page, size);
+
+        for (BookingV2 booking : museumHistoryBooking) {
+            checkAndUpdateExpirationV2(booking.getBookingId());
         }
 
-        checkAndUpdateExpiration(bookingId);
+        return museumHistoryBooking;
+    }
+
+    @Override
+    public Integer countMuseumBookingHistory(UUID museumId, String search) {
+        search = search == null ? "" : search;
+        return bookingRepository.countMuseumBookingHistory(museumId, search);
+    }
+
+    @Override
+    public BookingV2 getBookingByVisitorIdV2(UUID bookingId, UUID visitorId) {
+        String bookingType = checkAndUpdateExpirationV2(bookingId);
+        BookingV2 bookingDetail = null;
+        if (bookingType.equals("INDIVIDUAL")){
+            bookingDetail = bookingRepository.retrieveBookingDetailByVisitorId(bookingId, visitorId);
+            if (bookingDetail == null) {
+                throw new AppNotFoundException("Booking with id " + bookingId + " not exists");
+            }
+        } else if (bookingType.equals("TOUR")) {
+            bookingDetail = bookingRepository.getBookingByBookingId(bookingId, visitorId);
+            if (bookingDetail == null) {
+                throw new AppNotFoundException("Booking with id " + bookingId + " not exists");
+            }
+        }
+
+//        BookingV2 bookingDetail = bookingRepository.retrieveBookingDetailByVisitorId(bookingId, visitorId);
+//
+//        if (bookingDetail == null) {
+//            throw new AppNotFoundException("Booking with id " + bookingId + " not exists");
+//        }
+
         return bookingDetail;
     }
 
@@ -193,7 +224,7 @@ public class BookingServiceImpl implements BookingService {
             throw new AppNotFoundException("Code Qr: " + codeQr + " is incorrect");
         }
 
-        checkAndUpdateExpiration(bookingDetail.getBookingId());
+//        checkAndUpdateExpiration(bookingDetail.getBookingId());
 
         if (Objects.equals(bookingDetail.getTicketStatus(), "VALID")) {
             bookingRepository.updateStatus(bookingDetail.getBookingId(), "USED");
@@ -202,31 +233,37 @@ public class BookingServiceImpl implements BookingService {
         return bookingDetail;
     }
 
-    @Override
-    public Booking getBookingByMuseumId(UUID bookingId, UUID museumId) {
-        MuseumOwner museumOwner = museumRepository.findMuseumOwnerByMuseumId(museumId);
-        if (museumOwner == null) {
-            throw new AppNotFoundException("Museum with id " + museumId + " not exists");
-        }
-        Booking booking = bookingRepository.findBookingByBookingIdAndMuseumId(bookingId, museumId);
-        System.out.println(booking);
-        return booking;
-    }
-
     @Transactional
     @Override
-    public Booking requestTourByMuseumId(UUID museumId, UUID visitorId, RequestTourRequest requestTourRequest) {
-        TicketInfo ticketInfo = ticketInfoRepository.findTicketInfoByMuseumId(museumId);
-        if (ticketInfo.getTotalSlot() < requestTourRequest.getSlotAmount()){
-            throw new AppBadRequestException("Not enough slots available. Available slots: "+ ticketInfo.getTotalSlot());
+    public BookingV2 tourRequest(UUID museumId, UUID visitorId, RequestTourRequest requestTourRequest) {
+        IndividualBookingInfo individualBookingInfo = bookingRepository.BooingIndividualInfo(museumId);
+        if (individualBookingInfo == null) {
+            throw new AppNotFoundException("Booking failed. This museum is not approved by admin");
         }
-        MuseumOwner museumOwner = museumRepository.findMuseumOwnerByMuseumId(museumId);
-        if (museumOwner == null) {
+        if (individualBookingInfo.getTicketId() == null) {
+            throw new AppBadRequestException("Booking failed. Museum doesn't have ticket information");
+        }
+        if(!individualBookingInfo.getMuseumId().equals(museumId)) {
             throw new AppNotFoundException("Museum with id " + museumId + " not exists");
         }
+        if (individualBookingInfo.getMuseumSchedule() == null) {
+            throw new AppNotFoundException("Booking failed. Museum doesn't have schedule");
+        }
+
+        LocalDateTime bookingDate = requestTourRequest.getBookingDate();
+        String bookingDayName = bookingDate.getDayOfWeek().name(); // e.g., "MONDAY"
+
+        boolean isClosed = individualBookingInfo.getMuseumSchedule().stream()
+                .anyMatch(schedule ->
+                        schedule.getDay().equalsIgnoreCase(bookingDayName) && Boolean.TRUE.equals(schedule.getDayOff()));
+
+        if (isClosed) {
+            throw new AppBadRequestException("Booking failed. Museum is closed on " + bookingDayName);
+        }
+
         UUID bookingId = bookingRepository.insertBookingForTourRequest(museumId, visitorId, requestTourRequest);
         tourRepository.insertNewTourRequest(bookingId);
-        return bookingRepository.findBookingByBookingIdAndMuseumId(bookingId, museumId);
+        return bookingRepository.getBookingByBookingId(bookingId, visitorId);
     }
 
     public void checkAndUpdateExpiration(UUID bookingId) {
@@ -243,4 +280,22 @@ public class BookingServiceImpl implements BookingService {
             bookingRepository.updateStatus(bookingId, "EXPIRED");
         }
     }
+
+    public String checkAndUpdateExpirationV2(UUID bookingId) {
+        BookingV2 booking = bookingRepository.retrieveBookingByBookingId(bookingId);
+        if (booking == null) {
+            throw new AppNotFoundException("Booking with id " + bookingId + " not exists");
+        }
+
+        if (booking.getExpiredDate() != null &&
+                LocalDateTime.now().isAfter(booking.getExpiredDate()) &&
+                !booking.getTicketStatus().equals("EXPIRED")) {
+
+            booking.setTicketStatus("EXPIRED");
+            bookingRepository.updateStatus(bookingId, "EXPIRED");
+        }
+        return booking.getBookingType();
+    }
+
+
 }

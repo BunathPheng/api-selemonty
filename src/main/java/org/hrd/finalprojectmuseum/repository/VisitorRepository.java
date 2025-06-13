@@ -134,7 +134,7 @@ public interface VisitorRepository {
         INNER JOIN user_info u ON v.user_id = u.user_id
         LEFT JOIN tours t ON t.booking_id = b.booking_id
         WHERE ((t.booking_id IS NULL) OR (t.booking_id IS NOT NULL AND t.status = 'PAID'))
-        AND v.visitor_id = #{visitorId}::UUID
+        AND v.visitor_id = #{visitorId}::UUID AND u.is_verified = true
     """)
     VisitorBookingTotal retrieveBookingTotalByVisitorId(UUID visitorId);
 
@@ -148,7 +148,7 @@ public interface VisitorRepository {
         INNER JOIN user_info u ON v.user_id = u.user_id
         LEFT JOIN tours t ON t.booking_id = b.booking_id
         WHERE ((t.booking_id IS NULL) OR (t.booking_id IS NOT NULL AND t.status = 'PAID'))
-        AND v.visitor_id = #{visitorId}::UUID
+        AND v.visitor_id = #{visitorId}::UUID  AND u.is_verified = true
         AND b.created_at >= DATE_TRUNC('month', CURRENT_DATE - INTERVAL '1 month')
         AND b.created_at <= (CURRENT_DATE - INTERVAL '1 month') + (CURRENT_DATE - DATE_TRUNC('month', CURRENT_DATE))
     """)
@@ -164,21 +164,25 @@ public interface VisitorRepository {
         INNER JOIN user_info u ON v.user_id = u.user_id
         LEFT JOIN tours t ON t.booking_id = b.booking_id
         WHERE ((t.booking_id IS NULL) OR (t.booking_id IS NOT NULL AND t.status = 'PAID'))
-        AND v.visitor_id = #{visitorId}::UUID
+        AND v.visitor_id = #{visitorId}::UUID AND u.is_verified = true
         AND b.created_at >= DATE_TRUNC('month', CURRENT_DATE)
         AND b.created_at <= CURRENT_DATE
     """)
     VisitorBookingTotal retrieveThisMonthBookingTotalByVisitorId(@Param("visitorId") UUID visitorId);
 
     @Select("""
-        SELECT COUNT(visitor_id) FROM visitors
-        WHERE created_at >= #{startDate} AND created_at <= #{endDate}
+        SELECT COUNT(visitor_id) FROM visitors v
+        INNER JOIN user_info u ON v.user_id = u.user_id
+        WHERE v.created_at >= #{startDate} AND v.created_at <= #{endDate}
+        AND u.is_verified = true
     """)
     Integer countNewVisitorsByDateRange(LocalDate startDate, LocalDate endDate);
 
     @Select("""
-        SELECT COUNT(visitor_id) FROM visitors
-        WHERE created_at < #{endDate}
+        SELECT COUNT(visitor_id) FROM visitors v
+        INNER JOIN user_info u ON v.user_id = u.user_id
+        WHERE v.created_at < #{endDate} AND u.is_verified = true
     """)
     Integer countTotalVisitors(LocalDate endDate);
+
 }

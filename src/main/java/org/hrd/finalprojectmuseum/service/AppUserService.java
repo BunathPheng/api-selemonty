@@ -43,4 +43,6 @@ public interface AppUserService extends UserDetailsService {
     AppUserRegister getAppUserRegister();
 
     void isGoogleAccount(String email);
+
+    String getUserEmailByUserId(UUID userId);
 }

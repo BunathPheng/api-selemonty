@@ -7,6 +7,7 @@ import org.apache.ibatis.annotations.*;
 import org.hrd.finalprojectmuseum.model.dto.request.TicketInfoRequest;
 import org.hrd.finalprojectmuseum.model.entity.TicketInfo;
 
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Mapper
@@ -41,7 +42,47 @@ public interface TicketInfoRepository {
     TicketInfo modifyTicketInfo(UUID museumId, @Param("ticket") TicketInfoRequest ticketInfoRequest);
 
     @Update("""
-    UPDATE ticket_info SET total_slot = #{slotAmount} WHERE museum_id = #{museumId}::UUID;
+        UPDATE ticket_info SET total_slot = #{slotAmount} WHERE museum_id = #{museumId}::UUID;
     """)
     void updateSlotAmount(UUID museumId, Integer slotAmount);
+
+    @Select("""
+        SELECT COUNT(b.booking_id) FROM bookings b
+        LEFT JOIN tours t ON t.booking_id = b.booking_id
+        INNER JOIN museum_owners m ON b.museum_id = m.museum_id
+        WHERE (t.tour_id IS NULL OR (t.tour_id IS NOT NULL AND t.status = 'PAID'))
+        AND b.museum_id = #{museumId}::UUID AND m.is_approved = true
+        AND b.created_at <= #{today}
+    """)
+    Integer countTotalSoldByMuseumId(UUID museumId, LocalDate today);
+
+    @Select("""
+        SELECT COUNT(b.booking_id) FROM bookings b
+        LEFT JOIN tours t ON t.booking_id = b.booking_id
+        INNER JOIN museum_owners m ON b.museum_id = m.museum_id
+        WHERE (t.tour_id IS NULL OR (t.tour_id IS NOT NULL AND t.status = 'PAID'))
+        AND b.museum_id = #{museumId}::UUID AND m.is_approved = true
+        AND (b.created_at >= #{startDate} AND b.created_at <= #{endDate})
+    """)
+    Integer countTotalSoldByMuseumIdAndDateRange(UUID museumId, LocalDate startDate, LocalDate endDate);
+
+    @Select("""
+        SELECT SUM(b.slot_amount) FROM bookings b
+        LEFT JOIN tours t ON t.booking_id = b.booking_id
+        INNER JOIN museum_owners m ON b.museum_id = m.museum_id
+        WHERE (t.tour_id IS NULL OR (t.tour_id IS NOT NULL AND t.status = 'PAID'))
+        AND b.museum_id = #{museumId}::UUID AND m.is_approved = true
+        AND b.created_at <= #{today}
+    """)
+    Integer countTotalTicketSoldByMuseumId(UUID museumId, LocalDate today);
+
+    @Select("""
+        SELECT SUM(b.slot_amount) FROM bookings b
+        LEFT JOIN tours t ON t.booking_id = b.booking_id
+        INNER JOIN museum_owners m ON b.museum_id = m.museum_id
+        WHERE (t.tour_id IS NULL OR (t.tour_id IS NOT NULL AND t.status = 'PAID'))
+        AND b.museum_id = #{museumId}::UUID AND m.is_approved = true
+        AND (b.created_at >= #{startDate} AND b.created_at <= #{endDate})
+    """)
+    Integer countTotalTicketSoldByMuseumIdAndRangeDate(UUID museumId, LocalDate startDate, LocalDate endDate);
 }
