@@ -262,11 +262,11 @@ public interface EventRepository {
 
     @ResultMap("eventMapper")
     @Select("""
-        SELECT * FROM events 
+        SELECT * FROM events
         WHERE is_deleted = false
         AND title ILIKE CONCAT('%', #{search}, '%')
         AND #{dateFilter} BETWEEN DATE(start_date) AND DATE(end_date)
-        AND start_date <= NOW() 
+        AND start_date <= NOW()
         AND end_date >= NOW()
         ORDER BY start_date
         OFFSET (#{page} - 1) * #{size} 
@@ -287,8 +287,8 @@ public interface EventRepository {
     // NEW: ONGOING EVENTS BY MUSEUM ID
     @ResultMap("eventMapper")
     @Select("""
-        SELECT * FROM events 
-        WHERE museum_id = #{museumId}::UUID 
+        SELECT * FROM events
+        WHERE museum_id = #{museumId}::UUID
         AND is_deleted = false
         AND title ILIKE CONCAT('%', #{search}, '%')
         AND start_date <= NOW() 
