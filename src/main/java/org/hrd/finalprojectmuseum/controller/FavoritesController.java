@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.hrd.finalprojectmuseum.model.dto.response.ApiResponse;
 import org.hrd.finalprojectmuseum.model.dto.response.ListResponse;
+import org.hrd.finalprojectmuseum.model.entity.FollowerStat;
 import org.hrd.finalprojectmuseum.model.entity.Pagination;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.FavoriteMuseum;
 import org.hrd.finalprojectmuseum.model.entity.visitor.VisitorFavorite;
@@ -99,5 +100,19 @@ public class FavoritesController {
                 .build();
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @Operation(summary = "Museum Owner dashboard")
+    @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
+    @GetMapping("/stat")
+    public ResponseEntity<ApiResponse<FollowerStat>> getFollowerStat(){
+        FollowerStat followerStat = favoriteService.getFollowerStat();
+        ApiResponse<FollowerStat> apiResponse = ApiResponse.<FollowerStat>builder()
+                .success(true)
+                .message("Follower stat fetched successfully")
+                .payload(followerStat)
+                .status(HttpStatus.OK)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
     }
 }

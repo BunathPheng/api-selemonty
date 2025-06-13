@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.hrd.finalprojectmuseum.model.dto.request.TicketInfoRequest;
 import org.hrd.finalprojectmuseum.model.dto.response.ApiResponse;
 import org.hrd.finalprojectmuseum.model.entity.TicketInfo;
+import org.hrd.finalprojectmuseum.model.entity.TicketStat;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
 import org.hrd.finalprojectmuseum.service.ProfileService;
 import org.hrd.finalprojectmuseum.service.TicketInfoService;
@@ -75,4 +76,10 @@ public class TicketsInfoController {
                 .build();
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
+
+//    @Operation(summary = "Museum Dashboard ticket sold")
+//    @GetMapping("/stat")
+//    public ResponseEntity<ApiResponse<TicketStat>> getTicketInfoStat() {
+//        TicketStat ticketStat = ticketInfoService.
+//    }
 }

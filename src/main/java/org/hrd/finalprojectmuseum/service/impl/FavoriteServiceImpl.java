@@ -4,15 +4,23 @@ import lombok.RequiredArgsConstructor;
 import org.hrd.finalprojectmuseum.exception.AppBadRequestException;
 import org.hrd.finalprojectmuseum.exception.AppNotFoundException;
 import org.hrd.finalprojectmuseum.model.dto.response.ListResponse;
+import org.hrd.finalprojectmuseum.model.entity.FollowerStat;
 import org.hrd.finalprojectmuseum.model.entity.Pagination;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.FavoriteMuseum;
+import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
 import org.hrd.finalprojectmuseum.model.entity.visitor.VisitorFavorite;
 import org.hrd.finalprojectmuseum.model.enums.FavoriteType;
+import org.hrd.finalprojectmuseum.repository.BookingRepository;
 import org.hrd.finalprojectmuseum.repository.FavoriteRepository;
+import org.hrd.finalprojectmuseum.repository.ProfileRepository;
 import org.hrd.finalprojectmuseum.repository.ReviewRepository;
+import org.hrd.finalprojectmuseum.service.AppUserService;
 import org.hrd.finalprojectmuseum.service.FavoriteService;
+import org.hrd.finalprojectmuseum.service.ProfileService;
+import org.hrd.finalprojectmuseum.utils.Calculation;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -21,6 +29,10 @@ import java.util.UUID;
 public class FavoriteServiceImpl implements FavoriteService {
     private final FavoriteRepository favoriteRepository;
     private final ReviewRepository reviewRepository;
+    private final AppUserService appUserService;
+    private final Calculation calculation = new Calculation();
+    private final ProfileRepository profileRepository;
+    private final BookingRepository bookingRepository;
 
     @Override
     public void addVisitorFavorite(UUID museumId, UUID visitorId, FavoriteType favoriteType) {
@@ -66,6 +78,32 @@ public class FavoriteServiceImpl implements FavoriteService {
         return ListResponse.<FavoriteMuseum>builder()
                 .items(favoriteMuseums)
                 .pagination(pagination.calculatePagination(total, page, size))
+                .build();
+    }
+
+    @Override
+    public FollowerStat getFollowerStat() {
+        UUID userId = appUserService.getUserId();
+        MuseumOwner museumOwner = profileRepository.findMuseumOwnerByUserId(userId);
+
+        LocalDate today = LocalDate.now();
+        LocalDate currentMonthStart = today.withDayOfMonth(1);
+
+        LocalDate lastMonthStart = currentMonthStart.minusMonths(1);
+        LocalDate lastMonthEnd = today.withDayOfMonth(1).minusDays(1);
+
+        Integer totalFollower = favoriteRepository.countFollowerByMuseumIdAndEndDate(museumOwner.getMuseumId(), today);
+        Integer totalLastMonthFollower = favoriteRepository.countFollowerByMuseumIdAndEndDate(museumOwner.getMuseumId(), lastMonthEnd);
+
+        Integer newFollower = favoriteRepository.countFollowerByMuseumIdAndDateRange(museumOwner.getMuseumId(), currentMonthStart, today);
+        Integer lastMonthNewFollower = favoriteRepository.countFollowerByMuseumIdAndDateRange(museumOwner.getMuseumId(), lastMonthStart, lastMonthEnd);
+
+        Integer newBooking = bookingRepository.countNewBookingByMuseumId(museumOwner.getMuseumId(), currentMonthStart, today);
+        Integer lastMonthNewBooking = bookingRepository.countNewBookingByMuseumId(museumOwner.getMuseumId(), lastMonthStart, lastMonthEnd);
+        return FollowerStat.builder()
+                .totalFollowers(calculation.addStatItem(totalFollower, totalLastMonthFollower))
+                .newFollowers(calculation.addStatItem(newFollower, lastMonthNewFollower))
+                .newBooking(calculation.addStatItem(newBooking, lastMonthNewBooking))
                 .build();
     }
 }

@@ -294,4 +294,10 @@ public interface BookingRepository {
         AND b.created_at >= #{startDate} AND b.created_at <= #{endDate}
     """)
     Integer countBookingsByDateRange(LocalDate startDate, LocalDate endDate);
+
+    @Select("""
+        SELECT COUNT(booking_id) FROM bookings WHERE museum_id = #{museumId}::UUID
+        AND created_at BETWEEN #{startDate} AND #{endDate}
+    """)
+    Integer countNewBookingByMuseumId(UUID museumId, LocalDate startDate, LocalDate endDate);
 }
