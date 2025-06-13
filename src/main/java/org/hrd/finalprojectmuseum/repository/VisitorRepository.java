@@ -184,4 +184,5 @@ public interface VisitorRepository {
         WHERE v.created_at < #{endDate} AND u.is_verified = true
     """)
     Integer countTotalVisitors(LocalDate endDate);
+
 }

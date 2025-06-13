@@ -6,21 +6,23 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
-import org.hrd.finalprojectmuseum.model.dto.request.BookingRequest;
-import org.hrd.finalprojectmuseum.model.dto.request.PaymentAccountRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.hrd.finalprojectmuseum.model.dto.request.RequestTourRequest;
+import org.hrd.finalprojectmuseum.model.dto.request.visitor.BookingRequestV2;
 import org.hrd.finalprojectmuseum.model.dto.response.ApiResponse;
 import org.hrd.finalprojectmuseum.model.dto.response.ListResponse;
 import org.hrd.finalprojectmuseum.model.entity.AppUserRegister;
-import org.hrd.finalprojectmuseum.model.entity.Booking;
+import org.hrd.finalprojectmuseum.model.entity.Pagination;
+import org.hrd.finalprojectmuseum.model.entity.visitor.BookingV2;
 import org.hrd.finalprojectmuseum.model.entity.PaymentCredential;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
 import org.hrd.finalprojectmuseum.model.entity.visitor.Visitor;
 import org.hrd.finalprojectmuseum.model.enums.BookingType;
 import org.hrd.finalprojectmuseum.model.enums.Role;
-import org.hrd.finalprojectmuseum.service.AppUserService;
-import org.hrd.finalprojectmuseum.service.BookingService;
-import org.hrd.finalprojectmuseum.service.ProfileService;
+import org.hrd.finalprojectmuseum.model.enums.TicketType;
+import org.hrd.finalprojectmuseum.service.*;
+import org.hrd.finalprojectmuseum.service.impl.AsyncEmailService;
+import org.hrd.finalprojectmuseum.service.impl.QRCodeService;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,38 +30,75 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import com.google.api.client.util.Value;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
 @RestController
 @RequestMapping("api/v1/bookings")
 @RequiredArgsConstructor
+@Slf4j
 public class BookingsController {
     private final BookingService bookingService;
     private final ProfileService profileService;
     private final AppUserService appUserService;
+    private final ReviewService reviewService;
+    private final ZoneService zoneService;
+    private final QRCodeService qrCodeService;
+    private final AsyncEmailService asyncEmailService;
 
-    @Operation(summary = "For booking a ticket. Only visitor can use.", description = "Need to input right ticket price and total price")
+    @Value("${app.base-url:http://localhost:8080}")
+    private String baseUrl;
     @SecurityRequirement(name = "bearerAuth")
     @PreAuthorize("hasRole('ROLE_VISITOR')")
-    @PostMapping("/individual/{museum-id}")
-    public ResponseEntity<ApiResponse<Booking>> bookingIndividualByMuseumId(
-            @PathVariable("museum-id") @Valid UUID museumId,
-            @RequestBody @Valid BookingRequest bookingRequest
-    ) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        UUID userId = UUID.fromString((String) auth.getCredentials());
-        Visitor visitor = profileService.getProfile(userId);
-        Booking booking = bookingService.makeABookingByMuseumId(museumId, visitor.getVisitorId(), bookingRequest);
-        ApiResponse<Booking> response = ApiResponse.<Booking>builder()
+@PostMapping("individual/{museum-id}")
+public ResponseEntity<ApiResponse<BookingV2>> IndividualBookingByMuseumId(
+        @PathVariable("museum-id") UUID museumId,
+        @RequestParam("ticketType") TicketType ticketType,
+        @RequestBody @Valid BookingRequestV2 bookingRequest) {
+
+    try {
+        UUID visitorId = reviewService.getVisitorIdByUserId(appUserService.getUserId());
+        BookingV2 booking = bookingService.bookingIndividualTicket(museumId, visitorId, ticketType, bookingRequest);
+        System.out.println(booking);
+
+        // Generate QR code
+        byte[] qrCodeBytes = qrCodeService.generateQRCodeFromBookingCode(booking.getQrCode());
+        booking.setQRCodeData(qrCodeBytes, baseUrl);
+
+        // ✅ GET VISITOR EMAIL AND PASS AS PARAMETER
+        String visitorEmail = appUserService.getUserEmailByUserId(appUserService.getUserId());
+
+        // Send email asynchronously
+        asyncEmailService.sendBookingConfirmationEmailAsync(booking, visitorEmail, qrCodeBytes)
+                .exceptionally(throwable -> {
+                    log.error("Email sending failed for booking: {}", booking.getBookingId(), throwable);
+                    return null;
+                });
+
+        ApiResponse<BookingV2> response = ApiResponse.<BookingV2>builder()
                 .success(true)
-                .message("Booking successfully")
+                .message("Booking successfully created with QR code")
                 .status(HttpStatus.CREATED)
                 .payload(booking)
                 .build();
+
         return new ResponseEntity<>(response, HttpStatus.CREATED);
+
+    } catch (Exception e) {
+        log.error("Failed to create booking: {}", e.getMessage());
+
+        ApiResponse<BookingV2> response = ApiResponse.<BookingV2>builder()
+                .success(false)
+                .message("Failed to create booking: " + e.getMessage())
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .build();
+
+        return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+}
 
     @SecurityRequirement(name = "bearerAuth")
     @PreAuthorize("hasRole('ROLE_VISITOR')")
@@ -78,130 +117,109 @@ public class BookingsController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    @PreAuthorize("hasRole('ROLE_VISITOR')")
+    @PostMapping("tour/{museum-id}")
     @SecurityRequirement(name = "bearerAuth")
-    @Operation(summary = "For RequestTour. Only visitor can use.")
-    @PostMapping("/tour/{museum-id}")
-    public ResponseEntity<ApiResponse<Booking>> requestTourByMuseumId(
-            @PathVariable("museum-id") @Valid UUID museumId,
-            @RequestBody @Valid RequestTourRequest requestTourRequest
-    ) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        UUID userId = UUID.fromString((String) auth.getCredentials());
-        Visitor visitor = profileService.getProfile(userId);
-        Booking booking = bookingService.requestTourByMuseumId(museumId, visitor.getVisitorId(), requestTourRequest);
-        ApiResponse<Booking> response = ApiResponse.<Booking>builder()
+    @PreAuthorize("hasRole('ROLE_VISITOR')")
+    @Operation(summary = "For Request Tour. Only visitor can use")
+    public ResponseEntity<ApiResponse<BookingV2>> tourRequest(
+            @PathVariable("museum-id") UUID museumId,
+            @RequestBody @Valid RequestTourRequest requestTourRequest){
+        UUID visitorId = reviewService.getVisitorIdByUserId(appUserService.getUserId());
+        BookingV2 tourRequest = bookingService.tourRequest(museumId, visitorId, requestTourRequest);
+
+        ApiResponse<BookingV2> response = ApiResponse.<BookingV2>builder()
                 .success(true)
                 .message("Booking successfully")
                 .status(HttpStatus.CREATED)
-                .payload(booking)
+                .payload(tourRequest)
                 .build();
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
     @SecurityRequirement(name = "bearerAuth")
-    @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER') or hasRole('ROLE_VISITOR')")
+    @PreAuthorize("hasRole('ROLE_VISITOR')")
     @Operation(
-            summary = "For get all booking history",
-            description = "For Date must follow format (YYYY-MM-DD). If any filter dont want to use just leave it empty."
+            summary = "For get booking by Booking ID for Visitor"
     )
+    @GetMapping("/{booking-id}")
+    public ResponseEntity<ApiResponse<BookingV2>> getBookingHistoryByBookingId(@PathVariable("booking-id") @Valid UUID bookingId) {
+        try {
+            UUID visitorId = reviewService.getVisitorIdByUserId(appUserService.getUserId());
+            BookingV2 booking = bookingService.getBookingByVisitorIdV2(bookingId, visitorId);
 
-    @GetMapping()
-    public ResponseEntity<ApiResponse<ListResponse<Booking>>> getBookingHistory(
-            @RequestParam(value = "bookingType", required = false) BookingType bookingType,
-            @RequestParam(defaultValue = "1") @Min(value = 1, message = "must be greater than 0") Integer page,
-            @RequestParam(defaultValue = "10") @Min(value = 1, message = "must be greater than 0") Integer size
-    ) {
+            // Generate QR code (same as in POST endpoint)
+            byte[] qrCodeBytes = qrCodeService.generateQRCodeFromBookingCode(booking.getQrCode());
+            booking.setQRCodeData(qrCodeBytes, baseUrl);
 
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        UUID userId = UUID.fromString((String) auth.getCredentials());
-        AppUserRegister appUserRegister = appUserService.findUserByUserId(userId);
-        ListResponse<Booking> bookings = null;
-        if (appUserRegister.getRole() == Role.ROLE_VISITOR){
-            Visitor visitor = profileService.getProfile(userId);
-            bookings = bookingService.getBookingHistoryByVisitorId(visitor.getVisitorId(), null, page, size, bookingType, null, null);
-        } else if (appUserRegister.getRole() == Role.ROLE_MUSEUM_OWNER) {
-            MuseumOwner museumOwner = profileService.getMuseumOwnerByUserId(userId);
-            bookings = bookingService.getAllBookingByMuseumId(museumOwner.getMuseumId(), null, page, size, bookingType, null, null);
+            ApiResponse<BookingV2> response = ApiResponse.<BookingV2>builder()
+                    .success(true)
+                    .message("Booking retrieved successfully")
+                    .status(HttpStatus.OK)
+                    .payload(booking)
+                    .build();
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            log.error("Failed to retrieve booking: {}", e.getMessage());
+
+            ApiResponse<BookingV2> response = ApiResponse.<BookingV2>builder()
+                    .success(false)
+                    .message("Failed to retrieve booking: " + e.getMessage())
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .build();
+
+            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
         }
-
-        ApiResponse<ListResponse<Booking>> response = ApiResponse.<ListResponse<Booking>>builder()
-                .success(true)
-                .message("Bookings retrieved successfully")
-                .status(HttpStatus.OK)
-                .payload(bookings)
-                .build();
-
-        return ResponseEntity.ok(response);
     }
 
-    @Operation(
-            summary = "For get all booking history of a visitor with search, category and between of two date. MuseumOwner and Visitor can use.",
-            description = "For Date must follow format (YYYY-MM-DD). If any filter dont want to use just leave it empty."
-    )
     @SecurityRequirement(name = "bearerAuth")
-    @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER') or hasRole('ROLE_VISITOR')")
     @GetMapping("/filter")
-    public ResponseEntity<ApiResponse<ListResponse<Booking>>> getBookingHistoryByFilter(
+    @PreAuthorize("hasRole('ROLE_VISITOR') or hasRole('ROLE_MUSEUM_OWNER')")
+    @Operation(summary = "Visitor and Museum Owner can use this for get all booking history",
+            description = "For Date must follow format (YYYY-MM-DD). If any filter dont want to use just leave it empty or search with letter."
+    )
+    public ResponseEntity<ApiResponse<ListResponse<BookingV2>>> getALlBookingHistoryAndFilter(
             @RequestParam(value = "search", required = false) String search,
             @RequestParam(value = "bookingType", required = false) BookingType bookingType,
             @RequestParam(defaultValue = "1") @Min(value = 1, message = "must be greater than 0") Integer page,
             @RequestParam(defaultValue = "10") @Min(value = 1, message = "must be greater than 0") Integer size,
             @RequestParam(value = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(value = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate
-    ) {
-
+    ){
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UUID userId = UUID.fromString((String) auth.getCredentials());
         AppUserRegister appUserRegister = appUserService.findUserByUserId(userId);
-        ListResponse<Booking> bookings = null;
+        List<BookingV2> bookings = null;
+
+        Integer zeroBasedPage = page - 1;
+
+        Integer totalItems = null;
+
         if (appUserRegister.getRole() == Role.ROLE_VISITOR){
-            Visitor visitor = profileService.getProfile(userId);
-            bookings = bookingService.getBookingHistoryByVisitorId(visitor.getVisitorId(), search, page, size, bookingType, startDate, endDate);
+            UUID visitorId = reviewService.getVisitorIdByUserId(appUserService.getUserId());
+            totalItems = bookingService.countVisitorBookingHistory(visitorId, search, bookingType, zeroBasedPage, size, startDate, endDate);
+            bookings = bookingService.getVisitorBookingHistory(visitorId, search, bookingType, zeroBasedPage, size , startDate, endDate);
         } else if (appUserRegister.getRole() == Role.ROLE_MUSEUM_OWNER) {
-            MuseumOwner museumOwner = profileService.getMuseumOwnerByUserId(userId);
-            bookings = bookingService.getAllBookingByMuseumId(museumOwner.getMuseumId(), search, page, size, bookingType, startDate, endDate);
+            UUID museumId = zoneService.getMuseumIdByUserId(appUserService.getUserId());
+            totalItems = bookingService.countMuseumBookingHistory(museumId, search);
+            bookings = bookingService.getMuseumBookingHistory(museumId, search, zeroBasedPage, size);
         }
 
-        ApiResponse<ListResponse<Booking>> response = ApiResponse.<ListResponse<Booking>>builder()
-                .success(true)
-                .message("Bookings retrieved successfully")
-                .status(HttpStatus.OK)
-                .payload(bookings)
+        Pagination pagination = new Pagination();
+        pagination = pagination.calculatePagination(totalItems, page, size);
+        ListResponse<BookingV2> response = ListResponse.<BookingV2>builder()
+                .items(bookings)
+                .pagination(pagination)
                 .build();
 
-        return ResponseEntity.ok(response);
-    }
-
-    @SecurityRequirement(name = "bearerAuth")
-    @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER') or hasRole('ROLE_VISITOR')")
-    @Operation(
-            summary = "For get booking by Booking ID MuseumOwner and Visitor can use."
-    )
-    @GetMapping("/{booking-id}")
-    public ResponseEntity<ApiResponse<Booking>> getBookingHistoryByBookingId(@PathVariable("booking-id") @Valid UUID bookingId) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        UUID userId = UUID.fromString((String) auth.getCredentials());
-        AppUserRegister appUserRegister = appUserService.findUserByUserId(userId);
-        Booking booking = null;
-        if (appUserRegister.getRole() == Role.ROLE_VISITOR){
-
-            Visitor visitor = profileService.getProfile(userId);
-            booking = bookingService.getBookingByVisitorId(bookingId, visitor.getVisitorId());
-
-        } else if (appUserRegister.getRole() == Role.ROLE_MUSEUM_OWNER) {
-
-            MuseumOwner museumOwner = profileService.getMuseumOwnerByUserId(userId);
-            booking = bookingService.getBookingByMuseumId(bookingId, museumOwner.getMuseumId());
-
-        }
-        ApiResponse<Booking> response = ApiResponse.<Booking>builder()
+        ApiResponse<ListResponse<BookingV2>> listResponse = ApiResponse.<ListResponse<BookingV2>>builder()
                 .success(true)
                 .message("Booking retrieved successfully")
                 .status(HttpStatus.OK)
-                .payload(booking)
+                .payload(response)
                 .build();
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(listResponse);
     }
 
 }
