@@ -123,7 +123,6 @@ public interface BookingRepository {
         WHERE bk.booking_id = #{bookingId}::UUID
         AND bk.visitor_id = #{visitorId}::UUID;
     """)
-
     @ResultMap("IndividualBooking")
     BookingV2 retrieveBookingDetailByVisitorId(UUID bookingId, UUID visitorId);
 
@@ -372,15 +371,22 @@ public interface BookingRepository {
             @Result(property = "qrCode", column = "qr_code"),
             @Result(property = "totalPrice", column = "total_price"),
             @Result(property = "ticketStatus", column = "ticket_status"),
+            @Result(property = "tourStatus", column = "status"),
             @Result(property = "expiredDate", column = "expired_date"),
             @Result(property = "museumLogo", column = "logo_link"),
     })
-    BookingV2 insertBookingIndividual(UUID museumId, UUID visitorId, TicketType ticketType, @Param("bookingRequest") BookingRequestV2 bookingRequest, String code, LocalDateTime expiredDate);
+    BookingV2 insertBookingIndividual(
+            UUID museumId, UUID visitorId,
+            TicketType ticketType, @Param("bookingRequest") BookingRequestV2 bookingRequest,
+            String code, LocalDateTime expiredDate);
 
     @Select("""
-        SELECT * FROM bookings 
-        WHERE booking_id = #{bookingId}::UUID
+        SELECT bk.*, tb.status
+            FROM bookings bk
+            LEFT JOIN tours tb ON bk.booking_id = tb.booking_id
+            WHERE bk.booking_id = #{bookingId}::UUID
+            AND bk.visitor_id = #{visitorId}::UUID
     """)
     @ResultMap("IndividualBooking")
-    BookingV2 getBookingByBookingId(UUID bookingId);
+    BookingV2 getBookingByBookingId(UUID bookingId, UUID visitorId);
 }

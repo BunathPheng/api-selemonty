@@ -64,7 +64,7 @@ public class BookingServiceImpl implements BookingService {
             }
         }
         if (ticketType == TicketType.LOCAL) {
-            if (individualBookingInfo.getForeignPrice().compareTo(bookingRequest.getTicketPrice()) != 0){
+            if (individualBookingInfo.getLocalPrice().compareTo(bookingRequest.getTicketPrice()) != 0){
                 throw new AppBadRequestException("Local Ticket price is wrong. Right LocalTicket price is: "+ individualBookingInfo.getLocalPrice());
             }
         }
@@ -179,11 +179,26 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public BookingV2 getBookingByVisitorIdV2(UUID bookingId, UUID visitorId) {
-        BookingV2 bookingDetail = bookingRepository.retrieveBookingDetailByVisitorId(bookingId, visitorId);
-        if (bookingDetail == null) {
-            throw new AppNotFoundException("Booking with id " + bookingId + " not exists");
+        String bookingType = checkAndUpdateExpirationV2(bookingId);
+        BookingV2 bookingDetail = null;
+        if (bookingType.equals("INDIVIDUAL")){
+            bookingDetail = bookingRepository.retrieveBookingDetailByVisitorId(bookingId, visitorId);
+            if (bookingDetail == null) {
+                throw new AppNotFoundException("Booking with id " + bookingId + " not exists");
+            }
+        } else if (bookingType.equals("TOUR")) {
+            bookingDetail = bookingRepository.getBookingByBookingId(bookingId, visitorId);
+            if (bookingDetail == null) {
+                throw new AppNotFoundException("Booking with id " + bookingId + " not exists");
+            }
         }
-        checkAndUpdateExpirationV2(bookingId);
+
+//        BookingV2 bookingDetail = bookingRepository.retrieveBookingDetailByVisitorId(bookingId, visitorId);
+//
+//        if (bookingDetail == null) {
+//            throw new AppNotFoundException("Booking with id " + bookingId + " not exists");
+//        }
+
         return bookingDetail;
     }
 
@@ -249,7 +264,7 @@ public class BookingServiceImpl implements BookingService {
 
         UUID bookingId = bookingRepository.insertBookingForTourRequest(museumId, visitorId, requestTourRequest);
         tourRepository.insertNewTourRequest(bookingId);
-        return bookingRepository.getBookingByBookingId(bookingId);
+        return bookingRepository.getBookingByBookingId(bookingId, visitorId);
     }
 
     public void checkAndUpdateExpiration(UUID bookingId) {
@@ -267,7 +282,7 @@ public class BookingServiceImpl implements BookingService {
         }
     }
 
-    public void checkAndUpdateExpirationV2(UUID bookingId) {
+    public String checkAndUpdateExpirationV2(UUID bookingId) {
         BookingV2 booking = bookingRepository.retrieveBookingByBookingId(bookingId);
         if (booking == null) {
             throw new AppNotFoundException("Booking with id " + bookingId + " not exists");
@@ -280,5 +295,6 @@ public class BookingServiceImpl implements BookingService {
             booking.setTicketStatus("EXPIRED");
             bookingRepository.updateStatus(bookingId, "EXPIRED");
         }
+        return booking.getBookingType();
     }
 }

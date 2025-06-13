@@ -92,4 +92,11 @@ public interface AppUserRepository {
         UPDATE user_info SET password = #{newPassword} WHERE user_id = #{userId}::UUID
     """)
     void updatePasswordByUserId(UUID userId, String newPassword);
+
+    @Select("""
+        SELECT email
+        FROM user_info 
+        WHERE user_id = #{userId}::UUID;
+    """)
+    String getEmailByVisitorId(UUID userId);
 }
