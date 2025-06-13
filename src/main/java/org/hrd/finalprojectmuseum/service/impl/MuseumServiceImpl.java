@@ -217,11 +217,10 @@ public class MuseumServiceImpl implements MuseumService {
         LocalDate currentMonthStart = today.withDayOfMonth(1);
 
         LocalDate lastMonthStart = currentMonthStart.minusMonths(1);
-        LocalDate lastMonthEnd = lastMonthStart.plusDays(today.getDayOfMonth() - 1);
+        LocalDate lastMonthEnd = today.withDayOfMonth(1).minusDays(1);
 
         Integer currentTotalMuseum = museumRepository.retrieveTotalMuseumByDateRange(today);
-        Integer lastMonthTotalMuseum = museumRepository.retrieveTotalMuseumByDateRange(currentMonthStart);
-        System.out.println(lastMonthEnd);
+        Integer lastMonthTotalMuseum = museumRepository.retrieveTotalMuseumByDateRange(lastMonthEnd);
 
         Integer currentNewMuseum = museumRepository.retrieveMuseumByDateRange(currentMonthStart, today);
         Integer lastMonthNewMuseum = museumRepository.retrieveMuseumByDateRange(lastMonthStart, lastMonthEnd);

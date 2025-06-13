@@ -122,7 +122,7 @@ public class VisitorServiceImpl implements VisitorService {
         LocalDate currentMonthStart = today.withDayOfMonth(1);
 
         LocalDate lastMonthStart = currentMonthStart.minusMonths(1);
-        LocalDate lastMonthEnd = lastMonthStart.plusDays(today.getDayOfMonth() - 1);
+        LocalDate lastMonthEnd = today.withDayOfMonth(1).minusDays(1);
 
         Integer currentNewVisitors = visitorRepository.countNewVisitorsByDateRange(currentMonthStart, today);
         Integer currentTotalVisitors = visitorRepository.countTotalVisitors(today);
