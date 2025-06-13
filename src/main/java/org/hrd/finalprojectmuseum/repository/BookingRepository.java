@@ -286,4 +286,12 @@ public interface BookingRepository {
         UPDATE bookings SET qr_code = #{code} WHERE booking_id = #{bookingId}::UUID
     """)
     void setTicketCode(UUID bookingId, String code);
+
+    @Select("""
+        SELECT COUNT(b.booking_id) FROM bookings b
+        LEFT JOIN tours t ON b.booking_id = t.booking_id
+        WHERE (t.booking_id IS NULL OR (t.booking_id IS NOT NULL AND t.status = 'PAID'))
+        AND b.created_at >= #{startDate} AND b.created_at <= #{endDate}
+    """)
+    Integer countBookingsByDateRange(LocalDate startDate, LocalDate endDate);
 }

@@ -7,7 +7,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.hrd.finalprojectmuseum.model.dto.response.ApiResponse;
 import org.hrd.finalprojectmuseum.model.dto.response.ListResponse;
-import org.hrd.finalprojectmuseum.model.entity.AppUserRegister;
+import org.hrd.finalprojectmuseum.model.entity.*;
 import org.hrd.finalprojectmuseum.model.entity.visitor.Visitor;
 import org.hrd.finalprojectmuseum.model.enums.Role;
 import org.hrd.finalprojectmuseum.service.AppUserService;
@@ -135,4 +135,82 @@ public class VisitorsController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @GetMapping("/booking")
+    public ResponseEntity<ApiResponse<ListResponse<VisitorBooking>>> getAllVisitorsWithBooking(
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer size
+    ){
+        ListResponse<VisitorBooking> visitors = visitorService.getAllVisitorBooking(null, page, size);
+        ApiResponse<ListResponse<VisitorBooking>> response = ApiResponse.<ListResponse<VisitorBooking>>builder()
+                .success(true)
+                .message("Visitors fetched successfully")
+                .status(HttpStatus.OK)
+                .payload(visitors)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @GetMapping("/booking/filter")
+    public ResponseEntity<ApiResponse<ListResponse<VisitorBooking>>> getAllVisitorsWithBookingFilter(
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer size
+    ){
+        ListResponse<VisitorBooking> visitors = visitorService.getAllVisitorBooking(search, page, size);
+        ApiResponse<ListResponse<VisitorBooking>> response = ApiResponse.<ListResponse<VisitorBooking>>builder()
+                .success(true)
+                .message("Visitors fetched successfully")
+                .status(HttpStatus.OK)
+                .payload(visitors)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @GetMapping("/{visitor-id}/booking")
+    public ResponseEntity<ApiResponse<ListResponse<VisitorBookingDetail>>> getVisitorBookingByVisitorId(
+            @PathVariable("visitor-id") @NotNull(message = "Visitor ID is required") UUID visitorId,
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer size
+    ){
+        ListResponse<VisitorBookingDetail> booking = visitorService.getBookingByVisitorId(visitorId, search, page, size);
+        ApiResponse<ListResponse<VisitorBookingDetail>> response = ApiResponse.<ListResponse<VisitorBookingDetail>>builder()
+                .success(true)
+                .message("Booking fetched successfully")
+                .status(HttpStatus.OK)
+                .payload(booking)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @GetMapping("/{visitor-id}/booking/total")
+    public ResponseEntity<ApiResponse<VisitorBookingTotal>> getVisitorBookingTotalByVisitorId(
+            @PathVariable("visitor-id") @NotNull(message = "Visitor ID is required") UUID visitorId
+    ){
+        VisitorBookingTotal booking = visitorService.getVisitorBookingTotalByVisitorId(visitorId);
+        ApiResponse<VisitorBookingTotal> response = ApiResponse.<VisitorBookingTotal>builder()
+                .success(true)
+                .message("Visitor Booking Total fetched successfully")
+                .status(HttpStatus.OK)
+                .payload(booking)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @GetMapping("/admin/stat")
+    public ResponseEntity<ApiResponse<VisitorStat>> getVisitorBookingTotalByVisitorIdAndBooking(){
+        VisitorStat booking = visitorService.getVisitorStatByVisitorId();
+        ApiResponse<VisitorStat> response = ApiResponse.<VisitorStat>builder()
+                .success(true)
+                .message("Visitor Booking Total fetched successfully")
+                .status(HttpStatus.OK)
+                .payload(booking)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
 }

@@ -1,9 +1,12 @@
 package org.hrd.finalprojectmuseum.repository;
 
 import org.apache.ibatis.annotations.*;
-import org.hrd.finalprojectmuseum.model.dto.response.ListResponse;
+import org.hrd.finalprojectmuseum.model.entity.VisitorBooking;
+import org.hrd.finalprojectmuseum.model.entity.VisitorBookingDetail;
+import org.hrd.finalprojectmuseum.model.entity.VisitorBookingTotal;
 import org.hrd.finalprojectmuseum.model.entity.visitor.Visitor;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -57,4 +60,125 @@ public interface VisitorRepository {
         SELECT COUNT(*) FROM visitors WHERE full_name ILIKE CONCAT('%', #{search}, '%')
     """)
     Integer countAllVisitor(String search);
+
+    @Results(id = "visitorBookingMapper", value = {
+            @Result(property = "fullName", column = "full_name"),
+            @Result(property = "email", column = "email"),
+            @Result(property = "totalBookings", column = "total_booking"),
+            @Result(property = "totalTickets", column = "total_ticket")
+    })
+    @Select("""
+        SELECT
+            v.full_name,
+            u.email,
+            COUNT(b.booking_id) as total_booking,
+            COALESCE(SUM(b.slot_amount), 0) as total_ticket
+        FROM visitors v
+        LEFT JOIN bookings b ON v.visitor_id = b.visitor_id
+        INNER JOIN user_info u ON v.user_id = u.user_id
+        LEFT JOIN tours t ON t.booking_id = b.booking_id
+        WHERE ((t.booking_id IS NULL) OR (t.booking_id IS NOT NULL AND t.status = 'PAID'))
+        AND (#{search} IS NULL OR v.full_name ILIKE CONCAT('%', #{search}, '%'))
+        GROUP BY v.full_name, u.email
+        ORDER BY total_ticket DESC
+        OFFSET (#{page}-1) * #{size} LIMIT #{size}
+    """)
+    List<VisitorBooking> findAllVisitorBooking(@Param("search") String search, @Param("page") Integer page, @Param("size") Integer size);
+
+    @Select("""
+        SELECT
+            COUNT(b.booking_id)
+        FROM visitors v
+        LEFT JOIN bookings b ON v.visitor_id = b.visitor_id
+        INNER JOIN user_info u ON v.user_id = u.user_id
+        LEFT JOIN tours t ON t.booking_id = b.booking_id
+        WHERE (t.booking_id IS NULL) OR (t.booking_id IS NOT NULL AND t.status = 'PAID')
+        AND v.full_name ILIKE CONCAT('%', #{search}, '%') OR u.email ILIKE CONCAT('%', #{search}, '%')
+    """)
+    Integer countVisitorBooking(String search);
+
+    @Results(id = "visitorBookingDetailMapper", value = {
+            @Result(property = "museumName", column = "name"),
+            @Result(property = "ticketType", column = "ticket_type"),
+            @Result(property = "bookingType", column = "booking_type"),
+            @Result(property = "bookingDate", column = "booking_date")
+    })
+    @Select("""
+        SELECT m.name, b.ticket_type, b.booking_type, b.booking_date
+        FROM bookings b INNER JOIN museum_owners m ON b.museum_id = m.museum_id
+        LEFT JOIN tours t ON b.booking_id = t.booking_id
+        WHERE visitor_id = #{visitorId}::UUID AND m.name ILIKE CONCAT('%', #{search}, '%')
+        AND (t.booking_id IS NULL OR (t.tour_id IS NOT NULL AND t.status = 'PAID'))
+        OFFSET (#{page}-1)* #{size} LIMIT #{size};
+    """)
+    List<VisitorBookingDetail> findVisitorBookingByVisitorId(UUID visitorId, String search, Integer page, Integer size);
+
+    @Select("""
+        SELECT COUNT(b.booking_id) FROM bookings b INNER JOIN museum_owners m ON b.museum_id = m.museum_id
+        LEFT JOIN tours t ON b.booking_id = t.booking_id
+        WHERE visitor_id = #{visitorId}::UUID AND m.name ILIKE CONCAT('%', #{search}, '%')
+        AND (t.booking_id IS NULL OR (t.tour_id IS NOT NULL AND t.status = 'PAID'))
+    """)
+    Integer countBookingByVisitorId(UUID visitorId, String search);
+
+    @Results(id = "visitorBookingBookingMapper", value = {
+            @Result(property = "totalTicket", column = "total_ticket"),
+            @Result(property = "totalBooking", column = "total_booking"),
+    })
+    @Select("""
+        SELECT
+            COUNT(b.booking_id) as total_booking,
+            COALESCE(SUM(b.slot_amount), 0) as total_ticket
+        FROM visitors v
+        LEFT JOIN bookings b ON v.visitor_id = b.visitor_id
+        INNER JOIN user_info u ON v.user_id = u.user_id
+        LEFT JOIN tours t ON t.booking_id = b.booking_id
+        WHERE ((t.booking_id IS NULL) OR (t.booking_id IS NOT NULL AND t.status = 'PAID'))
+        AND v.visitor_id = #{visitorId}::UUID
+    """)
+    VisitorBookingTotal retrieveBookingTotalByVisitorId(UUID visitorId);
+
+    @ResultMap("visitorBookingBookingMapper")
+    @Select("""
+        SELECT
+            COUNT(b.booking_id) as total_booking,
+            COALESCE(SUM(b.slot_amount), 0) as total_ticket
+        FROM visitors v
+        LEFT JOIN bookings b ON v.visitor_id = b.visitor_id
+        INNER JOIN user_info u ON v.user_id = u.user_id
+        LEFT JOIN tours t ON t.booking_id = b.booking_id
+        WHERE ((t.booking_id IS NULL) OR (t.booking_id IS NOT NULL AND t.status = 'PAID'))
+        AND v.visitor_id = #{visitorId}::UUID
+        AND b.created_at >= DATE_TRUNC('month', CURRENT_DATE - INTERVAL '1 month')
+        AND b.created_at <= (CURRENT_DATE - INTERVAL '1 month') + (CURRENT_DATE - DATE_TRUNC('month', CURRENT_DATE))
+    """)
+    VisitorBookingTotal retrieveLastMonthBookingTotalByVisitorId(UUID visitorId);
+
+    @ResultMap("visitorBookingBookingMapper")
+    @Select("""
+        SELECT
+            COUNT(b.booking_id) as total_booking,
+            COALESCE(SUM(b.slot_amount), 0) as total_ticket
+        FROM visitors v
+        LEFT JOIN bookings b ON v.visitor_id = b.visitor_id
+        INNER JOIN user_info u ON v.user_id = u.user_id
+        LEFT JOIN tours t ON t.booking_id = b.booking_id
+        WHERE ((t.booking_id IS NULL) OR (t.booking_id IS NOT NULL AND t.status = 'PAID'))
+        AND v.visitor_id = #{visitorId}::UUID
+        AND b.created_at >= DATE_TRUNC('month', CURRENT_DATE)
+        AND b.created_at <= CURRENT_DATE
+    """)
+    VisitorBookingTotal retrieveThisMonthBookingTotalByVisitorId(@Param("visitorId") UUID visitorId);
+
+    @Select("""
+        SELECT COUNT(visitor_id) FROM visitors
+        WHERE created_at >= #{startDate} AND created_at <= #{endDate}
+    """)
+    Integer countNewVisitorsByDateRange(LocalDate startDate, LocalDate endDate);
+
+    @Select("""
+        SELECT COUNT(visitor_id) FROM visitors
+        WHERE created_at < #{endDate}
+    """)
+    Integer countTotalVisitors(LocalDate endDate);
 }
