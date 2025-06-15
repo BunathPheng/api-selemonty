@@ -56,6 +56,7 @@ public interface FavoriteRepository {
         SELECT favorite_id, museum_id, visitor_id, is_favorite, created_at
         FROM favorites
         WHERE museum_id = #{museumId}::UUID AND visitor_id = #{visitorId}::UUID
+        AND is_favorite = true
     """)
     @Results({
             @Result(property = "favoriteId", column = "favorite_id"),
@@ -72,6 +73,7 @@ public interface FavoriteRepository {
         INNER JOIN user_info ui ON mo.user_id = ui.user_id
         INNER JOIN favorites f ON f.museum_id = mo.museum_id
         WHERE f.visitor_id = #{visitorId}::UUID
+        AND is_favorite = true
         OFFSET (#{page}-1) * #{size} LIMIT #{size};
     """)
     @Results(id = "AllFavoriteMuseums", value = {
@@ -106,18 +108,27 @@ public interface FavoriteRepository {
         INNER JOIN user_info ui ON mo.user_id = ui.user_id
         INNER JOIN favorites f ON f.museum_id = mo.museum_id
         WHERE f.visitor_id = #{visitorId}::UUID
+        AND is_favorite = true
     """)
     Integer countFavoriteMuseum(UUID visitorId);
 
     @Select("""
         SELECT COUNT(favorite_id) FROM favorites WHERE museum_id = #{museumId}::UUID
         AND created_at <= #{endDate}
+        AND is_favorite = true
     """)
     Integer countFollowerByMuseumIdAndEndDate(UUID museumId, LocalDate endDate);
 
     @Select("""
         SELECT COUNT(favorite_id) FROM favorites WHERE museum_id = #{museumId}::UUID
-        AND created_at BETWEEN #{startDate} AND #{endDate}
+        AND is_favorite = true
+        AND (created_at BETWEEN #{startDate} AND #{endDate})
     """)
     Integer countFollowerByMuseumIdAndDateRange(UUID museumId, LocalDate startDate, LocalDate endDate);
+
+    @Select("""
+        SELECT is_favorite FROM favorites WHERE museum_id = #{museumId}::UUID
+        AND visitor_id = #{visitorId}::UUID
+    """)
+    Boolean getCurrentFavoriteStatus(UUID museumId, UUID visitorId);
 }
