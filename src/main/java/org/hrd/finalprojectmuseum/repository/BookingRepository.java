@@ -138,7 +138,7 @@ public interface BookingRepository {
 
     // Repository methods for finding bookings
     @Select("""
-        SELECT bk.booking_id, mo.name, mo.logo_link, bk.booking_type, bk.total_price, bk.ticket_status
+        SELECT bk.booking_id, mo.name, mo.logo_link, bk.booking_type, bk.total_price, bk.ticket_status, mo.description
         FROM bookings bk
         INNER JOIN museum_owners mo ON mo.museum_id = bk.museum_id
         WHERE bk.visitor_id = #{visitorId}::UUID
@@ -155,7 +155,7 @@ public interface BookingRepository {
     );
 
     @Select("""
-        SELECT bk.booking_id, mo.name, mo.logo_link, bk.booking_type, bk.ticket_price, bk.ticket_status
+        SELECT bk.booking_id, mo.name, mo.logo_link, bk.booking_type, bk.ticket_price, bk.ticket_status, mo.description
         FROM bookings bk
         INNER JOIN museum_owners mo ON mo.museum_id = bk.museum_id
         WHERE bk.visitor_id = #{visitorId}::UUID
@@ -174,7 +174,7 @@ public interface BookingRepository {
     );
 
     @Select("""
-    SELECT bk.booking_id, mo.name, mo.logo_link, bk.booking_type, bk.ticket_price, bk.ticket_status
+    SELECT bk.booking_id, mo.name, mo.logo_link, bk.booking_type, bk.ticket_price, bk.ticket_status, mo.description
     FROM bookings bk
     INNER JOIN museum_owners mo ON mo.museum_id = bk.museum_id
     WHERE bk.visitor_id = #{visitorId}::UUID
@@ -194,7 +194,7 @@ public interface BookingRepository {
     );
 
     @Select("""
-    SELECT bk.booking_id, mo.name, mo.logo_link, bk.booking_type, bk.ticket_price, bk.ticket_status
+    SELECT bk.booking_id, mo.name, mo.logo_link, bk.booking_type, bk.ticket_price, bk.ticket_status, mo.description
     FROM bookings bk
     INNER JOIN museum_owners mo ON mo.museum_id = bk.museum_id
     WHERE bk.visitor_id = #{visitorId}::UUID
@@ -362,6 +362,7 @@ public interface BookingRepository {
             @Result(property = "bookingId", column = "booking_id"),
             @Result(property = "museumId", column = "museum_id"),
             @Result(property = "museumName", column = "name"),
+            @Result(property = "museumDescription", column = "description"),
             @Result(property = "visitorId", column = "visitor_id"),
             @Result(property = "visitorName", column = "full_name"),
             @Result(property = "bookingType", column = "booking_type"),
@@ -418,5 +419,20 @@ public interface BookingRepository {
         AND created_at BETWEEN #{startDate} AND #{endDate}
     """)
     Integer countNewBookingByMuseumId(UUID museumId, LocalDate startDate, LocalDate endDate);
+
+    @Select("""
+        SELECT * FROM bookings
+        WHERE visitor_id = #{visitorId}::UUID
+    """)
+    @ResultMap("IndividualBooking")
+    List<BookingV2> findBookingByVisitorId(@Param("visitorId") UUID visitorId);
+
+    @Select("""
+        SELECT * FROM bookings
+        WHERE museum_id = #{museumId}::UUID
+    """)
+    @ResultMap("IndividualBooking")
+    List<BookingV2> findBookingByMuseumId(@Param("museumId") UUID museumId);
+
 
 }

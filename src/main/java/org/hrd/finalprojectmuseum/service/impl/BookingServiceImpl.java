@@ -108,6 +108,14 @@ public class BookingServiceImpl implements BookingService {
         boolean hasCategory = category != null;
         boolean hasDateRange = startDate != null && endDate != null;
 
+        List<BookingV2> bookingByVisitorId = getBookingByVisitorId(visitorId);
+        for (BookingV2 booking : bookingByVisitorId) {
+            checkAndUpdateExpirationV2(booking.getBookingId());
+            if (category == BookingType.TOUR){
+                booking.setTotalPrice(tourRepository.getTourPriceByBookingId(booking.getBookingId()));
+            }
+        }
+
         List<BookingV2> bookings = null;
 
         if (!hasCategory && !hasDateRange) {
@@ -118,17 +126,6 @@ public class BookingServiceImpl implements BookingService {
             bookings = bookingRepository.findVisitorBookingHistoryBySearchAndDateRange(visitorId, search.trim(), startDate, endDate, page, size);
         } else {
             bookings = bookingRepository.findVisitorBookingHistoryBySearchCategoryAndDateRange(visitorId, search.trim(), category, startDate, endDate, page, size);
-        }
-
-//        for (BookingV2 booking : bookings) {
-//            checkAndUpdateExpirationV2(booking.getBookingId());
-//        }
-
-        for (BookingV2 booking : bookings) {
-            checkAndUpdateExpirationV2(booking.getBookingId());
-            if (category == BookingType.TOUR){
-                booking.setTotalPrice(tourRepository.getTourPriceByBookingId(booking.getBookingId()));
-            }
         }
 
         return bookings;
@@ -161,13 +158,11 @@ public class BookingServiceImpl implements BookingService {
     public List<BookingV2> getMuseumBookingHistory(UUID museumId, String search, Integer page, Integer size) {
         search = search == null ? "" : search;
 
-        List<BookingV2> museumHistoryBooking = bookingRepository.getMuseumBookingHistoryByMuseumId(museumId, search, page, size);
-
-        for (BookingV2 booking : museumHistoryBooking) {
+        List<BookingV2> bookingByMuseumId = getBookingByMuseumId(museumId);
+        for (BookingV2 booking : bookingByMuseumId) {
             checkAndUpdateExpirationV2(booking.getBookingId());
         }
-
-        return museumHistoryBooking;
+        return bookingRepository.getMuseumBookingHistoryByMuseumId(museumId, search, page, size);
     }
 
     @Override
@@ -191,13 +186,6 @@ public class BookingServiceImpl implements BookingService {
                 throw new AppNotFoundException("Booking with id " + bookingId + " not exists");
             }
         }
-
-//        BookingV2 bookingDetail = bookingRepository.retrieveBookingDetailByVisitorId(bookingId, visitorId);
-//
-//        if (bookingDetail == null) {
-//            throw new AppNotFoundException("Booking with id " + bookingId + " not exists");
-//        }
-
         return bookingDetail;
     }
 
@@ -297,5 +285,11 @@ public class BookingServiceImpl implements BookingService {
         return booking.getBookingType();
     }
 
+    public List<BookingV2> getBookingByVisitorId(UUID visitorId) {
+        return bookingRepository.findBookingByVisitorId(visitorId);
+    }
 
+    public List<BookingV2> getBookingByMuseumId(UUID museumId) {
+        return bookingRepository.findBookingByMuseumId(museumId);
+    }
 }
