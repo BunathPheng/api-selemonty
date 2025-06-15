@@ -1,9 +1,12 @@
 package org.hrd.finalprojectmuseum.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.hrd.finalprojectmuseum.model.dto.response.ApiResponse;
 import org.hrd.finalprojectmuseum.model.dto.response.FollowerTrendChartResponse;
+import org.hrd.finalprojectmuseum.model.entity.BookingChart;
+import org.hrd.finalprojectmuseum.model.entity.VisitorChart;
 import org.hrd.finalprojectmuseum.model.enums.YearFilter;
 import org.hrd.finalprojectmuseum.service.ChartService;
 import org.springframework.http.HttpStatus;
@@ -19,13 +22,14 @@ import java.util.List;
 @RestController
 @RequestMapping("api/v1/chart")
 @RequiredArgsConstructor
+@SecurityRequirement(name = "bearerAuth")
 public class ChartController {
 
     private final ChartService chartService;
 
-    @Operation(summary = "Museum Owner dashboard")
+    @Operation(summary = "Museum Owner dashboard follower and visitor chart")
     @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
-    @GetMapping("/chart")
+    @GetMapping("/chart/follower")
     public ResponseEntity<ApiResponse<List<FollowerTrendChartResponse>>> getFollowerChart(
             @RequestParam(defaultValue = "THIS_YEAR") YearFilter yearFilter
     ){
@@ -33,6 +37,38 @@ public class ChartController {
         ApiResponse<List<FollowerTrendChartResponse>> apiResponse = ApiResponse.<List<FollowerTrendChartResponse>>builder()
                 .success(true)
                 .message("Follower chart fetched successfully")
+                .payload(followerChart)
+                .status(HttpStatus.OK)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
+    }
+
+    @Operation(summary = "Museum Owner dashboard booking chart")
+    @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
+    @GetMapping("/chart/booking")
+    public ResponseEntity<ApiResponse<List<BookingChart>>> getBookingChart(
+            @RequestParam(defaultValue = "THIS_YEAR") YearFilter yearFilter
+    ){
+        List<BookingChart> followerChart = chartService.getBookingChart(yearFilter);
+        ApiResponse<List<BookingChart>> apiResponse = ApiResponse.<List<BookingChart>>builder()
+                .success(true)
+                .message("Booking chart fetched successfully")
+                .payload(followerChart)
+                .status(HttpStatus.OK)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
+    }
+
+    @Operation(summary = "Admin dashboard visitor chart")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @GetMapping("/chart/visitor")
+    public ResponseEntity<ApiResponse<List<VisitorChart>>> getVisitorChart(
+            @RequestParam(defaultValue = "THIS_YEAR") YearFilter yearFilter
+    ){
+        List<VisitorChart> followerChart = chartService.getVisitorChart(yearFilter);
+        ApiResponse<List<VisitorChart>> apiResponse = ApiResponse.<List<VisitorChart>>builder()
+                .success(true)
+                .message("Visitor chart fetched successfully")
                 .payload(followerChart)
                 .status(HttpStatus.OK)
                 .build();

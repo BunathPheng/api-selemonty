@@ -38,25 +38,22 @@ public class FavoriteServiceImpl implements FavoriteService {
 
     @Override
     public void addVisitorFavorite(UUID museumId, UUID visitorId, FavoriteType favoriteType) {
-        System.out.println("hello world");
         if (!reviewRepository.retrieveMuseumId(museumId) || !favoriteRepository.isApproveMuseum(museumId)) {
             throw new AppNotFoundException("Museum not found");
         }
-        if (favoriteType == FavoriteType.FAVORITE) {
-            if (favoriteRepository.isMuseumFavoriteByVisitor(museumId, visitorId)) {
-                throw new AppBadRequestException("Museum already added to visitor favorite");
-            }else if (favoriteRepository.isMuseumUnFavoriteByVisitor(museumId, visitorId)) {
-                favoriteRepository.updateVisitorFavorite(museumId, visitorId, true);
-            }else{
-                favoriteRepository.addVisitorFavorite(museumId, visitorId, true);
-            }
-        } else if (favoriteType == FavoriteType.UNFAVORITE) {
-            if (!favoriteRepository.isMuseumFavoriteByVisitor(museumId, visitorId)) {
-                throw new AppBadRequestException("Museum is not in your favorites");
-            }
-            favoriteRepository.updateVisitorFavorite(museumId, visitorId, false);
+
+        Boolean currentStatus = favoriteRepository.getCurrentFavoriteStatus(museumId, visitorId);
+        boolean newStatus = (favoriteType == FavoriteType.FAVORITE);
+
+        if (currentStatus == null) {
+            favoriteRepository.addVisitorFavorite(museumId, visitorId, newStatus);
         } else {
-            throw new IllegalArgumentException("Invalid favorite type: " + favoriteType);
+            if (currentStatus && newStatus) {
+                throw new AppBadRequestException("The museum already added to favorite");
+            }else if (!currentStatus && !newStatus) {
+                throw new AppBadRequestException("The museum already added to unfavorite");
+            }
+            favoriteRepository.updateVisitorFavorite(museumId, visitorId, newStatus);
         }
     }
 

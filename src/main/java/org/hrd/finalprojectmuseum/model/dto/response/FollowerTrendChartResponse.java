@@ -6,7 +6,6 @@ import lombok.Data;
 import java.time.Month;
 
 @Data
-@Builder
 public class FollowerTrendChartResponse {
     private String month;
     private Integer followers;
