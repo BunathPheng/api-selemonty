@@ -209,6 +209,7 @@ public class EmailServiceImpl implements EmailService {
                 .replace("{{totalPrice}}", formatPrice(booking.getTotalPrice()))
                 .replace("{{ticketStatus}}", safeString(booking.getTicketStatus()))
                 .replace("{{expiredDate}}", formatDate(booking.getExpiredDate()))
+                .replace("{{purchasedDate}}", formatDate(booking.getPurchasedDate()))
                 .replace("{{ticketPrice}}", formatPrice(booking.getTicketPrice()));
     }
 
@@ -234,12 +235,14 @@ public class EmailServiceImpl implements EmailService {
         body.append("Booking ID: ").append(booking.getBookingId()).append("\n");
         body.append("QR Code: ").append(booking.getQrCode()).append("\n");
         body.append("Museum: ").append(booking.getMuseumName()).append("\n");
+        body.append("Booking Type: ").append(booking.getBookingType()).append("\n");
         body.append("Ticket Type: ").append(booking.getTicketType()).append("\n");
         body.append("Visit Date: ").append(booking.getBookingDate().format(DateTimeFormatter.ofPattern("EEEE, MMMM dd, yyyy 'at' HH:mm"))).append("\n");
         body.append("Number of Tickets: ").append(booking.getSlotAmount()).append("\n");
         body.append("Ticket Price: ").append(booking.getTicketPrice()).append(" each\n");
         body.append("Total Amount: ").append(booking.getTotalPrice()).append("\n");
         body.append("Status: ").append(booking.getTicketStatus()).append("\n");
+        body.append("Purchased Date: ").append(booking.getPurchasedDate().format(DateTimeFormatter.ofPattern("EEEE, MMMM dd, yyyy 'at' HH:mm"))).append("\n\n");
         body.append("Valid Until: ").append(booking.getExpiredDate().format(DateTimeFormatter.ofPattern("EEEE, MMMM dd, yyyy 'at' HH:mm"))).append("\n\n");
         body.append("Important: Please present the attached QR code at the museum entrance.\n");
         body.append("Your QR code: ").append(booking.getQrCode()).append("\n\n");

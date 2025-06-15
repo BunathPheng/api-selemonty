@@ -146,9 +146,18 @@ public ResponseEntity<ApiResponse<BookingV2>> IndividualBookingByMuseumId(
             UUID visitorId = reviewService.getVisitorIdByUserId(appUserService.getUserId());
             BookingV2 booking = bookingService.getBookingByVisitorIdV2(bookingId, visitorId);
 
-            // Generate QR code (same as in POST endpoint)
-            byte[] qrCodeBytes = qrCodeService.generateQRCodeFromBookingCode(booking.getQrCode());
-            booking.setQRCodeData(qrCodeBytes, baseUrl);
+            // Only generate QR code if it exists and is not null/empty
+            if (booking.getQrCode() != null && !booking.getQrCode().trim().isEmpty()) {
+                try {
+                    byte[] qrCodeBytes = qrCodeService.generateQRCodeFromBookingCode(booking.getQrCode());
+                    booking.setQRCodeData(qrCodeBytes, baseUrl);
+                } catch (Exception qrException) {
+                    // Log the QR generation error but don't fail the entire request
+                    log.warn("Failed to generate QR code for booking {}: {}", bookingId, qrException.getMessage());
+                    // QR code data will remain null, which is fine
+                }
+            }
+            // If QR code doesn't exist (tour pending approval), just return booking without QR data
 
             ApiResponse<BookingV2> response = ApiResponse.<BookingV2>builder()
                     .success(true)
@@ -160,6 +169,7 @@ public ResponseEntity<ApiResponse<BookingV2>> IndividualBookingByMuseumId(
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
+            log.error("Failed to retrieve booking {}: {}", bookingId, e.getMessage());
             throw new AppBadRequestException("Restrict resource access, booking belong to other");
         }
     }

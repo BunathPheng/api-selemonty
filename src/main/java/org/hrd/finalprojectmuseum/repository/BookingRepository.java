@@ -117,7 +117,7 @@ public interface BookingRepository {
     @Select("""
         SELECT bk.booking_id, mo.name, bk.booking_type, vt.full_name, bk.ticket_type, bk.booking_date, bk.ticket_type,
                       bk.ticket_price, bk.created_at, bk.slot_amount, bk.ticket_status, bk.qr_code, bk.total_price,
-                      bk.expired_date, ui.email
+                      bk.expired_date, bk.created_at, ui.email
         FROM bookings bk
         INNER JOIN museum_owners mo ON mo.museum_id = bk.museum_id
         INNer JOIN visitors vt ON bk.visitor_id = vt.visitor_id
@@ -382,11 +382,23 @@ public interface BookingRepository {
             UUID museumId, UUID visitorId,
             TicketType ticketType, @Param("bookingRequest") BookingRequestV2 bookingRequest,
             String code, LocalDateTime expiredDate);
+    /*
+    SELECT bk.booking_id, mo.name, bk.booking_type, vt.full_name, bk.ticket_type, bk.booking_date, bk.ticket_type,
+                      bk.ticket_price, bk.created_at, bk.slot_amount, bk.ticket_status, bk.qr_code, bk.total_price,
+                      bk.expired_date, bk.created_at, ui.email
+        FROM bookings bk
+        INNER JOIN museum_owners mo ON mo.museum_id = bk.museum_id
+        INNer JOIN visitors vt ON bk.visitor_id = vt.visitor_id
+        INNER JOIN user_info ui ON mo.user_id = ui.user_id
+        WHERE bk.booking_id = #{bookingId}::UUID
+        AND bk.visitor_id = #{visitorId}::UUID;
+     */
 
     @Select("""
-        SELECT bk.*, tb.status
+        SELECT bk.*, mo.name, tb.status
             FROM bookings bk
             LEFT JOIN tours tb ON bk.booking_id = tb.booking_id
+            LEFT JOIN museum_owners mo ON bk.museum_id = mo.museum_id
             WHERE bk.booking_id = #{bookingId}::UUID
             AND bk.visitor_id = #{visitorId}::UUID
     """)
