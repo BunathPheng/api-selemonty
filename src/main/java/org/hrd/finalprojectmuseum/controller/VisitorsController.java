@@ -168,6 +168,7 @@ public class VisitorsController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    @Operation(summary = "Admin dashboard visitor")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping("/{visitor-id}/booking")
     public ResponseEntity<ApiResponse<ListResponse<VisitorBookingDetail>>> getVisitorBookingByVisitorId(
@@ -187,6 +188,7 @@ public class VisitorsController {
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @Operation(summary = "Admin dashboard visitor")
     @GetMapping("/{visitor-id}/booking/total")
     public ResponseEntity<ApiResponse<VisitorBookingTotal>> getVisitorBookingTotalByVisitorId(
             @PathVariable("visitor-id") @NotNull(message = "Visitor ID is required") UUID visitorId
@@ -201,6 +203,7 @@ public class VisitorsController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    @Operation(summary = "Admin dashboard visitor")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping("/admin/stat")
     public ResponseEntity<ApiResponse<VisitorStat>> getVisitorBookingTotalByVisitorIdAndBooking(){
