@@ -45,6 +45,8 @@ public class BookingV2 {
     private LocalDateTime expiredDate;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private String museumLogo;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private String museumEmail;
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private QRCodeData qrCodeData;

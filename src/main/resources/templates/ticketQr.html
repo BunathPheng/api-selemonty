@@ -7,7 +7,6 @@
     <meta name="format-detection" content="telephone=no">
     <meta name="x-apple-disable-message-reformatting">
     <title>Booking Confirmation Ticket - {{appName}}</title>
-    <script src="https://cdn.tailwindcss.com"></script>
     <!--[if mso]>
     <noscript>
         <xml>
@@ -18,143 +17,270 @@
         </xml>
     </noscript>
     <![endif]-->
+    <style>
+        @media only screen and (max-width: 600px) {
+            .container {
+                width: 100% !important;
+            }
+            .content {
+                padding: 20px !important;
+            }
+            .ticket-code {
+                font-size: 18px !important;
+                padding: 12px 16px !important;
+            }
+            .qr-container {
+                padding: 20px !important;
+            }
+            .detail-row {
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                padding: 12px 0 !important;
+            }
+            .detail-value {
+                margin-top: 5px !important;
+            }
+        }
+    </style>
 </head>
-<body class="m-0 p-0 font-sans bg-gray-50 leading-relaxed">
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; background-color: #f9fafb; line-height: 1.6;">
 
 <!-- Email Container -->
-<div class="bg-gray-50 py-10 px-5">
-    <div class="max-w-2xl mx-auto">
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f9fafb;">
+    <tr>
+        <td align="center" style="padding: 40px 20px;">
 
-        <!-- Main Content Container -->
-        <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+            <!-- Main Content Container -->
+            <table class="container" role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="background-color: #ffffff; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); overflow: hidden;">
 
-            <!-- Header -->
-            <div class="bg-gradient-to-r from-red-700 to-red-800 text-center py-8 px-6">
-                <h1 class="text-3xl font-semibold text-white mb-3">🎫 Booking Confirmed!</h1>
-                <p class="text-white/95 text-base">Your museum visit is all set</p>
-            </div>
+                <!-- Header -->
+                <tr>
+                    <td align="center" style="background: linear-gradient(to right, #b91c1c, #991b1b); padding: 32px 24px; color: #ffffff;">
+                        <h1 style="margin: 0 0 12px 0; font-size: 28px; font-weight: 600; color: #ffffff;">🎫 Booking Confirmed!</h1>
+                        <p style="margin: 0; font-size: 16px; color: rgba(255,255,255,0.95);">Your museum visit is all set</p>
+                    </td>
+                </tr>
 
-            <!-- Welcome Message -->
-            <div class="p-8 pb-6">
-                <div class="text-lg mb-4 text-gray-700 font-medium">
-                    Dear <strong class="text-red-700">{{visitorName}}</strong>,
-                </div>
-                <p class="text-gray-600 text-base leading-7 m-0">
-                    Great news! Your booking with <strong class="text-red-700">{{appName}}</strong> has been successfully confirmed. We're excited to welcome you to the museum!
-                </p>
-            </div>
+                <!-- Welcome Message -->
+                <tr>
+                    <td class="content" style="padding: 32px 32px 24px;">
+                        <div style="font-size: 18px; margin-bottom: 16px; color: #374151; font-weight: 500;">
+                            Dear <strong style="color: #b91c1c;">{{visitorName}}</strong>,
+                        </div>
+                        <p style="margin: 0; color: #4b5563; font-size: 16px; line-height: 1.75;">
+                            Great news! Your booking with <strong style="color: #b91c1c;">{{appName}}</strong> has been successfully confirmed. We're excited to welcome you to the museum!
+                        </p>
+                    </td>
+                </tr>
 
-            <!-- QR Code Section -->
-            <div class="text-center px-8 pb-8">
-                <div class="bg-gradient-to-br from-gray-50 to-gray-100 border-2 border-dashed border-red-700 rounded-xl p-8 inline-block shadow-sm">
-                    <h3 class="text-xl font-semibold text-gray-800 mb-2">📱 Your Entry QR Code</h3>
-                    <p class="text-gray-600 text-sm mb-6 leading-relaxed">Present this QR code at the museum entrance for quick entry</p>
-                    <!-- QR Code -->
-                    <div class="inline-block p-5 bg-white rounded-xl shadow-md border border-gray-200">
-                        <img src="cid:qrcode" alt="Museum Ticket QR Code" class="block w-48 h-48 mx-auto" style="image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges; image-rendering: pixelated; -ms-interpolation-mode: nearest-neighbor;" />
-                    </div>
-                    <p class="text-gray-600 text-xs font-medium mt-5 mb-0">
-                        Code: <strong class="text-red-700 font-mono tracking-wider">{{qrCode}}</strong>
-                    </p>
-                </div>
-            </div>
+                <!-- QR Code Section -->
+                <tr>
+                    <td align="center" class="qr-container" style="padding: 24px 32px;">
+                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="background: linear-gradient(to bottom right, #f9fafb, #f3f4f6); border: 2px dashed #b91c1c; border-radius: 12px; padding: 32px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); display: inline-block;">
+                            <tr>
+                                <td align="center">
+                                    <h3 style="margin: 0 0 8px 0; color: #1f2937; font-size: 20px; font-weight: 600;">📱 Your Entry QR Code</h3>
+                                    <p style="margin: 0 0 24px 0; color: #6b7280; font-size: 14px; line-height: 1.5;">Present this QR code at the museum entrance for quick entry</p>
+                                    <!-- QR Code -->
+                                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="display: inline-block; padding: 20px; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 1px solid #e5e7eb;">
+                                        <tr>
+                                            <td>
+                                                <img src="cid:qrcode" alt="Museum Ticket QR Code" style="display: block; width: 192px; height: 192px; margin: 0 auto; image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges; image-rendering: pixelated; -ms-interpolation-mode: nearest-neighbor;" />
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <p style="margin: 20px 0 0 0; color: #6b7280; font-size: 12px; font-weight: 500;">
+                                        Code: <strong style="color: #b91c1c; font-family: 'Courier New', monospace; letter-spacing: 1px;">{{qrCode}}</strong>
+                                    </p>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
 
-            <!-- Ticket Reference Section -->
-            <div class="text-center px-8 pb-8">
-                <h3 class="text-lg font-semibold text-gray-800 mb-5">🎟️ Ticket Reference</h3>
-                <div class="bg-gradient-to-br from-white to-gray-50 border-2 border-dashed border-red-700 rounded-lg py-4 px-6 text-2xl font-bold text-red-700 tracking-widest font-mono inline-block shadow-sm">
-                    {{qrCode}}
-                </div>
-            </div>
+                <!-- Ticket Reference Section -->
+                <tr>
+                    <td align="center" style="padding: 0 32px 32px;">
+                        <h3 style="margin: 0 0 20px 0; color: #1f2937; font-size: 18px; font-weight: 600;">🎟️ Ticket Reference</h3>
+                        <div class="ticket-code" style="display: inline-block; background: linear-gradient(to bottom right, #ffffff, #f9fafb); border: 2px dashed #b91c1c; border-radius: 8px; padding: 16px 24px; font-size: 24px; font-weight: bold; color: #b91c1c; letter-spacing: 3px; font-family: 'Courier New', monospace; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                            {{qrCode}}
+                        </div>
+                    </td>
+                </tr>
 
-            <!-- Booking Details Section -->
-            <div class="px-8 pb-8">
-                <div class="bg-gradient-to-br from-gray-50 to-gray-100 p-7 rounded-xl border-l-4 border-red-700 shadow-sm">
-                    <h3 class="text-xl font-semibold text-gray-800 mb-6 flex items-center">
-                        <span class="mr-2">📋</span> Booking Summary
-                    </h3>
+                <!-- Booking Details Section -->
+                <tr>
+                    <td style="padding: 24px 32px 32px;">
+                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background: linear-gradient(to bottom right, #f9fafb, #f3f4f6); padding: 28px; border-radius: 12px; border-left: 4px solid #b91c1c; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                            <tr>
+                                <td>
+                                    <h3 style="margin: 0 0 24px 0; color: #1f2937; font-size: 20px; font-weight: 600;">
+                                        📋 Booking Summary
+                                    </h3>
 
-                    <div class="flex justify-between items-center py-3 border-b border-gray-300">
-                        <span class="font-semibold text-gray-600">Booking ID:</span>
-                        <span class="text-red-700 font-bold font-mono text-sm">{{bookingId}}</span>
-                    </div>
+                                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                        <tr class="detail-row">
+                                            <td style="padding: 12px 0; border-bottom: 1px solid #d1d5db;">
+                                                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                                    <tr>
+                                                        <td style="font-weight: 600; color: #4b5563; font-size: 15px;">Booking ID:</td>
+                                                        <td align="right" style="color: #b91c1c; font-weight: bold; font-family: 'Courier New', monospace; font-size: 14px;">{{bookingId}}</td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
 
-                    <div class="flex justify-between items-center py-3 border-b border-gray-300">
-                        <span class="font-semibold text-gray-600">Confirmation Code:</span>
-                        <span class="text-red-700 font-bold font-mono text-sm">{{qrCode}}</span>
-                    </div>
+                                        <tr class="detail-row">
+                                            <td style="padding: 12px 0; border-bottom: 1px solid #d1d5db;">
+                                                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                                    <tr>
+                                                        <td style="font-weight: 600; color: #4b5563; font-size: 15px;">Confirmation Code:</td>
+                                                        <td align="right" style="color: #b91c1c; font-weight: bold; font-family: 'Courier New', monospace; font-size: 14px;">{{qrCode}}</td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
 
-                    <div class="flex justify-between items-center py-3 border-b border-gray-300">
-                        <span class="font-semibold text-gray-600">Museum:</span>
-                        <span class="text-gray-800 font-semibold">{{museumName}}</span>
-                    </div>
+                                        <tr class="detail-row">
+                                            <td style="padding: 12px 0; border-bottom: 1px solid #d1d5db;">
+                                                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                                    <tr>
+                                                        <td style="font-weight: 600; color: #4b5563; font-size: 15px;">Museum:</td>
+                                                        <td align="right" style="color: #1f2937; font-weight: 600; font-size: 15px;">{{museumName}}</td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
 
-                    <div class="flex justify-between items-center py-3 border-b border-gray-300">
-                        <span class="font-semibold text-gray-600">Visit Date & Time:</span>
-                        <span class="text-gray-700">{{bookingDate}}</span>
-                    </div>
+                                        <tr class="detail-row">
+                                            <td style="padding: 12px 0; border-bottom: 1px solid #d1d5db;">
+                                                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                                    <tr>
+                                                        <td style="font-weight: 600; color: #4b5563; font-size: 15px;">Visit Date & Time:</td>
+                                                        <td align="right" style="color: #374151; font-size: 15px;">{{bookingDate}}</td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
 
-                    <div class="flex justify-between items-center py-3 border-b border-gray-300">
-                        <span class="font-semibold text-gray-600">Booking Type:</span>
-                        <span class="text-gray-700">{{bookingType}}</span>
-                    </div>
+                                        <tr class="detail-row">
+                                            <td style="padding: 12px 0; border-bottom: 1px solid #d1d5db;">
+                                                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                                    <tr>
+                                                        <td style="font-weight: 600; color: #4b5563; font-size: 15px;">Booking Type:</td>
+                                                        <td align="right" style="color: #374151; font-size: 15px;">{{bookingType}}</td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
 
-                    <div class="flex justify-between items-center py-3 border-b border-gray-300">
-                        <span class="font-semibold text-gray-600">Ticket Type:</span>
-                        <span class="text-gray-700">{{ticketType}}</span>
-                    </div>
+                                        <tr class="detail-row">
+                                            <td style="padding: 12px 0; border-bottom: 1px solid #d1d5db;">
+                                                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                                    <tr>
+                                                        <td style="font-weight: 600; color: #4b5563; font-size: 15px;">Ticket Type:</td>
+                                                        <td align="right" style="color: #374151; font-size: 15px;">{{ticketType}}</td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
 
-                    <div class="flex justify-between items-center py-3 border-b border-gray-300">
-                        <span class="font-semibold text-gray-600">Number of Tickets:</span>
-                        <span class="text-gray-800 font-semibold">{{slotAmount}}</span>
-                    </div>
+                                        <tr class="detail-row">
+                                            <td style="padding: 12px 0; border-bottom: 1px solid #d1d5db;">
+                                                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                                    <tr>
+                                                        <td style="font-weight: 600; color: #4b5563; font-size: 15px;">Number of Tickets:</td>
+                                                        <td align="right" style="color: #1f2937; font-weight: 600; font-size: 15px;">{{slotAmount}}</td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
 
-                    <div class="flex justify-between items-center py-3 border-b border-gray-300">
-                        <span class="font-semibold text-gray-600">Price per Ticket:</span>
-                        <span class="text-gray-700">{{ticketPrice}}</span>
-                    </div>
+                                        <tr class="detail-row">
+                                            <td style="padding: 12px 0; border-bottom: 1px solid #d1d5db;">
+                                                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                                    <tr>
+                                                        <td style="font-weight: 600; color: #4b5563; font-size: 15px;">Price per Ticket:</td>
+                                                        <td align="right" style="color: #374151; font-size: 15px;">${{ticketPrice}}</td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
 
-                    <div class="flex justify-between items-center py-3 border-b border-gray-300">
-                        <span class="font-semibold text-gray-600">Total Amount:</span>
-                        <span class="text-green-600 font-bold text-lg">{{totalPrice}}</span>
-                    </div>
+                                        <tr class="detail-row">
+                                            <td style="padding: 12px 0; border-bottom: 1px solid #d1d5db;">
+                                                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                                    <tr>
+                                                        <td style="font-weight: 600; color: #4b5563; font-size: 15px;">Total Amount:</td>
+                                                        <td align="right" style="color: #059669; font-weight: bold; font-size: 18px;">${{totalPrice}}</td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
 
-                    <div class="flex justify-between items-center py-3 border-b border-gray-300">
-                        <span class="font-semibold text-gray-600">Status:</span>
-                        <span class="inline-block px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-full text-xs font-bold uppercase shadow-md">{{ticketStatus}}</span>
-                    </div>
+                                        <tr class="detail-row">
+                                            <td style="padding: 12px 0; border-bottom: 1px solid #d1d5db;">
+                                                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                                    <tr>
+                                                        <td style="font-weight: 600; color: #4b5563; font-size: 15px;">Status:</td>
+                                                        <td align="right">
+                                                            <span style="display: inline-block; padding: 8px 16px; background: linear-gradient(to right, #10b981, #059669); color: white; border-radius: 9999px; font-size: 12px; font-weight: bold; text-transform: uppercase; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">{{ticketStatus}}</span>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
 
-                    <div class="flex justify-between items-center py-3 border-b border-gray-300">
-                        <span class="font-semibold text-gray-600">Purchased Date:</span>
-                        <span class="text-gray-700">{{purchasedDate}}</span>
-                    </div>
+                                        <tr class="detail-row">
+                                            <td style="padding: 12px 0; border-bottom: 1px solid #d1d5db;">
+                                                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                                    <tr>
+                                                        <td style="font-weight: 600; color: #4b5563; font-size: 15px;">Purchased Date:</td>
+                                                        <td align="right" style="color: #374151; font-size: 15px;">{{purchasedDate}}</td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
 
-                    <div class="flex justify-between items-center py-3">
-                        <span class="font-semibold text-gray-600">Valid Until:</span>
-                        <span class="text-red-600 font-semibold">{{expiredDate}}</span>
-                    </div>
-                </div>
-            </div>
+                                        <tr class="detail-row">
+                                            <td style="padding: 12px 0;">
+                                                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                                    <tr>
+                                                        <td style="font-weight: 600; color: #4b5563; font-size: 15px;">Valid Until:</td>
+                                                        <td align="right" style="color: #dc2626; font-weight: 600; font-size: 15px;">{{expiredDate}}</td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
 
-            <!-- Footer -->
-            <div class="bg-gradient-to-r from-gray-800 to-gray-700 text-white p-8 text-center text-sm leading-relaxed">
-                <p class="font-medium mb-2">
-                    &copy; 2025 <strong>{{appName}}</strong>. All rights reserved.
-                </p>
-                <p class="opacity-80 mb-2">
-                    This is an automated email. Please do not reply to this message.
-                </p>
-                <p class="m-0">
-                    <strong>Questions? We're here to help</strong><br>
-                    <a href="mailto:support@museum.com" class="text-yellow-400 font-medium hover:text-yellow-300">support@museum.com</a> |
-                    <a href="tel:+85512567890" class="text-yellow-400 font-medium hover:text-yellow-300">+855 (12) 567-890</a>
-                </p>
-            </div>
+                <!-- Footer -->
+                <tr>
+                    <td style="background: linear-gradient(to right, #1f2937, #111827); color: #ffffff; padding: 32px 24px; text-align: center; font-size: 14px; line-height: 1.6;">
+                        <p style="margin: 0 0 8px 0; font-weight: 500;">
+                            &copy; 2025 <strong>{{appName}}</strong>. All rights reserved.
+                        </p>
+                        <p style="margin: 0 0 8px 0; opacity: 0.8;">
+                            This is an automated email. Please do not reply to this message.
+                        </p>
+                        <p style="margin: 0;">
+                            <strong>Questions? We're here to help</strong><br>
+                            <a href="mailto:support@museum.com" style="color: #fbbf24; text-decoration: none; font-weight: 500;">support@museum.com</a> |
+                            <a href="tel:+85512567890" style="color: #fbbf24; text-decoration: none; font-weight: 500;">+855 (12) 567-890</a>
+                        </p>
+                    </td>
+                </tr>
 
-        </div>
+            </table>
 
-    </div>
-</div>
+        </td>
+    </tr>
+</table>
 
 </body>
 </html>

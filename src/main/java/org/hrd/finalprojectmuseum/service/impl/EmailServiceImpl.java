@@ -149,11 +149,19 @@ public class EmailServiceImpl implements EmailService {
             MimeMessage mimeMessage = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
 
-            String museumEmail = visitorEmail;
+            // Get museum email from database (as you're currently doing)
+            String museumEmail = booking.getMuseumEmail();
 
-            // Set email properties
-            helper.setFrom(museumEmail);
-            helper.setTo(visitorEmail); // ✅ USE THE PARAMETER INSTEAD
+            // Send FROM your authenticated email WITH museum branding
+            String displayName = String.format("%s via Museum Booking", booking.getMuseumName());
+            helper.setFrom(displayName + " <" + sender + ">");
+
+            // Set reply-to museum email (from database)
+            if (museumEmail != null && !museumEmail.isEmpty()) {
+                helper.setReplyTo(museumEmail);
+            }
+
+            helper.setTo(visitorEmail);
             helper.setSubject("Booking Confirmation - " + booking.getMuseumName());
 
             // Load and process booking template
@@ -171,10 +179,10 @@ public class EmailServiceImpl implements EmailService {
             }
 
             javaMailSender.send(mimeMessage);
-            return "Booking confirmation email sent successfully";
+            return "Email sent from " + displayName + " with replies going to " + museumEmail;
 
         } catch (MessagingException e) {
-            throw new RuntimeException("Failed to send booking confirmation email", e);
+            throw new RuntimeException("Failed to send booking confirmation email: " + e.getMessage(), e);
         }
     }
 
@@ -194,6 +202,7 @@ public class EmailServiceImpl implements EmailService {
                 .replace("{{qrCode}}", safeString(booking.getQrCode()))
                 .replace("{{qrFileName}}", qrFileName)
                 .replace("{{museumName}}", safeString(booking.getMuseumName()))
+                .replace("{{bookingType}}", safeString(booking.getBookingType()))
                 .replace("{{ticketType}}", safeString(booking.getTicketType()))
                 .replace("{{slotAmount}}", safeString(booking.getSlotAmount()))
                 .replace("{{bookingDate}}", formatDate(booking.getBookingDate()))
@@ -228,8 +237,8 @@ public class EmailServiceImpl implements EmailService {
         body.append("Ticket Type: ").append(booking.getTicketType()).append("\n");
         body.append("Visit Date: ").append(booking.getBookingDate().format(DateTimeFormatter.ofPattern("EEEE, MMMM dd, yyyy 'at' HH:mm"))).append("\n");
         body.append("Number of Tickets: ").append(booking.getSlotAmount()).append("\n");
-        body.append("Ticket Price: $").append(booking.getTicketPrice()).append(" each\n");
-        body.append("Total Amount: $").append(booking.getTotalPrice()).append("\n");
+        body.append("Ticket Price: ").append(booking.getTicketPrice()).append(" each\n");
+        body.append("Total Amount: ").append(booking.getTotalPrice()).append("\n");
         body.append("Status: ").append(booking.getTicketStatus()).append("\n");
         body.append("Valid Until: ").append(booking.getExpiredDate().format(DateTimeFormatter.ofPattern("EEEE, MMMM dd, yyyy 'at' HH:mm"))).append("\n\n");
         body.append("Important: Please present the attached QR code at the museum entrance.\n");

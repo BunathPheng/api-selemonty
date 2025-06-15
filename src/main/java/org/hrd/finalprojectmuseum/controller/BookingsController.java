@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hrd.finalprojectmuseum.exception.AppBadRequestException;
 import org.hrd.finalprojectmuseum.model.dto.request.RequestTourRequest;
 import org.hrd.finalprojectmuseum.model.dto.request.visitor.BookingRequestV2;
 import org.hrd.finalprojectmuseum.model.dto.response.ApiResponse;
@@ -159,15 +160,7 @@ public ResponseEntity<ApiResponse<BookingV2>> IndividualBookingByMuseumId(
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
-            log.error("Failed to retrieve booking: {}", e.getMessage());
-
-            ApiResponse<BookingV2> response = ApiResponse.<BookingV2>builder()
-                    .success(false)
-                    .message("Failed to retrieve booking: " + e.getMessage())
-                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .build();
-
-            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new AppBadRequestException("Restrict resource access, booking belong to other");
         }
     }
 
