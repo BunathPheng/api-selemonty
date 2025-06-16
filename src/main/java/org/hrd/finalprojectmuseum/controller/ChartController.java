@@ -2,6 +2,7 @@ package org.hrd.finalprojectmuseum.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.hrd.finalprojectmuseum.model.dto.response.ApiResponse;
 import org.hrd.finalprojectmuseum.model.dto.response.FollowerTrendChartResponse;
@@ -32,7 +33,7 @@ public class ChartController {
     @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
     @GetMapping("/follower")
     public ResponseEntity<ApiResponse<List<FollowerTrendChartResponse>>> getFollowerChart(
-            @RequestParam(defaultValue = "THIS_YEAR") YearFilter yearFilter
+            @RequestParam(defaultValue = "THIS_YEAR", required = true) YearFilter yearFilter
     ){
         List<FollowerTrendChartResponse> followerChart = chartService.getFollowerChart(yearFilter);
         ApiResponse<List<FollowerTrendChartResponse>> apiResponse = ApiResponse.<List<FollowerTrendChartResponse>>builder()
@@ -80,7 +81,7 @@ public class ChartController {
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping("/museum")
     public ResponseEntity<ApiResponse<MuseumChart>> getMuseumChart(
-            @RequestParam(defaultValue = "THIS_YEAR") YearFilter yearFilter
+            @RequestParam(defaultValue = "THIS_YEAR") @NotNull(message = "YearFilter is required") YearFilter yearFilter
     ){
         MuseumChart followerChart = chartService.getMuseumChart(yearFilter);
         ApiResponse<MuseumChart> apiResponse = ApiResponse.<MuseumChart>builder()

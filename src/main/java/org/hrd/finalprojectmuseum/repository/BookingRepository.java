@@ -397,11 +397,11 @@ public interface BookingRepository {
         WHERE (t.booking_id IS NULL OR (t.booking_id IS NOT NULL AND t.status = 'PAID'))
         AND b.created_at >= #{startDate} AND b.created_at <= #{endDate}
     """)
-    Integer countBookingsByDateRange(LocalDate startDate, LocalDate endDate);
+    Integer countBookingsByDateRange(LocalDateTime startDate, LocalDateTime endDate);
 
     @Select("""
         SELECT COUNT(booking_id) FROM bookings WHERE museum_id = #{museumId}::UUID
         AND created_at BETWEEN #{startDate} AND #{endDate}
     """)
-    Integer countNewBookingByMuseumId(UUID museumId, LocalDate startDate, LocalDate endDate);
+    Integer countNewBookingByMuseumId(UUID museumId, LocalDateTime startDate, LocalDateTime endDate);
 }

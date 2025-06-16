@@ -8,6 +8,7 @@ import org.hrd.finalprojectmuseum.model.entity.VisitorBookingTotal;
 import org.hrd.finalprojectmuseum.model.entity.visitor.Visitor;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -177,14 +178,14 @@ public interface VisitorRepository {
         WHERE v.created_at >= #{startDate} AND v.created_at <= #{endDate}
         AND u.is_verified = true
     """)
-    Integer countNewVisitorsByDateRange(LocalDate startDate, LocalDate endDate);
+    Integer countNewVisitorsByDateRange(LocalDateTime startDate, LocalDateTime endDate);
 
     @Select("""
         SELECT COUNT(visitor_id) FROM visitors v
         INNER JOIN user_info u ON v.user_id = u.user_id
         WHERE v.created_at < #{endDate} AND u.is_verified = true
     """)
-    Integer countTotalVisitors(LocalDate endDate);
+    Integer countTotalVisitors(LocalDateTime endDate);
 
     @ResultMap("visitorMapper")
     @Select("""

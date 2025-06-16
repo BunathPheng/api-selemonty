@@ -31,8 +31,6 @@ public class ProfileServiceImpl implements ProfileService {
     private final ProfileRepository profileRepository;
     private final MuseumRepository museumRepository;
     private final AppUserRepository appUserRepository;
-    private final ReviewRepository reviewRepository;
-    private final ScheduleRepository scheduleRepository;
     private final MuseumService museumService;
 
     @Override

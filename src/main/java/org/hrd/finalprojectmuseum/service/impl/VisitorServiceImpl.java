@@ -15,6 +15,7 @@ import org.hrd.finalprojectmuseum.utils.Calculation;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -118,19 +119,24 @@ public class VisitorServiceImpl implements VisitorService {
 
     @Override
     public VisitorStat getVisitorStatByVisitorId() {
-        LocalDate today = LocalDate.now();
-        LocalDate currentMonthStart = today.withDayOfMonth(1);
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime todayEnd = now.toLocalDate().atTime(23, 59, 59);
+
+        LocalDate currentMonthStart = now.toLocalDate().withDayOfMonth(1);
+        LocalDateTime currentMonthStartTime = currentMonthStart.atStartOfDay();
 
         LocalDate lastMonthStart = currentMonthStart.minusMonths(1);
-        LocalDate lastMonthEnd = today.withDayOfMonth(1).minusDays(1);
+        LocalDateTime lastMonthStartTime = lastMonthStart.atStartOfDay();
+        LocalDate lastMonthEnd = currentMonthStart.minusDays(1);
+        LocalDateTime lastMonthEndTime = lastMonthEnd.atTime(23, 59, 59);
 
-        Integer currentNewVisitors = visitorRepository.countNewVisitorsByDateRange(currentMonthStart, today);
-        Integer currentTotalVisitors = visitorRepository.countTotalVisitors(today);
-        Integer currentTotalBookings = bookingRepository.countBookingsByDateRange(currentMonthStart, today);
+        Integer currentNewVisitors = visitorRepository.countNewVisitorsByDateRange(currentMonthStartTime, todayEnd);
+        Integer currentTotalVisitors = visitorRepository.countTotalVisitors(todayEnd);
+        Integer currentTotalBookings = bookingRepository.countBookingsByDateRange(currentMonthStartTime, todayEnd);
 
-        Integer lastMonthNewVisitors = visitorRepository.countNewVisitorsByDateRange(lastMonthStart, lastMonthEnd);
-        Integer lastMonthTotalVisitors = visitorRepository.countTotalVisitors(currentMonthStart);
-        Integer lastMonthTotalBookings = bookingRepository.countBookingsByDateRange(lastMonthStart, lastMonthEnd);
+        Integer lastMonthNewVisitors = visitorRepository.countNewVisitorsByDateRange(lastMonthStartTime, lastMonthEndTime);
+        Integer lastMonthTotalVisitors = visitorRepository.countTotalVisitors(currentMonthStartTime);
+        Integer lastMonthTotalBookings = bookingRepository.countBookingsByDateRange(lastMonthStartTime, lastMonthEndTime);
 
         return VisitorStat.builder()
                 .totalVisitors(calculation.addStatItem(currentTotalVisitors, lastMonthTotalVisitors))
