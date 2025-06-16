@@ -5,15 +5,11 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.hrd.finalprojectmuseum.model.dto.response.ApiResponse;
-import org.hrd.finalprojectmuseum.model.dto.response.FollowerTrendChartResponse;
 import org.hrd.finalprojectmuseum.model.dto.response.ListResponse;
 import org.hrd.finalprojectmuseum.model.entity.FollowerStat;
-import org.hrd.finalprojectmuseum.model.entity.Pagination;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.FavoriteMuseum;
 import org.hrd.finalprojectmuseum.model.entity.visitor.VisitorFavorite;
-import org.hrd.finalprojectmuseum.model.entity.visitor.VisitorReview;
 import org.hrd.finalprojectmuseum.model.enums.FavoriteType;
-import org.hrd.finalprojectmuseum.model.enums.YearFilter;
 import org.hrd.finalprojectmuseum.service.FavoriteService;
 import org.hrd.finalprojectmuseum.service.ReviewService;
 import org.springframework.http.HttpStatus;
@@ -23,7 +19,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
