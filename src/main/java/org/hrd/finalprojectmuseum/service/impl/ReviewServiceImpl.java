@@ -1,8 +1,10 @@
 package org.hrd.finalprojectmuseum.service.impl;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.hrd.finalprojectmuseum.exception.AppBadRequestException;
 import org.hrd.finalprojectmuseum.exception.AppNotFoundException;
+import org.hrd.finalprojectmuseum.model.dto.request.ReplyRequest;
 import org.hrd.finalprojectmuseum.model.dto.request.visitor.VisitorReviewRequest;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
 import org.hrd.finalprojectmuseum.model.entity.visitor.Visitor;
@@ -12,10 +14,8 @@ import org.hrd.finalprojectmuseum.model.enums.ReviewType;
 import org.hrd.finalprojectmuseum.repository.MuseumRepository;
 import org.hrd.finalprojectmuseum.repository.ReviewRepository;
 import org.hrd.finalprojectmuseum.repository.VisitorRepository;
-import org.hrd.finalprojectmuseum.service.MuseumService;
 import org.hrd.finalprojectmuseum.service.ProfileService;
 import org.hrd.finalprojectmuseum.service.ReviewService;
-import org.hrd.finalprojectmuseum.service.VisitorService;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -150,6 +150,19 @@ public class ReviewServiceImpl implements ReviewService {
             throw new AppNotFoundException("Museum is not review by visitor yet");
         }
         visitorReview.setIsReviewed(true);
+        return visitorReview;
+    }
+
+    @Override
+    public VisitorReview addAndUpdateReplyReview(UUID museumId, UUID reviewId, ReplyRequest replyRequest) {
+        boolean isReviewExist = reviewRepository.retrieveReviewId(reviewId);
+        if (!isReviewExist){
+            throw new AppNotFoundException("Review ID Not Found");
+        }
+        VisitorReview visitorReview = reviewRepository.addAndUpdateReview(museumId, reviewId, replyRequest);
+        if (visitorReview == null){
+            throw new AppBadRequestException("Reply failed");
+        }
         return visitorReview;
     }
 

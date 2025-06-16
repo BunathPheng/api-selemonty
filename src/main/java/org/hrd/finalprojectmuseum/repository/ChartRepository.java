@@ -4,6 +4,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Result;
 import org.apache.ibatis.annotations.Results;
 import org.apache.ibatis.annotations.Select;
+import org.hrd.finalprojectmuseum.model.entity.MuseumChart;
 
 import java.util.List;
 import java.util.Map;
@@ -51,4 +52,20 @@ public interface ChartRepository {
                     ORDER BY EXTRACT(MONTH FROM v.created_at)
     """)
     List<Map<String, Object>> getMonthlyVisitorStats(int targetYear);
+
+    @Select("""
+        SELECT
+            COUNT(museum_id) as totalMuseum,
+            COUNT(CASE WHEN is_approved = true THEN 1 END) as approvedMuseum,
+            COUNT(CASE WHEN is_approved = false THEN 1 END) as pendingMuseum
+        FROM museum_owners m INNER JOIN user_info u ON m.user_id = u.user_id
+        WHERE EXTRACT(YEAR FROM m.created_at) = #{targetYear}
+        AND u.is_verified = true
+    """)
+    @Results(value = {
+            @Result(property = "totalMuseum", column = "totalMuseum"),
+            @Result(property = "approvedMuseum", column = "approvedMuseum"),
+            @Result(property = "pendingMuseum", column = "pendingMuseum")
+    })
+    MuseumChart getMuseumStat(int targetYear);
 }

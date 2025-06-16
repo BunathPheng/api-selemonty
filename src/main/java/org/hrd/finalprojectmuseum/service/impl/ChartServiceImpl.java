@@ -3,6 +3,7 @@ package org.hrd.finalprojectmuseum.service.impl;
 import lombok.RequiredArgsConstructor;
 import org.hrd.finalprojectmuseum.model.dto.response.FollowerTrendChartResponse;
 import org.hrd.finalprojectmuseum.model.entity.BookingChart;
+import org.hrd.finalprojectmuseum.model.entity.MuseumChart;
 import org.hrd.finalprojectmuseum.model.entity.VisitorChart;
 import org.hrd.finalprojectmuseum.model.enums.YearFilter;
 import org.hrd.finalprojectmuseum.repository.ChartRepository;
@@ -143,5 +144,13 @@ public class ChartServiceImpl implements ChartService {
         }
 
         return monthlyData;
+    }
+
+    @Override
+    public MuseumChart getMuseumChart(YearFilter yearFilter) {
+        int targetYear = yearFilter == YearFilter.THIS_YEAR ?
+                LocalDate.now().getYear() :
+                LocalDate.now().getYear() - 1;
+        return chartRepository.getMuseumStat(targetYear);
     }
 }
