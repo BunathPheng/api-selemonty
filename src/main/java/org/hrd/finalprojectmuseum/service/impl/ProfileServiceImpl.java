@@ -40,10 +40,14 @@ public class ProfileServiceImpl implements ProfileService {
     @Override
     public MuseumOwner getMuseumOwnerByUserId(UUID userId) {
         MuseumOwner museumOwner = profileRepository.findMuseumOwnerByUserId(userId);
-        museumService.setFullData(museumOwner);
         if (museumOwner == null) {
             throw new AppNotFoundException("Museum Owner Not Found");
         }
+        museumService.setFullData(museumOwner);
+        Integer totalZone = profileRepository.totalZoneByMuseumId(museumOwner.getMuseumId());
+        Integer totalArtifact = profileRepository.totalArtifactByMuseumId(museumOwner.getMuseumId());
+        museumOwner.setTotalZone(totalZone);
+        museumOwner.setTotalArtifact(totalArtifact);
         return museumOwner;
     }
 

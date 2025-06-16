@@ -45,6 +45,17 @@ public interface ProfileRepository {
     """)
     MuseumOwner findMuseumOwnerByUserId(UUID userId);
 
+    @Select("""
+        SELECT COUNT(museum_zone_id) FROM museum_zones WHERE museum_id = #{museumId}::UUID;
+    """)
+    Integer totalZoneByMuseumId(UUID museumId);
+
+    @Select("""
+        SELECT COUNT(artifact_id) FROM museum_zones z INNER JOIN artifacts a ON z.museum_zone_id = a.museum_zone_id
+        WHERE z.museum_id = #{museumId}::UUID;
+    """)
+    Integer totalArtifactByMuseumId(UUID museumId);
+
     @Update("""
         UPDATE museum_owners SET museum_category_id = #{museum.museumCategoryId}::UUID, name = #{museum.name}, contact_number = #{museum.contactNumber},
                                  address = #{museum.address}, lat = #{museum.lat}, lng = #{museum.lng}, logo_link = #{museum.logoLink},
