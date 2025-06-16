@@ -4,15 +4,23 @@ import lombok.RequiredArgsConstructor;
 import org.hrd.finalprojectmuseum.exception.AppBadRequestException;
 import org.hrd.finalprojectmuseum.exception.AppNotFoundException;
 import org.hrd.finalprojectmuseum.model.dto.response.ListResponse;
+import org.hrd.finalprojectmuseum.model.entity.FollowerStat;
 import org.hrd.finalprojectmuseum.model.entity.Pagination;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.FavoriteMuseum;
+import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
 import org.hrd.finalprojectmuseum.model.entity.visitor.VisitorFavorite;
 import org.hrd.finalprojectmuseum.model.enums.FavoriteType;
+import org.hrd.finalprojectmuseum.repository.BookingRepository;
 import org.hrd.finalprojectmuseum.repository.FavoriteRepository;
+import org.hrd.finalprojectmuseum.repository.ProfileRepository;
 import org.hrd.finalprojectmuseum.repository.ReviewRepository;
+import org.hrd.finalprojectmuseum.service.AppUserService;
 import org.hrd.finalprojectmuseum.service.FavoriteService;
+import org.hrd.finalprojectmuseum.utils.Calculation;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -21,28 +29,29 @@ import java.util.UUID;
 public class FavoriteServiceImpl implements FavoriteService {
     private final FavoriteRepository favoriteRepository;
     private final ReviewRepository reviewRepository;
+    private final AppUserService appUserService;
+    private final Calculation calculation = new Calculation();
+    private final ProfileRepository profileRepository;
+    private final BookingRepository bookingRepository;
 
     @Override
     public void addVisitorFavorite(UUID museumId, UUID visitorId, FavoriteType favoriteType) {
-        System.out.println("hello world");
         if (!reviewRepository.retrieveMuseumId(museumId) || !favoriteRepository.isApproveMuseum(museumId)) {
             throw new AppNotFoundException("Museum not found");
         }
-        if (favoriteType == FavoriteType.FAVORITE) {
-            if (favoriteRepository.isMuseumFavoriteByVisitor(museumId, visitorId)) {
-                throw new AppBadRequestException("Museum already added to visitor favorite");
-            }else if (favoriteRepository.isMuseumUnFavoriteByVisitor(museumId, visitorId)) {
-                favoriteRepository.updateVisitorFavorite(museumId, visitorId, true);
-            }else{
-                favoriteRepository.addVisitorFavorite(museumId, visitorId, true);
-            }
-        } else if (favoriteType == FavoriteType.UNFAVORITE) {
-            if (!favoriteRepository.isMuseumFavoriteByVisitor(museumId, visitorId)) {
-                throw new AppBadRequestException("Museum is not in your favorites");
-            }
-            favoriteRepository.updateVisitorFavorite(museumId, visitorId, false);
+
+        Boolean currentStatus = favoriteRepository.getCurrentFavoriteStatus(museumId, visitorId);
+        boolean newStatus = (favoriteType == FavoriteType.FAVORITE);
+
+        if (currentStatus == null) {
+            favoriteRepository.addVisitorFavorite(museumId, visitorId, newStatus);
         } else {
-            throw new IllegalArgumentException("Invalid favorite type: " + favoriteType);
+            if (currentStatus && newStatus) {
+                throw new AppBadRequestException("The museum already added to favorite");
+            }else if (!currentStatus && !newStatus) {
+                throw new AppBadRequestException("The museum already added to unfavorite");
+            }
+            favoriteRepository.updateVisitorFavorite(museumId, visitorId, newStatus);
         }
     }
 
@@ -60,15 +69,46 @@ public class FavoriteServiceImpl implements FavoriteService {
 
     @Override
     public ListResponse<FavoriteMuseum> getAllFavoriteMuseums(UUID visitorId, Integer page, Integer size) {
-        if(favoriteRepository.retrieveFavoriteMuseums(visitorId, page, size).isEmpty()) {
-            throw new AppNotFoundException("Museum not found");
-        }
+//        if(favoriteRepository.retrieveFavoriteMuseums(visitorId, page, size).isEmpty()) {
+//            throw new AppNotFoundException("Museum not found");
+//        }
         List<FavoriteMuseum> favoriteMuseums = favoriteRepository.retrieveFavoriteMuseums(visitorId, page, size);
         Integer total = favoriteRepository.countFavoriteMuseum(visitorId);
         Pagination pagination = new Pagination();
         return ListResponse.<FavoriteMuseum>builder()
                 .items(favoriteMuseums)
                 .pagination(pagination.calculatePagination(total, page, size))
+                .build();
+    }
+
+    @Override
+    public FollowerStat getFollowerStat() {
+        UUID userId = appUserService.getUserId();
+        MuseumOwner museumOwner = profileRepository.findMuseumOwnerByUserId(userId);
+
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime todayEnd = now.toLocalDate().atTime(23, 59, 59);
+
+        LocalDate currentMonthStart = now.toLocalDate().withDayOfMonth(1);
+        LocalDateTime currentMonthStartTime = currentMonthStart.atStartOfDay();
+
+        LocalDate lastMonthStart = currentMonthStart.minusMonths(1);
+        LocalDateTime lastMonthStartTime = lastMonthStart.atStartOfDay();
+        LocalDate lastMonthEnd = currentMonthStart.minusDays(1);
+        LocalDateTime lastMonthEndTime = lastMonthEnd.atTime(23, 59, 59);
+
+        Integer totalFollower = favoriteRepository.countFollowerByMuseumIdAndEndDate(museumOwner.getMuseumId(), todayEnd);
+        Integer totalLastMonthFollower = favoriteRepository.countFollowerByMuseumIdAndEndDate(museumOwner.getMuseumId(), lastMonthEndTime);
+
+        Integer newFollower = favoriteRepository.countFollowerByMuseumIdAndDateRange(museumOwner.getMuseumId(), currentMonthStartTime, todayEnd);
+        Integer lastMonthNewFollower = favoriteRepository.countFollowerByMuseumIdAndDateRange(museumOwner.getMuseumId(), lastMonthStartTime, lastMonthEndTime);
+
+        Integer newBooking = bookingRepository.countNewBookingByMuseumId(museumOwner.getMuseumId(), currentMonthStartTime, todayEnd);
+        Integer lastMonthNewBooking = bookingRepository.countNewBookingByMuseumId(museumOwner.getMuseumId(), lastMonthStartTime, lastMonthEndTime);
+        return FollowerStat.builder()
+                .totalFollowers(calculation.addStatItem(totalFollower, totalLastMonthFollower))
+                .newFollowers(calculation.addStatItem(newFollower, lastMonthNewFollower))
+                .newBooking(calculation.addStatItem(newBooking, lastMonthNewBooking))
                 .build();
     }
 }

@@ -25,49 +25,67 @@ public class EventServiceImpl implements EventService {
     private final EventRepository eventRepository;
 
     @Override
-    public ListResponse<Event> findAllEvents(String search, Integer page, Integer size, LocalDate dateFilter, EventStatus eventStatus) {
+    public ListResponse<Event> findAllEvents(String search, Integer page, Integer size, LocalDate dateFiler, EventStatus eventStatus) {
         search = search == null ? "" : search;
         Integer totalItems;
         List<Event> events;
         if (eventStatus == EventStatus.ALL) {
-            if (dateFilter == null) {
+            if (dateFiler == null) {
                 events = eventRepository.findAllEvents(search, page, size);
                 totalItems = eventRepository.countAllEvent(search);
             } else {
-                events = eventRepository.findAllEventsWithDateFilter(search, page, size, dateFilter);
-                totalItems = eventRepository.countAllEventWithFilter(search, dateFilter);
+                events = eventRepository.findAllEventsWithDateFilter(search, page, size, dateFiler);
+                totalItems = eventRepository.countAllEventWithFilter(search, dateFiler);
             }
         }else if(eventStatus == EventStatus.AVAILABLE ){
-            if (dateFilter == null) {
+            if (dateFiler == null) {
                 events = eventRepository.findAllEventsAvailable(search, page, size);
                 totalItems = eventRepository.countAllEventAvailable(search);
             } else {
-                events = eventRepository.findAllEventsWithDateFilterAvailable(search, page, size, dateFilter);
-                totalItems = eventRepository.countAllEventWithFilterAvailable(search, dateFilter);
+                events = eventRepository.findAllEventsWithDateFilterAvailable(search, page, size, dateFiler);
+                totalItems = eventRepository.countAllEventWithFilterAvailable(search, dateFiler);
             }
         }else if(eventStatus == EventStatus.UPCOMING ){
-            if (dateFilter == null) {
+            if (dateFiler == null) {
                 events = eventRepository.findAllEventsUpComing(search, page, size);
                 totalItems = eventRepository.countAllEventUpComing(search);
             } else {
-                events = eventRepository.findAllEventsWithDateFilterUpComing(search, page, size, dateFilter);
-                totalItems = eventRepository.countAllEventWithFilterUpComing(search, dateFilter);
+                events = eventRepository.findAllEventsWithDateFilterUpComing(search, page, size, dateFiler);
+                totalItems = eventRepository.countAllEventWithFilterUpComing(search, dateFiler);
             }
         }else if(eventStatus == EventStatus.ONGOING ){
-            if (dateFilter == null) {
+            if (dateFiler == null) {
                 events = eventRepository.findAllEventsOnGoing(search, page, size);
                 totalItems = eventRepository.countAllEventOnGoing(search);
             } else {
-                events = eventRepository.findAllEventsWithDateFilterOngoing(search, page, size, dateFilter);
-                totalItems = eventRepository.countAllEventWithFilterOnGoing(search, dateFilter);
+                events = eventRepository.findAllEventsWithDateFilterOngoing(search, page, size, dateFiler);
+                totalItems = eventRepository.countAllEventWithFilterOnGoing(search, dateFiler);
             }
-        }else {
-            if (dateFilter == null) {
+        }else if(eventStatus == EventStatus.LATEST ){
+            if (dateFiler == null) {
+                events = eventRepository.findAllEventsLatest(search, page, size);
+                totalItems = eventRepository.countAllEventLatest(search);
+            } else {
+                events = eventRepository.findAllEventsWithDateFilterLatest(search, page, size, dateFiler);
+                totalItems = eventRepository.countAllEventWithFilterLatest(search, dateFiler);
+            }
+        }
+        else if(eventStatus == EventStatus.NEARLY_EXPIRED ){
+            if (dateFiler == null) {
+                events = eventRepository.findAllEventsNearlyExpired(search, page, size);
+                totalItems = eventRepository.countAllEventNearlyExpired(search);
+            } else {
+                events = eventRepository.findAllEventsWithDateFilterNearlyExpired(search, page, size, dateFiler);
+                totalItems = eventRepository.countAllEventWithFilterNearlyExpired(search, dateFiler);
+            }
+        }
+        else {
+            if (dateFiler == null) {
                 events = eventRepository.findAllEventsEnded(search, page, size);
                 totalItems = eventRepository.countAllEventEnded(search);
             } else {
-                events = eventRepository.findAllEventsWithDateFilterEnded(search, page, size, dateFilter);
-                totalItems = eventRepository.countAllEventWithFilterEnded(search, dateFilter);
+                events = eventRepository.findAllEventsWithDateFilterEnded(search, page, size, dateFiler);
+                totalItems = eventRepository.countAllEventWithFilterEnded(search, dateFiler);
             }
         }
         for (Event event : events) {

@@ -4,6 +4,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import org.hrd.finalprojectmuseum.model.dto.response.ListResponse;
 import org.hrd.finalprojectmuseum.model.dto.response.MuseumWithDistanceResponse;
+import org.hrd.finalprojectmuseum.model.entity.MuseumStat;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
 import org.hrd.finalprojectmuseum.model.enums.MuseumStatus;
 import org.hrd.finalprojectmuseum.model.enums.SortMuseum;
@@ -26,4 +27,6 @@ public interface MuseumService {
     ListResponse<MuseumOwner> getAllMuseumOrderbyPopular(Integer page, Integer size);
 
     ListResponse<MuseumOwner> getAllMuseumForVisitor(UUID visitorId, String search, UUID museumCategoryId, Integer page, Integer size, SortMuseum museumSort, MuseumStatus museumStatus);
+
+    MuseumStat getMuseumStat();
 }

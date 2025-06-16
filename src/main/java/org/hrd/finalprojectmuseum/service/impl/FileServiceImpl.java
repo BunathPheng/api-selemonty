@@ -248,6 +248,32 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
+    public boolean fileExists(String fileName) {
+        for (String bucket : bucketNames) {
+            try {
+                minioClient.statObject(
+                        StatObjectArgs.builder()
+                                .bucket(bucket)
+                                .object(fileName)
+                                .build()
+                );
+                return true; // File exists in this bucket
+            } catch (ErrorResponseException e) {
+                if ("NoSuchKey".equals(e.errorResponse().code())) {
+                    // File doesn't exist in this bucket, continue to next
+                    continue;
+                }
+                // Other error, log it but continue checking other buckets
+                System.err.println("Error checking file in bucket " + bucket + ": " + e.getMessage());
+            } catch (Exception e) {
+                // Other exceptions, log and continue
+                System.err.println("Unexpected error checking file in bucket " + bucket + ": " + e.getMessage());
+            }
+        }
+        return false; // File not found in any bucket
+    }
+
+    @Override
     public Resource viewFileByFileName(String fileName) throws ServerException, InsufficientDataException,
             ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException,
             InvalidResponseException, XmlParserException, InternalException {

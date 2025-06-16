@@ -13,6 +13,7 @@ public class VisitorReview {
     private String fullName;
     private String profileImageLink;
     private String comment;
+    private String reply;
     private BigDecimal rating;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

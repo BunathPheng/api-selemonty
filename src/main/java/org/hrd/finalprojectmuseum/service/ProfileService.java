@@ -1,8 +1,9 @@
 package org.hrd.finalprojectmuseum.service;
 
+import jakarta.validation.Valid;
+import org.hrd.finalprojectmuseum.model.dto.request.museum_owner.*;
 import org.hrd.finalprojectmuseum.model.dto.request.PaymentAccountRequest;
 import org.hrd.finalprojectmuseum.model.dto.request.admin.AdminRequest;
-import org.hrd.finalprojectmuseum.model.dto.request.museum_owner.MuseumOwnerRequest;
 import org.hrd.finalprojectmuseum.model.dto.request.visitor.VisitorRequest;
 import org.hrd.finalprojectmuseum.model.entity.PaymentCredential;
 import org.hrd.finalprojectmuseum.model.entity.admin.Admin;
@@ -36,4 +37,14 @@ public interface ProfileService {
     UUID getMuseumIdByUserId();
 
     PaymentCredential getMuseumPaymentCredential(UUID museumId);
+
+    MuseumOwner updateMuseumAboutDetailByMuseumId(UUID museumId, MuseumAboutRequest museumAboutRequest);
+
+    MuseumOwner updateMuseumContactByMuseumId(UUID museumId, MuseumContactRequest museumContactRequest);
+
+    MuseumOwner updateMuseumlandscapeByMuseumId(UUID museumId, LandscapeRequest landscapeRequest);
+
+    MuseumOwner updateMuseumBannerByMuseumId(UUID museumId, BannerRequest bannerRequest);
+
+    MuseumOwner updateMuseumLogoByMuseumId(UUID museumId, LogoRequest logoRequest);
 }

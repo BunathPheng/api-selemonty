@@ -1,8 +1,10 @@
 package org.hrd.finalprojectmuseum.repository;
 
 import com.alibaba.fastjson2.JSONObject;
+import jakarta.validation.constraints.*;
 import org.apache.ibatis.annotations.*;
 import org.apache.ibatis.type.JdbcType;
+import org.hrd.finalprojectmuseum.model.dto.request.museum_owner.MuseumAboutRequest;
 import org.hrd.finalprojectmuseum.model.dto.request.PaymentAccountRequest;
 import org.hrd.finalprojectmuseum.model.dto.request.admin.AdminRequest;
 import org.hrd.finalprojectmuseum.model.dto.request.museum_owner.MuseumOwnerRequest;
@@ -141,4 +143,39 @@ public interface ProfileRepository {
         SELECT client_id, client_secret, account_name, parent_account_no FROM museum_owners WHERE museum_id = #{museumId}::UUID;
     """)
     PaymentCredential retrieveMuseumPaymentCredential(UUID museumId);
+
+    @ResultMap("museumMapper")
+    @Select("""
+        UPDATE museum_owners SET name = #{museum.name}, museum_category_id = #{museum.categoryId}::UUID,
+        description = #{museum.description} WHERE museum_id = #{museumId}::UUID RETURNING *;
+    """)
+    MuseumOwner modifyMuseumAboutDetailByMuseumId(UUID museumId, @Param("museum") MuseumAboutRequest museumAboutRequest);
+
+    @ResultMap("museumMapper")
+    @Select("""
+        UPDATE museum_owners SET contact_number = #{contactNumber}
+        WHERE museum_id = #{museumId}::UUID RETURNING *;
+    """)
+    MuseumOwner modifyMuseumContactByMuseumId(UUID museumId, String contactNumber);
+
+    @ResultMap("museumMapper")
+    @Select("""
+        UPDATE museum_owners SET landscape_links = #{landscapeLink}::JSONB
+        WHERE museum_id = #{museumId}::UUID RETURNING *;
+    """)
+    MuseumOwner modifyMuseumLandscapeByMuseumId(UUID museumId, JSONObject landscapeLink);
+
+    @ResultMap("museumMapper")
+    @Select("""
+        UPDATE museum_owners SET banner_link = #{bannerLink}
+        WHERE museum_id = #{museumId}::UUID RETURNING *;
+    """)
+    MuseumOwner modifyMuseumBannerByMuseumId(UUID museumId, String bannerLink);
+
+    @ResultMap("museumMapper")
+    @Select("""
+        UPDATE museum_owners SET logo_link = #{logoLink}
+        WHERE museum_id = #{museumId}::UUID RETURNING *;
+    """)
+    MuseumOwner modifyMuseumLogoByMuseumId(UUID museumId, String logoLink);
 }

@@ -1,5 +1,7 @@
 package org.hrd.finalprojectmuseum.service;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import org.hrd.finalprojectmuseum.model.dto.request.auth.ChangePasswordRequest;
 import org.hrd.finalprojectmuseum.model.entity.AppUserRegister;
 import org.hrd.finalprojectmuseum.model.enums.Role;
@@ -39,4 +41,8 @@ public interface AppUserService extends UserDetailsService {
     UUID getUserId();
 
     AppUserRegister getAppUserRegister();
+
+    void isGoogleAccount(String email);
+
+    String getUserEmailByUserId(UUID userId);
 }
