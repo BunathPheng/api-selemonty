@@ -104,7 +104,7 @@ public class FavoritesController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @Operation(summary = "Museum Owner dashboard")
+    @Operation(summary = "Museum Owner dashboard follower statistic")
     @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
     @GetMapping("/stat")
     public ResponseEntity<ApiResponse<FollowerStat>> getFollowerStat(){

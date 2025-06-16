@@ -6,6 +6,7 @@ import org.hrd.finalprojectmuseum.model.entity.museum_owner.FavoriteMuseumSchedu
 import org.hrd.finalprojectmuseum.model.entity.visitor.VisitorFavorite;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -117,14 +118,14 @@ public interface FavoriteRepository {
         AND created_at <= #{endDate}
         AND is_favorite = true
     """)
-    Integer countFollowerByMuseumIdAndEndDate(UUID museumId, LocalDate endDate);
+    Integer countFollowerByMuseumIdAndEndDate(UUID museumId, LocalDateTime endDate);
 
     @Select("""
         SELECT COUNT(favorite_id) FROM favorites WHERE museum_id = #{museumId}::UUID
         AND is_favorite = true
         AND (created_at BETWEEN #{startDate} AND #{endDate})
     """)
-    Integer countFollowerByMuseumIdAndDateRange(UUID museumId, LocalDate startDate, LocalDate endDate);
+    Integer countFollowerByMuseumIdAndDateRange(UUID museumId, LocalDateTime startDate, LocalDateTime endDate);
 
     @Select("""
         SELECT is_favorite FROM favorites WHERE museum_id = #{museumId}::UUID
