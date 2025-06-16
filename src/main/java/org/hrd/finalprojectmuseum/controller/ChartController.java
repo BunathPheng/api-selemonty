@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.hrd.finalprojectmuseum.model.dto.response.ApiResponse;
 import org.hrd.finalprojectmuseum.model.dto.response.FollowerTrendChartResponse;
 import org.hrd.finalprojectmuseum.model.entity.BookingChart;
+import org.hrd.finalprojectmuseum.model.entity.MuseumChart;
 import org.hrd.finalprojectmuseum.model.entity.VisitorChart;
 import org.hrd.finalprojectmuseum.model.enums.YearFilter;
 import org.hrd.finalprojectmuseum.service.ChartService;
@@ -29,7 +30,7 @@ public class ChartController {
 
     @Operation(summary = "Museum Owner dashboard follower and visitor chart")
     @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
-    @GetMapping("/chart/follower")
+    @GetMapping("/follower")
     public ResponseEntity<ApiResponse<List<FollowerTrendChartResponse>>> getFollowerChart(
             @RequestParam(defaultValue = "THIS_YEAR") YearFilter yearFilter
     ){
@@ -45,7 +46,7 @@ public class ChartController {
 
     @Operation(summary = "Museum Owner dashboard booking chart")
     @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
-    @GetMapping("/chart/booking")
+    @GetMapping("/booking")
     public ResponseEntity<ApiResponse<List<BookingChart>>> getBookingChart(
             @RequestParam(defaultValue = "THIS_YEAR") YearFilter yearFilter
     ){
@@ -61,12 +62,28 @@ public class ChartController {
 
     @Operation(summary = "Admin dashboard visitor chart")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @GetMapping("/chart/visitor")
+    @GetMapping("/visitor")
     public ResponseEntity<ApiResponse<List<VisitorChart>>> getVisitorChart(
             @RequestParam(defaultValue = "THIS_YEAR") YearFilter yearFilter
     ){
         List<VisitorChart> followerChart = chartService.getVisitorChart(yearFilter);
         ApiResponse<List<VisitorChart>> apiResponse = ApiResponse.<List<VisitorChart>>builder()
+                .success(true)
+                .message("Visitor chart fetched successfully")
+                .payload(followerChart)
+                .status(HttpStatus.OK)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
+    }
+
+    @Operation(summary = "Admin dashboard museum chart")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @GetMapping("/museum")
+    public ResponseEntity<ApiResponse<MuseumChart>> getMuseumChart(
+            @RequestParam(defaultValue = "THIS_YEAR") YearFilter yearFilter
+    ){
+        MuseumChart followerChart = chartService.getMuseumChart(yearFilter);
+        ApiResponse<MuseumChart> apiResponse = ApiResponse.<MuseumChart>builder()
                 .success(true)
                 .message("Visitor chart fetched successfully")
                 .payload(followerChart)

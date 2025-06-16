@@ -9,6 +9,7 @@ import org.hrd.finalprojectmuseum.model.entity.VisitorBookingTotal;
 import org.hrd.finalprojectmuseum.model.entity.VisitorStat;
 import org.hrd.finalprojectmuseum.model.entity.visitor.Visitor;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface VisitorService {
@@ -26,4 +27,6 @@ public interface VisitorService {
     VisitorBookingTotal getVisitorBookingTotalByVisitorId(UUID visitorId);
 
     VisitorStat getVisitorStatByVisitorId();
+
+    List<Visitor> getTopVisitorByMuseumId(UUID museumId);
 }

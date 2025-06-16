@@ -1,6 +1,7 @@
 package org.hrd.finalprojectmuseum.repository;
 
 import org.apache.ibatis.annotations.*;
+import org.hrd.finalprojectmuseum.model.dto.response.ListResponse;
 import org.hrd.finalprojectmuseum.model.entity.VisitorBooking;
 import org.hrd.finalprojectmuseum.model.entity.VisitorBookingDetail;
 import org.hrd.finalprojectmuseum.model.entity.VisitorBookingTotal;
@@ -185,4 +186,18 @@ public interface VisitorRepository {
     """)
     Integer countTotalVisitors(LocalDate endDate);
 
+    @ResultMap("visitorMapper")
+    @Select("""
+        SELECT v.*
+        FROM visitors v
+        INNER JOIN bookings b ON v.visitor_id = b.visitor_id
+        LEFT JOIN tours t ON t.booking_id = b.booking_id
+        WHERE b.museum_id = #{museumId}::UUID
+        AND (t.tour_id IS NULL OR (t.tour_id IS NOT NULL AND t.status = 'PAID'))
+        GROUP BY v.visitor_id, v.user_id, v.full_name, v.contact_number,
+                 v.gender, v.dob, v.profile_image_link, v.created_at, v.updated_at
+        ORDER BY SUM(b.slot_amount) DESC
+        LIMIT 5
+    """)
+    List<Visitor> findTopVisitorByMuseumId(UUID museumId);
 }

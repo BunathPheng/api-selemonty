@@ -138,4 +138,9 @@ public class VisitorServiceImpl implements VisitorService {
                 .newBooking(calculation.addStatItem(currentTotalBookings, lastMonthTotalBookings))
                 .build();
     }
+
+    @Override
+    public List<Visitor> getTopVisitorByMuseumId(UUID museumId) {
+        return visitorRepository.findTopVisitorByMuseumId(museumId);
+    }
 }
