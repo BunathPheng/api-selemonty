@@ -29,7 +29,7 @@ public interface VisitorRepository {
         SELECT * FROM visitors v INNER JOIN bookings b
         ON v.visitor_id = b.visitor_id
         WHERE b.museum_id = #{museumId}::UUID
-        AND full_name ILIKE CONCAT('%', #{search}, '%')
+        AND full_name ILIKE CONCAT('%', #{search}::TEXT, '%')
         OFFSET (#{page}-1)* #{size} LIMIT #{size};
     """)
     List<Visitor> findVisitorByMuseumId(UUID museumId, String search, Integer page, Integer size);
@@ -38,7 +38,7 @@ public interface VisitorRepository {
         SELECT COUNT(*) FROM visitors v INNER JOIN bookings b
         ON v.visitor_id = b.visitor_id
         WHERE b.museum_id = #{museumId}::UUID
-        AND full_name ILIKE CONCAT('%', #{search}, '%')
+        AND full_name ILIKE CONCAT('%', #{search}::TEXT, '%')
     """)
     Integer countAllVisitorByMuseumId(UUID museumId, String search);
 
