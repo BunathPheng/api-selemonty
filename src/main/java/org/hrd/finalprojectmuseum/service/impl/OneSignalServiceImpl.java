@@ -1,6 +1,5 @@
 package org.hrd.finalprojectmuseum.service.impl;
 
-import javafx.util.Subscription;
 import org.hrd.finalprojectmuseum.config.OneSignalConfig;
 import org.hrd.finalprojectmuseum.model.dto.request.NotificationRequest;
 import org.hrd.finalprojectmuseum.model.entity.AppUserRegister;

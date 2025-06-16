@@ -49,6 +49,7 @@ public class AuthsController {
     private final GoogleAuthService googleAuthService;
     private final EmailService emailService;
     private final ProfileService profileService;
+    private final OneSignalService oneSignalService;
 
     @Operation(summary = "Use for login for all role")
     @PostMapping("/login")
@@ -159,6 +160,16 @@ public class AuthsController {
         String otp = sendEmailService.generateOtp();
         String result = emailService.sendMailAsHTML(museumOwnerRegisterRequest.getEmail(), otp);
         otpService.storeOtp(museumOwnerRegisterRequest.getEmail(), otp);
+        //send notification
+        String notificationMsg = "New museum registration request from: " +
+                museumOwnerRegisterRequest.getName() +
+                " (" + museumOwnerRegisterRequest.getEmail() + ")";
+
+        oneSignalService.sendToUser(
+                appUserService.getAdminUserId(),
+                "New Museum Request",
+                notificationMsg
+        ).subscribe();
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }

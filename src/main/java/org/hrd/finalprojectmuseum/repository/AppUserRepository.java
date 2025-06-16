@@ -107,4 +107,9 @@ public interface AppUserRepository {
         WHERE user_id = #{userId}::UUID;
     """)
     String getEmailByVisitorId(UUID userId);
+
+    @Select("""
+        SELECT user_id FROM admin;
+    """)
+    UUID findAdminUserId();
 }
