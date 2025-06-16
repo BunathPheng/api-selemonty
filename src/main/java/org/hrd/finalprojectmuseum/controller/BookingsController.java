@@ -53,52 +53,47 @@ public class BookingsController {
     private String baseUrl;
     @SecurityRequirement(name = "bearerAuth")
     @PreAuthorize("hasRole('ROLE_VISITOR')")
-@PostMapping("individual/{museum-id}")
-public ResponseEntity<ApiResponse<BookingV2>> IndividualBookingByMuseumId(
-        @PathVariable("museum-id") UUID museumId,
-        @RequestParam("ticketType") TicketType ticketType,
-        @RequestBody @Valid BookingRequestV2 bookingRequest) {
+    @PostMapping("individual/{museum-id}")
+    public ResponseEntity<ApiResponse<BookingV2>> IndividualBookingByMuseumId(
+            @PathVariable("museum-id") UUID museumId,
+            @RequestParam("ticketType") TicketType ticketType,
+            @RequestBody @Valid BookingRequestV2 bookingRequest) {
 
-    try {
-        UUID visitorId = reviewService.getVisitorIdByUserId(appUserService.getUserId());
-        BookingV2 booking = bookingService.bookingIndividualTicket(museumId, visitorId, ticketType, bookingRequest);
-        System.out.println(booking);
+        try {
+            UUID visitorId = reviewService.getVisitorIdByUserId(appUserService.getUserId());
+            BookingV2 booking = bookingService.bookingIndividualTicket(museumId, visitorId, ticketType, bookingRequest);
+            System.out.println(booking);
+            // Generate QR code
+            byte[] qrCodeBytes = qrCodeService.generateQRCodeFromBookingCode(booking.getQrCode());
+            booking.setQRCodeData(qrCodeBytes, baseUrl);
+            String visitorEmail = appUserService.getUserEmailByUserId(appUserService.getUserId());
+            asyncEmailService.sendBookingConfirmationEmailAsync(booking, visitorEmail, qrCodeBytes)
+                    .exceptionally(throwable -> {
+                        log.error("Email sending failed for booking: {}", booking.getBookingId(), throwable);
+                        return null;
+                    });
 
-        // Generate QR code
-        byte[] qrCodeBytes = qrCodeService.generateQRCodeFromBookingCode(booking.getQrCode());
-        booking.setQRCodeData(qrCodeBytes, baseUrl);
+            ApiResponse<BookingV2> response = ApiResponse.<BookingV2>builder()
+                    .success(true)
+                    .message("Booking successfully created with QR code")
+                    .status(HttpStatus.CREATED)
+                    .payload(booking)
+                    .build();
 
-        // ✅ GET VISITOR EMAIL AND PASS AS PARAMETER
-        String visitorEmail = appUserService.getUserEmailByUserId(appUserService.getUserId());
+            return new ResponseEntity<>(response, HttpStatus.CREATED);
 
-        // Send email asynchronously
-        asyncEmailService.sendBookingConfirmationEmailAsync(booking, visitorEmail, qrCodeBytes)
-                .exceptionally(throwable -> {
-                    log.error("Email sending failed for booking: {}", booking.getBookingId(), throwable);
-                    return null;
-                });
+        } catch (Exception e) {
+            log.error("Failed to create booking: {}", e.getMessage());
 
-        ApiResponse<BookingV2> response = ApiResponse.<BookingV2>builder()
-                .success(true)
-                .message("Booking successfully created with QR code")
-                .status(HttpStatus.CREATED)
-                .payload(booking)
-                .build();
+            ApiResponse<BookingV2> response = ApiResponse.<BookingV2>builder()
+                    .success(false)
+                    .message("Failed to create booking: " + e.getMessage())
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .build();
 
-        return new ResponseEntity<>(response, HttpStatus.CREATED);
-
-    } catch (Exception e) {
-        log.error("Failed to create booking: {}", e.getMessage());
-
-        ApiResponse<BookingV2> response = ApiResponse.<BookingV2>builder()
-                .success(false)
-                .message("Failed to create booking: " + e.getMessage())
-                .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .build();
-
-        return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
-}
 
     @SecurityRequirement(name = "bearerAuth")
     @PreAuthorize("hasRole('ROLE_VISITOR')")
