@@ -281,6 +281,7 @@ public interface BookingRepository {
         SELECT bk.booking_id,
                vt.full_name,
                bk.ticket_price,
+               bk.booking_type,
                bk.ticket_type,
                bk.ticket_status,
                bk.booking_date,
@@ -293,15 +294,7 @@ public interface BookingRepository {
         ORDER BY bk.booking_date DESC
         LIMIT #{size} OFFSET #{page} * #{size};
     """)
-    @Results(id = "BookingDetail2", value = {
-            @Result(property = "bookingId", column = "booking_id"),
-            @Result(property = "visitorName", column = "full_name"),
-            @Result(property = "ticketPrice", column = "ticket_price"),
-            @Result(property = "ticketType", column = "ticket_type"),
-            @Result(property = "ticketStatus", column = "ticket_status"),
-            @Result(property = "bookingDate", column = "booking_date"),
-            @Result(property = "expiredDate", column = "expired_date"),
-    })
+    @ResultMap("IndividualBooking")
     List<BookingV2> getMuseumBookingHistoryByMuseumId(UUID museumId, String search, Integer page, Integer size);
 
     @Select("""

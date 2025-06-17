@@ -46,7 +46,6 @@ public class BookingServiceImpl implements BookingService {
     @Transactional
     public BookingV2 bookingIndividualTicket(UUID museumId, UUID visitorId, TicketType ticketType, BookingRequestV2 bookingRequest) {
         IndividualBookingInfo individualBookingInfo = bookingRepository.BooingIndividualInfo(museumId);
-        System.out.println(individualBookingInfo);
 
         if (individualBookingInfo == null) {
             throw new AppNotFoundException("Booking failed. This museum is not approved by admin");
@@ -75,8 +74,8 @@ public class BookingServiceImpl implements BookingService {
             throw new AppNotFoundException("Booking failed. Museum doesn't have schedule");
         }
 
-        LocalDateTime bookingDate = bookingRequest.getBookingDate();
-        String bookingDayName = bookingDate.getDayOfWeek().name(); // e.g., "MONDAY"
+//        LocalDateTime bookingDate = bookingRequest.getBookingDate();
+        String bookingDayName = bookingRequest.getBookingDate().getDayOfWeek().name(); // e.g., "MONDAY"
 
         boolean isClosed = individualBookingInfo.getMuseumSchedule().stream()
                 .anyMatch(schedule ->
@@ -84,6 +83,15 @@ public class BookingServiceImpl implements BookingService {
 
         if (isClosed) {
             throw new AppBadRequestException("Booking failed. Museum is closed on " + bookingDayName);
+        }
+
+        boolean hasNullTimes = individualBookingInfo.getMuseumSchedule().stream()
+                .anyMatch(schedule ->
+                        schedule.getDay().equalsIgnoreCase(bookingDayName) &&
+                                (schedule.getOpeningTime() == null || schedule.getClosingTime() == null));
+
+        if (hasNullTimes) {
+            throw new AppBadRequestException("Booking failed. Opening or closing time not available for " + bookingDayName);
         }
 
         if (individualBookingInfo.getTotalSlots() < bookingRequest.getSlotAmount()) {
@@ -242,8 +250,8 @@ public class BookingServiceImpl implements BookingService {
             throw new AppNotFoundException("Booking failed. Museum doesn't have schedule");
         }
 
-        LocalDateTime bookingDate = requestTourRequest.getBookingDate();
-        String bookingDayName = bookingDate.getDayOfWeek().name(); // e.g., "MONDAY"
+//        LocalDateTime bookingDate = requestTourRequest.getBookingDate();
+        String bookingDayName = requestTourRequest.getBookingDate().getDayOfWeek().name(); // e.g., "MONDAY"
 
         boolean isClosed = individualBookingInfo.getMuseumSchedule().stream()
                 .anyMatch(schedule ->
@@ -251,6 +259,15 @@ public class BookingServiceImpl implements BookingService {
 
         if (isClosed) {
             throw new AppBadRequestException("Booking failed. Museum is closed on " + bookingDayName);
+        }
+
+        boolean hasNullTimes = individualBookingInfo.getMuseumSchedule().stream()
+                .anyMatch(schedule ->
+                        schedule.getDay().equalsIgnoreCase(bookingDayName) &&
+                                (schedule.getOpeningTime() == null || schedule.getClosingTime() == null));
+
+        if (hasNullTimes) {
+            throw new AppBadRequestException("Booking failed. Opening or closing time not available for " + bookingDayName);
         }
 
         UUID bookingId = bookingRepository.insertBookingForTourRequest(museumId, visitorId, requestTourRequest);
