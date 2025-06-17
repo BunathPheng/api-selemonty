@@ -280,7 +280,7 @@ public interface BookingRepository {
     @Select("""
         SELECT bk.booking_id,
                vt.full_name,
-               bk.ticket_price,
+               bk.total_price,
                bk.booking_type,
                bk.ticket_type,
                bk.ticket_status,
@@ -289,7 +289,18 @@ public interface BookingRepository {
         FROM bookings bk
         INNER JOIN visitors vt ON vt.visitor_id = bk.visitor_id
         INNER JOIN museum_owners mo ON mo.museum_id = bk.museum_id
-        WHERE mo.museum_id = #{museumId}::UUID
+        LEFT JOIN tours tr ON bk.booking_id = tr.booking_id
+        WHERE mo.museum_id = '5a307e3d-b052-4cd9-859c-7abdd5a86154'
+        AND (
+             -- Include INDIVIDUAL bookings (no tours)
+             bk.booking_type = 'INDIVIDUAL'
+             OR
+             -- Include TOUR bookings only if tour status is PAID
+             (bk.booking_type = 'TOUR' AND tr.status = 'PAID')
+             OR
+             -- Include TOUR bookings that don't have tour records yet
+             (bk.booking_type = 'TOUR' AND tr.booking_id IS NULL)
+             )
           AND LOWER(vt.full_name) LIKE LOWER(CONCAT('%', #{search}, '%'))
         ORDER BY bk.booking_date DESC
         LIMIT #{size} OFFSET #{page} * #{size};
@@ -356,6 +367,7 @@ public interface BookingRepository {
     """)
     @Results(id = "IndividualBooking", value = {
             @Result(property = "bookingId", column = "booking_id"),
+            @Result(property = "tourId", column = "tour_id"),
             @Result(property = "museumId", column = "museum_id"),
             @Result(property = "museumName", column = "name"),
             @Result(property = "museumDescription", column = "description"),
@@ -380,27 +392,35 @@ public interface BookingRepository {
             UUID museumId, UUID visitorId,
             TicketType ticketType, @Param("bookingRequest") BookingRequestV2 bookingRequest,
             String code, LocalDateTime expiredDate);
-    /*
-    SELECT bk.booking_id, mo.name, bk.booking_type, vt.full_name, bk.ticket_type, bk.booking_date, bk.ticket_type,
-                      bk.ticket_price, bk.created_at, bk.slot_amount, bk.ticket_status, bk.qr_code, bk.total_price,
-                      bk.expired_date, bk.created_at, ui.email
-        FROM bookings bk
-        INNER JOIN museum_owners mo ON mo.museum_id = bk.museum_id
-        INNer JOIN visitors vt ON bk.visitor_id = vt.visitor_id
-        INNER JOIN user_info ui ON mo.user_id = ui.user_id
-        WHERE bk.booking_id = #{bookingId}::UUID
-        AND bk.visitor_id = #{visitorId}::UUID;
-     */
 
     @Select("""
-        SELECT bk.*, mo.name, tb.status
+        SELECT bk.*, tb.tour_id, mo.name, tb.status
             FROM bookings bk
             LEFT JOIN tours tb ON bk.booking_id = tb.booking_id
             LEFT JOIN museum_owners mo ON bk.museum_id = mo.museum_id
             WHERE bk.booking_id = #{bookingId}::UUID
             AND bk.visitor_id = #{visitorId}::UUID
     """)
-    @ResultMap("IndividualBooking")
+//    @ResultMap("IndividualBooking")
+    @Results(id = "TourBooking", value = {
+            @Result(property = "bookingId", column = "booking_id"),
+            @Result(property = "tourId", column = "tour_id"),
+            @Result(property = "museumName", column = "name"),
+            @Result(property = "visitorId", column = "visitor_id"),
+            @Result(property = "bookingType", column = "booking_type"),
+            @Result(property = "bookingDate", column = "booking_date"),
+            @Result(property = "ticketType", column = "ticket_type"),
+            @Result(property = "purchasedDate", column = "created_at"),
+            @Result(property = "ticketPrice", column = "ticket_price"),
+            @Result(property = "slotAmount", column = "slot_amount"),
+            @Result(property = "qrCode", column = "qr_code"),
+            @Result(property = "totalPrice", column = "total_price"),
+            @Result(property = "ticketStatus", column = "ticket_status"),
+            @Result(property = "tourStatus", column = "status"),
+            @Result(property = "expiredDate", column = "expired_date"),
+            @Result(property = "guideList", column = "tour_id",
+                    many = @Many(select = "org.hrd.finalprojectmuseum.repository.GuideRepository.getGuidesByTourId")),
+    })
     BookingV2 getBookingByBookingId(UUID bookingId, UUID visitorId);
 
     @Select("""
