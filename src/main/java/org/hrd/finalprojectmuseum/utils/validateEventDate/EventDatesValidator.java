@@ -26,7 +26,12 @@ public class EventDatesValidator implements ConstraintValidator<ValidateEventDat
                     .addConstraintViolation();
             return false;
         }
-
+        if (request.getStartDate().plusHours(1).isAfter(request.getEndDate())) {
+            context.buildConstraintViolationWithTemplate("Event time must at least has 1 hour")
+                    .addPropertyNode("endDate")
+                    .addConstraintViolation();
+            return false;
+        }
         return true;
     }
 }
