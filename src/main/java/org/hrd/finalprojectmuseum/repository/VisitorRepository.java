@@ -1,12 +1,14 @@
 package org.hrd.finalprojectmuseum.repository;
 
 import org.apache.ibatis.annotations.*;
+import org.hrd.finalprojectmuseum.model.dto.response.ListResponse;
 import org.hrd.finalprojectmuseum.model.entity.VisitorBooking;
 import org.hrd.finalprojectmuseum.model.entity.VisitorBookingDetail;
 import org.hrd.finalprojectmuseum.model.entity.VisitorBookingTotal;
 import org.hrd.finalprojectmuseum.model.entity.visitor.Visitor;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -134,7 +136,7 @@ public interface VisitorRepository {
         INNER JOIN user_info u ON v.user_id = u.user_id
         LEFT JOIN tours t ON t.booking_id = b.booking_id
         WHERE ((t.booking_id IS NULL) OR (t.booking_id IS NOT NULL AND t.status = 'PAID'))
-        AND v.visitor_id = #{visitorId}::UUID
+        AND v.visitor_id = #{visitorId}::UUID AND u.is_verified = true
     """)
     VisitorBookingTotal retrieveBookingTotalByVisitorId(UUID visitorId);
 
@@ -148,7 +150,7 @@ public interface VisitorRepository {
         INNER JOIN user_info u ON v.user_id = u.user_id
         LEFT JOIN tours t ON t.booking_id = b.booking_id
         WHERE ((t.booking_id IS NULL) OR (t.booking_id IS NOT NULL AND t.status = 'PAID'))
-        AND v.visitor_id = #{visitorId}::UUID
+        AND v.visitor_id = #{visitorId}::UUID  AND u.is_verified = true
         AND b.created_at >= DATE_TRUNC('month', CURRENT_DATE - INTERVAL '1 month')
         AND b.created_at <= (CURRENT_DATE - INTERVAL '1 month') + (CURRENT_DATE - DATE_TRUNC('month', CURRENT_DATE))
     """)
@@ -164,22 +166,39 @@ public interface VisitorRepository {
         INNER JOIN user_info u ON v.user_id = u.user_id
         LEFT JOIN tours t ON t.booking_id = b.booking_id
         WHERE ((t.booking_id IS NULL) OR (t.booking_id IS NOT NULL AND t.status = 'PAID'))
-        AND v.visitor_id = #{visitorId}::UUID
+        AND v.visitor_id = #{visitorId}::UUID AND u.is_verified = true
         AND b.created_at >= DATE_TRUNC('month', CURRENT_DATE)
         AND b.created_at <= CURRENT_DATE
     """)
     VisitorBookingTotal retrieveThisMonthBookingTotalByVisitorId(@Param("visitorId") UUID visitorId);
 
     @Select("""
-        SELECT COUNT(visitor_id) FROM visitors
-        WHERE created_at >= #{startDate} AND created_at <= #{endDate}
+        SELECT COUNT(visitor_id) FROM visitors v
+        INNER JOIN user_info u ON v.user_id = u.user_id
+        WHERE v.created_at >= #{startDate} AND v.created_at <= #{endDate}
+        AND u.is_verified = true
     """)
-    Integer countNewVisitorsByDateRange(LocalDate startDate, LocalDate endDate);
+    Integer countNewVisitorsByDateRange(LocalDateTime startDate, LocalDateTime endDate);
 
     @Select("""
-        SELECT COUNT(visitor_id) FROM visitors
-        WHERE created_at < #{endDate}
+        SELECT COUNT(visitor_id) FROM visitors v
+        INNER JOIN user_info u ON v.user_id = u.user_id
+        WHERE v.created_at < #{endDate} AND u.is_verified = true
     """)
-    Integer countTotalVisitors(LocalDate endDate);
+    Integer countTotalVisitors(LocalDateTime endDate);
 
+    @ResultMap("visitorMapper")
+    @Select("""
+        SELECT v.*
+        FROM visitors v
+        INNER JOIN bookings b ON v.visitor_id = b.visitor_id
+        LEFT JOIN tours t ON t.booking_id = b.booking_id
+        WHERE b.museum_id = #{museumId}::UUID
+        AND (t.tour_id IS NULL OR (t.tour_id IS NOT NULL AND t.status = 'PAID'))
+        GROUP BY v.visitor_id, v.user_id, v.full_name, v.contact_number,
+                 v.gender, v.dob, v.profile_image_link, v.created_at, v.updated_at
+        ORDER BY SUM(b.slot_amount) DESC
+        LIMIT 5
+    """)
+    List<Visitor> findTopVisitorByMuseumId(UUID museumId);
 }

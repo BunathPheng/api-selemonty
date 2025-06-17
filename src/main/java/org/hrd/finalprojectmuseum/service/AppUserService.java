@@ -13,7 +13,6 @@ import java.math.BigDecimal;
 import java.util.UUID;
 
 public interface AppUserService extends UserDetailsService {
-    @Override
     UserDetails loadUserByUsername(String email) throws UsernameNotFoundException;
 
     AppUserRegister registerUser(String email, String password, Role role);
@@ -45,4 +44,6 @@ public interface AppUserService extends UserDetailsService {
     void isGoogleAccount(String email);
 
     String getUserEmailByUserId(UUID userId);
+
+    UUID getAdminUserId();
 }

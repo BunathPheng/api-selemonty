@@ -1,0 +1,32 @@
+package org.hrd.finalprojectmuseum.model.dto.request;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
+
+import java.util.List;
+import java.util.Map;
+
+@Data
+public class NotificationRequest {
+
+    @JsonProperty("app_id")
+    private String appId;
+
+    @JsonProperty("included_segments")
+    private List<String> includedSegments;
+
+    @JsonProperty("include_player_ids")
+    private List<String> includePlayerIds;
+
+    @JsonProperty("contents")
+    private Map<String, String> contents;
+
+    @JsonProperty("headings")
+    private Map<String, String> headings;
+
+    @JsonProperty("data")
+    private Map<String, Object> data;
+
+    @JsonProperty("url")
+    private String url;
+}

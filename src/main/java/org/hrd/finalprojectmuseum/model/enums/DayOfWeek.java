@@ -4,29 +4,18 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum DayOfWeek {
-    MONDAY("Monday"),
-    TUESDAY("Tuesday"),
-    WEDNESDAY("Wednesday"),
-    THURSDAY("Thursday"),
-    FRIDAY("Friday"),
-    SATURDAY("Saturday"),
-    SUNDAY("Sunday");
-
-    private final String value;
-
-    DayOfWeek(String value) {
-        this.value = value;
-    }
-
-    @JsonValue
-    public String getValue() {
-        return value;
-    }
+    MONDAY,
+    TUESDAY,
+    WEDNESDAY,
+    THURSDAY,
+    FRIDAY,
+    SATURDAY,
+    SUNDAY;
 
     @JsonCreator
     public static DayOfWeek fromValue(String value) {
         for (DayOfWeek day : DayOfWeek.values()) {
-            if (day.value.equalsIgnoreCase(value) || day.name().equalsIgnoreCase(value)) {
+            if (day.name().equalsIgnoreCase(value)) {
                 return day;
             }
         }
@@ -34,7 +23,7 @@ public enum DayOfWeek {
     }
 
     public String toDatabaseValue() {
-        return this.value;
+        return this.name();
     }
 
     public static DayOfWeek fromDatabaseValue(String dbValue) {
@@ -43,6 +32,6 @@ public enum DayOfWeek {
 
     @Override
     public String toString() {
-        return this.value;
+        return this.name();
     }
 }

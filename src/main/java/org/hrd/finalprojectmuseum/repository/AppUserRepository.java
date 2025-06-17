@@ -1,5 +1,6 @@
 package org.hrd.finalprojectmuseum.repository;
 
+import com.nimbusds.openid.connect.sdk.claims.UserInfo;
 import org.apache.ibatis.annotations.*;
 import org.apache.ibatis.type.JdbcType;
 import org.hrd.finalprojectmuseum.model.entity.AppUser;
@@ -7,12 +8,15 @@ import org.hrd.finalprojectmuseum.model.entity.AppUserRegister;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
 import org.hrd.finalprojectmuseum.model.entity.visitor.Visitor;
 import org.hrd.finalprojectmuseum.model.enums.Role;
+import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 @Mapper
+@Repository
 public interface AppUserRepository {
 
     @Select("""
@@ -28,6 +32,10 @@ public interface AppUserRepository {
             @Result(property = "createdAt", column = "created_at"),
     })
     Optional<AppUser> getUserByEmail(String email);
+
+    @ResultMap("userRegisterMapper")
+    @Select("SELECT * FROM user_info WHERE is_verified = #{isVerified}")
+    List<AppUserRegister> findByIsVerified(@Param("isVerified") Boolean isVerified);
 
     @Select("""
     SELECT * FROM user_info
@@ -99,4 +107,9 @@ public interface AppUserRepository {
         WHERE user_id = #{userId}::UUID;
     """)
     String getEmailByVisitorId(UUID userId);
+
+    @Select("""
+        SELECT user_id FROM admin;
+    """)
+    UUID findAdminUserId();
 }

@@ -84,20 +84,23 @@ public class ZoneServiceImpl implements ZoneService {
     };
 
     @Override
+    @Transactional
     public void updateMuseumZoneDetailByZoneId(UUID museumZoneId, MuseumZoneUpdateRequest museumZoneUpdateRequest, UUID museumId) {
         MuseumZone zone = zoneRepository.retrieveMuseumZoneDetailByZoneId(museumZoneId);
         if (zone == null) {
             throw new AppNotFoundException("Museum zone ID not found");
         }
-        if (zone.getMuseumId().equals(museumId)) {
+
+        if (!zone.getMuseumId().equals(museumId)) {
             throw new AppBadRequestException("Zone belongs to another Museum. You can not update this zone");
         }
 
-        boolean zoneCategoryId = zoneRepository.retrieveMuseumZoneCategoryId(museumZoneUpdateRequest.getCategoryId());
-        if (!zoneCategoryId) {
+        boolean zoneCategoryExists = zoneRepository.retrieveMuseumZoneCategoryId(museumZoneUpdateRequest.getCategoryId());
+        if (!zoneCategoryExists) {
             throw new AppNotFoundException("Museum zone category Id Not Found");
         }
-        zoneRepository.updateMuseumZoneDetailByZoneId(museumZoneId, museumZoneUpdateRequest, updatedAt);
+
+        zoneRepository.updateMuseumZoneDetailByZoneId(museumZoneId, museumZoneUpdateRequest, LocalDateTime.now());
     }
 
     @Override
@@ -106,7 +109,7 @@ public class ZoneServiceImpl implements ZoneService {
         if (zone == null) {
             throw new AppNotFoundException("Museum zone ID not found");
         }
-        if (zone.getMuseumId().equals(museumId)) {
+        if (!zone.getMuseumId().equals(museumId)) {
             throw new AppBadRequestException("Zone belongs to another Museum. You can not update this zone");
         }
         zoneRepository.deleteMuseumZoneByZoneId(museumZoneId, true);
