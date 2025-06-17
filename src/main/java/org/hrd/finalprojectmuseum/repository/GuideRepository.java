@@ -22,6 +22,7 @@ public interface GuideRepository {
             @Result(property = "isAvailable", column = "is_available"),
             @Result(property = "createdAt", column = "created_at"),
             @Result(property = "updatedAt", column = "updated_at"),
+            @Result(property = "expiresAt", column = "expired_date")
     })
     @Select("""
         SELECT * FROM guides WHERE museum_id = #{museumId}::UUID
@@ -95,4 +96,23 @@ public interface GuideRepository {
     """)
     @ResultMap("guideMapper")
     List<Guide> getGuidesByTourId(UUID tourId);
+
+    @Select("""
+        SELECT gd.*, bk.expired_date
+        FROM guides gd
+                 INNER JOIN tour_guides tg ON gd.guide_id = tg.guide_id
+                INNER JOIN tours ts ON tg.tour_id = ts.tour_id
+                INNER JOIN bookings BK ON ts.booking_id = BK.booking_id
+                INNER JOIN museum_owners mo ON BK.museum_id = mo.museum_id
+        WHERE mo.museum_id = #{museumId}::UUID
+    """)
+    @ResultMap("guideMapper")
+    List<Guide> getGuidesByMuseumId(UUID museumId);
+
+    @Update("""
+        UPDATE guides 
+        SET is_available = true
+        WHERE guide_id = #{guideId}::UUID
+    """)
+    void updateStatusGuide(UUID guideId);
 }

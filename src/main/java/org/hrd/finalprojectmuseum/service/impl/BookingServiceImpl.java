@@ -121,8 +121,7 @@ public class BookingServiceImpl implements BookingService {
         boolean hasDateRange = startDate != null && endDate != null;
 
         List<BookingV2> bookingByVisitorId = getBookingByVisitorId(visitorId);
-        for (BookingV2 booking : bookingByVisitorId) {
-            checkAndUpdateExpirationV2(booking.getBookingId());
+        for (BookingV2 booking : bookingByVisitorId) {checkAndUpdateExpirationV2(booking.getBookingId());
             if (category == BookingType.TOUR){
                 booking.setTotalPrice(tourRepository.getTourPriceByBookingId(booking.getBookingId()));
             }

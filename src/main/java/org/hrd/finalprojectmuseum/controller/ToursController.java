@@ -160,8 +160,6 @@ public class ToursController {
 
         try{
             BookingV2 tourRequest = tourService.updateTourStatus(tourId);
-            System.out.println("tour request " + tourRequest.toString() + "\n");
-
             // Generate QR code
             byte[] qrCodeBytes = qrCodeService.generateQRCodeFromBookingCode(tourRequest.getQrCode());
             tourRequest.setQRCodeData(qrCodeBytes, baseUrl);
