@@ -148,7 +148,6 @@ public class AuthsController {
     @PostMapping("/register/museum-owner")
     @Transactional
     public ResponseEntity<ApiResponse<AppUserRegister>> registerMuseumOwner(@RequestBody @Valid MuseumOwnerRegisterRequest museumOwnerRegisterRequest) throws IOException {
-
         AppUserRegister appUser = appUserService.registerUser(museumOwnerRegisterRequest.getEmail(), museumOwnerRegisterRequest.getPassword(), Role.ROLE_MUSEUM_OWNER);
         appUserService.storeMuseumOwner(appUser.getUserId(), museumOwnerRegisterRequest.getName(), museumOwnerRegisterRequest.getLogoLink(), museumOwnerRegisterRequest.getAddress(), museumOwnerRegisterRequest.getLat(), museumOwnerRegisterRequest.getLng(), museumOwnerRegisterRequest.getDescription());
         ApiResponse<AppUserRegister> response = ApiResponse.<AppUserRegister>builder()
@@ -164,13 +163,11 @@ public class AuthsController {
         String notificationMsg = "New museum registration request from: " +
                 museumOwnerRegisterRequest.getName() +
                 " (" + museumOwnerRegisterRequest.getEmail() + ")";
-
         oneSignalService.sendToUser(
                 appUserService.getAdminUserId(),
                 "New Museum Request",
                 notificationMsg
         ).subscribe();
-
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 

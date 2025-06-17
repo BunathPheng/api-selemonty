@@ -39,7 +39,7 @@ public interface ScheduleRepository {
     List<Schedule> findScheduleOfMuseum(UUID museumId);
 
     @Insert("""
-        INSERT INTO schedules (museum_id, day) VALUES (#{museumId}::UUID, #{dayOfWeek});
+        INSERT INTO schedules (museum_id, day, day_off) VALUES (#{museumId}::UUID, #{dayOfWeek}, true);
     """)
     void insertSchedule(UUID museumId, String dayOfWeek);
 
