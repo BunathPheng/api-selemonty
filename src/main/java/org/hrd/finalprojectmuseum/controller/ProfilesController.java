@@ -157,6 +157,21 @@ public class ProfilesController {
     }
 
     @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
+    @PutMapping("/museum-owner/location")
+    @Operation(summary = "Use to update museum location. For only museum owner")
+    public ResponseEntity<ApiResponse<MuseumOwner>> updateMuseumOwnerLocation(@RequestBody @Valid MuseumLocationRequest museumLocationRequest) {
+        UUID museumId = profileService.getMuseumIdByUserId();
+        MuseumOwner museumOwner = profileService.updateMuseumLocationByMuseumId(museumId, museumLocationRequest);
+        ApiResponse<MuseumOwner> response = ApiResponse.<MuseumOwner>builder()
+                .success(true)
+                .message("Museum owner location has been updated successfully")
+                .status(HttpStatus.OK)
+                .payload(museumOwner)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
     @Operation(summary = "Use to get museum payment credential. For only museum owner")
     @GetMapping("/museum-owner/payment")
     public ResponseEntity<ApiResponse<PaymentCredential>> getMuseumOwnerPaymentCredential() {

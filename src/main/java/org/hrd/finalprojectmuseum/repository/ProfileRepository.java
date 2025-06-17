@@ -7,6 +7,7 @@ import org.apache.ibatis.type.JdbcType;
 import org.hrd.finalprojectmuseum.model.dto.request.museum_owner.MuseumAboutRequest;
 import org.hrd.finalprojectmuseum.model.dto.request.PaymentAccountRequest;
 import org.hrd.finalprojectmuseum.model.dto.request.admin.AdminRequest;
+import org.hrd.finalprojectmuseum.model.dto.request.museum_owner.MuseumLocationRequest;
 import org.hrd.finalprojectmuseum.model.dto.request.museum_owner.MuseumOwnerRequest;
 import org.hrd.finalprojectmuseum.model.dto.request.visitor.VisitorRequest;
 import org.hrd.finalprojectmuseum.model.entity.PaymentCredential;
@@ -189,4 +190,11 @@ public interface ProfileRepository {
         WHERE museum_id = #{museumId}::UUID RETURNING *;
     """)
     MuseumOwner modifyMuseumLogoByMuseumId(UUID museumId, String logoLink);
+
+    @ResultMap("museumMapper")
+    @Select("""
+        UPDATE museum_owners SET lat = #{museum.lat}, lng = #{museum.lng},
+        address = #{museum.address} WHERE museum_id = #{museumId}::UUID RETURNING *;
+    """)
+    MuseumOwner modifyMuseumLocationByMuseumId(UUID museumId, @Param("museum") MuseumLocationRequest museumLocationRequest);
 }
