@@ -210,6 +210,14 @@ public class BookingServiceImpl implements BookingService {
 
         checkAndUpdateExpiration(bookingId);
 
+        if (Objects.equals(bookingDetail.getTicketStatus(), "USED")) {
+            throw new AppNotFoundException("Booking with code " + bookingId + " is already used");
+        }
+
+        if (Objects.equals(bookingDetail.getTicketStatus(), "EXPIRED")) {
+            throw new AppNotFoundException("Booking with code " + bookingId + " is expired");
+        }
+
         if (Objects.equals(bookingDetail.getTicketStatus(), "VALID")) {
             bookingRepository.updateStatus(bookingId, "USED");
         }
@@ -220,8 +228,17 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public Booking findBookingByCodeQr(String codeQr, UUID museumId) {
         Booking bookingDetail = bookingRepository.findBookingByCodeQrAndMuseumId(codeQr, museumId);
+
         if (bookingDetail == null) {
             throw new AppNotFoundException("Code Qr: " + codeQr + " is incorrect");
+        }
+
+        if (Objects.equals(bookingDetail.getTicketStatus(), "USED")) {
+            throw new AppNotFoundException("Booking with code " + codeQr + " is already used");
+        }
+
+        if (Objects.equals(bookingDetail.getTicketStatus(), "EXPIRED")) {
+            throw new AppNotFoundException("Booking with code " + codeQr + " is expired");
         }
 
 //        checkAndUpdateExpiration(bookingDetail.getBookingId());
