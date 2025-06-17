@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 public class BookingRequestV2 {
     @NotNull(message = "Ticket price cannot be null")
     @Positive(message = "Ticket price must be positive")
-    @Digits(integer = 8, fraction = 2, message = "Ticket price must have at most 8 digits and 2 decimal places")
+    @Digits(integer = 8, fraction = 3, message = "Ticket price must have at most 8 digits and 3 decimal places")
     private BigDecimal ticketPrice;
 
     @NotNull(message = "Slot amount cannot be null")

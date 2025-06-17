@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hrd.finalprojectmuseum.exception.AppBadRequestException;
 import org.hrd.finalprojectmuseum.model.dto.request.RequestTourRequest;
 import org.hrd.finalprojectmuseum.model.dto.request.visitor.BookingRequestV2;
 import org.hrd.finalprojectmuseum.model.dto.response.ApiResponse;
@@ -51,49 +52,60 @@ public class BookingsController {
 
     @Value("${app.base-url:http://localhost:8080}")
     private String baseUrl;
+
     @SecurityRequirement(name = "bearerAuth")
     @PreAuthorize("hasRole('ROLE_VISITOR')")
-    @PostMapping("individual/{museum-id}")
-    public ResponseEntity<ApiResponse<BookingV2>> IndividualBookingByMuseumId(
-            @PathVariable("museum-id") UUID museumId,
-            @RequestParam("ticketType") TicketType ticketType,
-            @RequestBody @Valid BookingRequestV2 bookingRequest) {
+@PostMapping("individual/{museum-id}")
+public ResponseEntity<ApiResponse<BookingV2>> IndividualBookingByMuseumId(
+        @PathVariable("museum-id") UUID museumId,
+        @RequestParam("ticketType") TicketType ticketType,
+        @RequestBody @Valid BookingRequestV2 bookingRequest) {
 
-        try {
-            UUID visitorId = reviewService.getVisitorIdByUserId(appUserService.getUserId());
-            BookingV2 booking = bookingService.bookingIndividualTicket(museumId, visitorId, ticketType, bookingRequest);
-            System.out.println(booking);
-            // Generate QR code
-            byte[] qrCodeBytes = qrCodeService.generateQRCodeFromBookingCode(booking.getQrCode());
-            booking.setQRCodeData(qrCodeBytes, baseUrl);
-            String visitorEmail = appUserService.getUserEmailByUserId(appUserService.getUserId());
-            asyncEmailService.sendBookingConfirmationEmailAsync(booking, visitorEmail, qrCodeBytes)
-                    .exceptionally(throwable -> {
-                        log.error("Email sending failed for booking: {}", booking.getBookingId(), throwable);
-                        return null;
-                    });
+    try {
+        UUID visitorId = reviewService.getVisitorIdByUserId(appUserService.getUserId());
+        BookingV2 booking = bookingService.bookingIndividualTicket(museumId, visitorId, ticketType, bookingRequest);
 
-            ApiResponse<BookingV2> response = ApiResponse.<BookingV2>builder()
-                    .success(true)
-                    .message("Booking successfully created with QR code")
-                    .status(HttpStatus.CREATED)
-                    .payload(booking)
-                    .build();
+        // Generate QR code
+        byte[] qrCodeBytes = qrCodeService.generateQRCodeFromBookingCode(booking.getQrCode());
+        booking.setQRCodeData(qrCodeBytes, baseUrl);
 
-            return new ResponseEntity<>(response, HttpStatus.CREATED);
+        // GET VISITOR EMAIL AND PASS AS PARAMETER
+        String visitorEmail = appUserService.getUserEmailByUserId(appUserService.getUserId());
 
-        } catch (Exception e) {
-            log.error("Failed to create booking: {}", e.getMessage());
+        // Send email asynchronously
+        asyncEmailService.sendBookingConfirmationEmailAsync(booking, visitorEmail, qrCodeBytes)
+                .exceptionally(throwable -> {
+                    log.error("Email sending failed for booking: {}", booking.getBookingId(), throwable);
+                    return null;
+                });
 
-            ApiResponse<BookingV2> response = ApiResponse.<BookingV2>builder()
-                    .success(false)
-                    .message("Failed to create booking: " + e.getMessage())
-                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .build();
+        asyncEmailService.sendBookingConfirmationEmailAsync(booking, visitorEmail, qrCodeBytes)
+                .exceptionally(throwable -> {
+                    log.error("Email sending failed for individual booking: {}", booking.getBookingId(), throwable);
+                    return null;
+                });
 
-            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        ApiResponse<BookingV2> response = ApiResponse.<BookingV2>builder()
+                .success(true)
+                .message("Booking successfully created with QR code")
+                .status(HttpStatus.CREATED)
+                .payload(booking)
+                .build();
+
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
+
+    } catch (Exception e) {
+        log.error("Failed to create booking: {}", e.getMessage());
+
+        ApiResponse<BookingV2> response = ApiResponse.<BookingV2>builder()
+                .success(false)
+                .message("Failed to create booking: " + e.getMessage())
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .build();
+
+        return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+}
 
     @SecurityRequirement(name = "bearerAuth")
     @PreAuthorize("hasRole('ROLE_VISITOR')")
@@ -142,9 +154,18 @@ public class BookingsController {
             UUID visitorId = reviewService.getVisitorIdByUserId(appUserService.getUserId());
             BookingV2 booking = bookingService.getBookingByVisitorIdV2(bookingId, visitorId);
 
-            // Generate QR code (same as in POST endpoint)
-            byte[] qrCodeBytes = qrCodeService.generateQRCodeFromBookingCode(booking.getQrCode());
-            booking.setQRCodeData(qrCodeBytes, baseUrl);
+            // Only generate QR code if it exists and is not null/empty
+            if (booking.getQrCode() != null && !booking.getQrCode().trim().isEmpty()) {
+                try {
+                    byte[] qrCodeBytes = qrCodeService.generateQRCodeFromBookingCode(booking.getQrCode());
+                    booking.setQRCodeData(qrCodeBytes, baseUrl);
+                } catch (Exception qrException) {
+                    // Log the QR generation error but don't fail the entire request
+                    log.warn("Failed to generate QR code for booking {}: {}", bookingId, qrException.getMessage());
+                    // QR code data will remain null, which is fine
+                }
+            }
+            // If QR code doesn't exist (tour pending approval), just return booking without QR data
 
             ApiResponse<BookingV2> response = ApiResponse.<BookingV2>builder()
                     .success(true)
@@ -156,15 +177,8 @@ public class BookingsController {
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
-            log.error("Failed to retrieve booking: {}", e.getMessage());
-
-            ApiResponse<BookingV2> response = ApiResponse.<BookingV2>builder()
-                    .success(false)
-                    .message("Failed to retrieve booking: " + e.getMessage())
-                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .build();
-
-            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+            log.error("Failed to retrieve booking {}: {}", bookingId, e.getMessage());
+            throw new AppBadRequestException("Restrict resource access, booking belong to other");
         }
     }
 
@@ -172,7 +186,8 @@ public class BookingsController {
     @GetMapping("/filter")
     @PreAuthorize("hasRole('ROLE_VISITOR') or hasRole('ROLE_MUSEUM_OWNER')")
     @Operation(summary = "Visitor and Museum Owner can use this for get all booking history",
-            description = "For Date must follow format (YYYY-MM-DD). If any filter dont want to use just leave it empty or search with letter."
+            description = "For Date must follow format (YYYY-MM-DD). If any filter dont want to use just leave it empty or search with letter." +
+                    "Museum Owner can use only search and pagination"
     )
     public ResponseEntity<ApiResponse<ListResponse<BookingV2>>> getALlBookingHistoryAndFilter(
             @RequestParam(value = "search", required = false) String search,
