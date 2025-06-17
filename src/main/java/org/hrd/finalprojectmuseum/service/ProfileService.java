@@ -47,4 +47,6 @@ public interface ProfileService {
     MuseumOwner updateMuseumBannerByMuseumId(UUID museumId, BannerRequest bannerRequest);
 
     MuseumOwner updateMuseumLogoByMuseumId(UUID museumId, LogoRequest logoRequest);
+
+    MuseumOwner updateMuseumLocationByMuseumId(UUID museumId, MuseumLocationRequest museumLocationRequest);
 }

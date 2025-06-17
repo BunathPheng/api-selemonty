@@ -227,4 +227,13 @@ public class ProfileServiceImpl implements ProfileService {
         }
         return museumOwner;
     }
+
+    @Override
+    public MuseumOwner updateMuseumLocationByMuseumId(UUID museumId, MuseumLocationRequest museumLocationRequest) {
+        MuseumOwner museumOwner = profileRepository.modifyMuseumLocationByMuseumId(museumId, museumLocationRequest);
+        if (museumOwner == null) {
+            throw new AppBadRequestException("Update failed");
+        }
+        return museumOwner;
+    }
 }
