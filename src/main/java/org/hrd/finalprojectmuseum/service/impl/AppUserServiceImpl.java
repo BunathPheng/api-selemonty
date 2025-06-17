@@ -219,5 +219,10 @@ public class AppUserServiceImpl implements AppUserService {
         }
         return email;
     }
+
+    @Override
+    public UUID getAdminUserId() {
+        return appUserRepository.findAdminUserId();
+    }
 }
 

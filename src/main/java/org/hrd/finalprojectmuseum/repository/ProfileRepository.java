@@ -13,11 +13,13 @@ import org.hrd.finalprojectmuseum.model.entity.PaymentCredential;
 import org.hrd.finalprojectmuseum.model.entity.admin.Admin;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
 import org.hrd.finalprojectmuseum.model.entity.visitor.Visitor;
+import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Mapper
+@Repository
 public interface ProfileRepository {
 
     @Results(id = "museumMapper", value = {
