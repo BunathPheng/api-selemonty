@@ -11,6 +11,7 @@ import org.hrd.finalprojectmuseum.model.entity.*;
 import org.hrd.finalprojectmuseum.model.entity.visitor.Visitor;
 import org.hrd.finalprojectmuseum.model.enums.Role;
 import org.hrd.finalprojectmuseum.service.AppUserService;
+import org.hrd.finalprojectmuseum.service.ProfileService;
 import org.hrd.finalprojectmuseum.service.VisitorService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +20,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -29,6 +31,7 @@ public class VisitorsController {
 
     private final AppUserService appUserService;
     private final VisitorService visitorService;
+    private final ProfileService profileService;
 
     @Operation(summary = "For museum owner Get all visitor booking their museum. For museum owner only")
     @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
@@ -48,6 +51,22 @@ public class VisitorsController {
         ApiResponse<ListResponse<Visitor>> response = ApiResponse.<ListResponse<Visitor>>builder()
                 .success(true)
                 .message("Visitors fetched successfully")
+                .status(HttpStatus.OK)
+                .payload(visitorListResponse)
+                .build();
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @Operation(summary = "For museum owner Get Top visitor booking their museum. For museum owner only")
+    @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
+    @GetMapping("/museum/top-visitor")
+    public ResponseEntity<ApiResponse<List<Visitor>>> getAllVisitorsOfMuseum(){
+        UUID museumId = profileService.getMuseumIdByUserId();
+        List<Visitor> visitorListResponse = visitorService.getTopVisitorByMuseumId(museumId);
+        ApiResponse<List<Visitor>> response = ApiResponse.<List<Visitor>>builder()
+                .success(true)
+                .message("Top Visitors fetched successfully")
                 .status(HttpStatus.OK)
                 .payload(visitorListResponse)
                 .build();

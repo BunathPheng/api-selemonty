@@ -1,5 +1,7 @@
 package org.hrd.finalprojectmuseum.service;
 
+import jakarta.validation.constraints.NotNull;
+import org.hrd.finalprojectmuseum.model.dto.request.ReplyRequest;
 import org.hrd.finalprojectmuseum.model.dto.request.visitor.VisitorReviewRequest;
 import org.hrd.finalprojectmuseum.model.entity.visitor.VisitorReview;
 import org.hrd.finalprojectmuseum.model.entity.visitor.VisitorReviewStatistics;
@@ -20,4 +22,6 @@ public interface ReviewService {
     void deleteVisitorReviewByMuseumOwner(UUID reviewId, UUID museumId);
 
     VisitorReview getVisitorReviewByVisitorId(UUID museumId, UUID visitorId);
+
+    VisitorReview addAndUpdateReplyReview(UUID museumId, UUID reviewId, ReplyRequest replyRequest);
 }

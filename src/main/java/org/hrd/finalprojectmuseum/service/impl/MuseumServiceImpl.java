@@ -20,6 +20,7 @@ import org.hrd.finalprojectmuseum.repository.*;
 import org.hrd.finalprojectmuseum.service.*;
 import org.hrd.finalprojectmuseum.utils.Calculation;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -38,6 +39,7 @@ public class MuseumServiceImpl implements MuseumService {
     private final AppUserService appUserService;
     private final ProfileRepository profileRepository;
     private final Calculation calculation = new Calculation();
+    private final OneSignalService oneSignalService;
 
     @Override
     public MuseumOwner setFullData(MuseumOwner museumOwner) {
@@ -55,6 +57,7 @@ public class MuseumServiceImpl implements MuseumService {
         return museumOwner;
     }
 
+    @Transactional
     @Override
     public void approveMuseum(UUID museumId) {
         MuseumOwner museum = museumRepository.findMuseumOwnerByMuseumId(museumId);
@@ -67,6 +70,11 @@ public class MuseumServiceImpl implements MuseumService {
         setFullData(museum);
         museumRepository.udpateIsApprovedStatus(museumId);
 
+        oneSignalService.sendToUser(
+                appUserService.getAdminUserId(),
+                "Museum approval",
+                "Congratulation! Your museum have been approved"
+        ).subscribe();
     }
 
     @Override

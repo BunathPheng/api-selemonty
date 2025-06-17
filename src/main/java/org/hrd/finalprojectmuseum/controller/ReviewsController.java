@@ -4,12 +4,15 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
+import org.hrd.finalprojectmuseum.model.dto.request.ReplyRequest;
 import org.hrd.finalprojectmuseum.model.dto.request.visitor.VisitorReviewRequest;
 import org.hrd.finalprojectmuseum.model.dto.response.ApiResponse;
 import org.hrd.finalprojectmuseum.model.dto.response.ListResponse;
 import org.hrd.finalprojectmuseum.model.entity.AppUserRegister;
+import org.hrd.finalprojectmuseum.model.entity.MuseumChart;
 import org.hrd.finalprojectmuseum.model.entity.Pagination;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
 import org.hrd.finalprojectmuseum.model.entity.visitor.VisitorReview;
@@ -37,7 +40,6 @@ public class ReviewsController {
     private final ReviewService reviewService;
     private final AppUserService appUserService;
     private final ProfileService profileService;
-    private final MuseumService museumService;
 
     @SecurityRequirement(name = "bearerAuth")
     @PreAuthorize("hasRole('ROLE_VISITOR')")
@@ -114,7 +116,7 @@ public class ReviewsController {
 
     @SecurityRequirement(name = "bearerAuth")
     @PreAuthorize("hasRole('ROLE_VISITOR') or hasRole('ROLE_MUSEUM_OWNER')")
-    @DeleteMapping("/{review-Id}")
+    @DeleteMapping("/{review-id}")
     @Operation(summary = "Delete visitor review for a museum")
     public ResponseEntity<ApiResponse<VisitorReview>> deleteVisitorReviewById(@PathVariable("review-Id") UUID reviewId) {
         AppUserRegister appUser = appUserService.getAppUserRegister();
@@ -148,6 +150,25 @@ public class ReviewsController {
                 .build();
 
         return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "For museum owner reply to their visitor comment")
+    @SecurityRequirement(name = "bearerAuth")
+    @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
+    @PatchMapping("/{review-id}/reply")
+    public ResponseEntity<ApiResponse<VisitorReview>> addAndUpdateReplyReviewByInternalMuseumId(
+            @PathVariable("review-id") @NotNull(message = "reviewId is required") UUID reviewId,
+            @RequestBody @Valid ReplyRequest replyRequest
+    ){
+        UUID museumId = profileService.getMuseumIdByUserId();
+        VisitorReview visitorReview = reviewService.addAndUpdateReplyReview(museumId, reviewId, replyRequest);
+        ApiResponse<VisitorReview> response = ApiResponse.<VisitorReview>builder()
+                .success(true)
+                .message("Reply review added successfully")
+                .payload(visitorReview)
+                .status(HttpStatus.OK)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @SecurityRequirement(name = "bearerAuth")

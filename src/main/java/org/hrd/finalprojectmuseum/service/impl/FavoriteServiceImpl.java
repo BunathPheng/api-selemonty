@@ -3,7 +3,6 @@ package org.hrd.finalprojectmuseum.service.impl;
 import lombok.RequiredArgsConstructor;
 import org.hrd.finalprojectmuseum.exception.AppBadRequestException;
 import org.hrd.finalprojectmuseum.exception.AppNotFoundException;
-import org.hrd.finalprojectmuseum.model.dto.response.FollowerTrendChartResponse;
 import org.hrd.finalprojectmuseum.model.dto.response.ListResponse;
 import org.hrd.finalprojectmuseum.model.entity.FollowerStat;
 import org.hrd.finalprojectmuseum.model.entity.Pagination;
@@ -11,18 +10,17 @@ import org.hrd.finalprojectmuseum.model.entity.museum_owner.FavoriteMuseum;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
 import org.hrd.finalprojectmuseum.model.entity.visitor.VisitorFavorite;
 import org.hrd.finalprojectmuseum.model.enums.FavoriteType;
-import org.hrd.finalprojectmuseum.model.enums.YearFilter;
 import org.hrd.finalprojectmuseum.repository.BookingRepository;
 import org.hrd.finalprojectmuseum.repository.FavoriteRepository;
 import org.hrd.finalprojectmuseum.repository.ProfileRepository;
 import org.hrd.finalprojectmuseum.repository.ReviewRepository;
 import org.hrd.finalprojectmuseum.service.AppUserService;
 import org.hrd.finalprojectmuseum.service.FavoriteService;
-import org.hrd.finalprojectmuseum.service.ProfileService;
 import org.hrd.finalprojectmuseum.utils.Calculation;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -88,20 +86,25 @@ public class FavoriteServiceImpl implements FavoriteService {
         UUID userId = appUserService.getUserId();
         MuseumOwner museumOwner = profileRepository.findMuseumOwnerByUserId(userId);
 
-        LocalDate today = LocalDate.now();
-        LocalDate currentMonthStart = today.withDayOfMonth(1);
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime todayEnd = now.toLocalDate().atTime(23, 59, 59);
+
+        LocalDate currentMonthStart = now.toLocalDate().withDayOfMonth(1);
+        LocalDateTime currentMonthStartTime = currentMonthStart.atStartOfDay();
 
         LocalDate lastMonthStart = currentMonthStart.minusMonths(1);
-        LocalDate lastMonthEnd = today.withDayOfMonth(1).minusDays(1);
+        LocalDateTime lastMonthStartTime = lastMonthStart.atStartOfDay();
+        LocalDate lastMonthEnd = currentMonthStart.minusDays(1);
+        LocalDateTime lastMonthEndTime = lastMonthEnd.atTime(23, 59, 59);
 
-        Integer totalFollower = favoriteRepository.countFollowerByMuseumIdAndEndDate(museumOwner.getMuseumId(), today);
-        Integer totalLastMonthFollower = favoriteRepository.countFollowerByMuseumIdAndEndDate(museumOwner.getMuseumId(), lastMonthEnd);
+        Integer totalFollower = favoriteRepository.countFollowerByMuseumIdAndEndDate(museumOwner.getMuseumId(), todayEnd);
+        Integer totalLastMonthFollower = favoriteRepository.countFollowerByMuseumIdAndEndDate(museumOwner.getMuseumId(), lastMonthEndTime);
 
-        Integer newFollower = favoriteRepository.countFollowerByMuseumIdAndDateRange(museumOwner.getMuseumId(), currentMonthStart, today);
-        Integer lastMonthNewFollower = favoriteRepository.countFollowerByMuseumIdAndDateRange(museumOwner.getMuseumId(), lastMonthStart, lastMonthEnd);
+        Integer newFollower = favoriteRepository.countFollowerByMuseumIdAndDateRange(museumOwner.getMuseumId(), currentMonthStartTime, todayEnd);
+        Integer lastMonthNewFollower = favoriteRepository.countFollowerByMuseumIdAndDateRange(museumOwner.getMuseumId(), lastMonthStartTime, lastMonthEndTime);
 
-        Integer newBooking = bookingRepository.countNewBookingByMuseumId(museumOwner.getMuseumId(), currentMonthStart, today);
-        Integer lastMonthNewBooking = bookingRepository.countNewBookingByMuseumId(museumOwner.getMuseumId(), lastMonthStart, lastMonthEnd);
+        Integer newBooking = bookingRepository.countNewBookingByMuseumId(museumOwner.getMuseumId(), currentMonthStartTime, todayEnd);
+        Integer lastMonthNewBooking = bookingRepository.countNewBookingByMuseumId(museumOwner.getMuseumId(), lastMonthStartTime, lastMonthEndTime);
         return FollowerStat.builder()
                 .totalFollowers(calculation.addStatItem(totalFollower, totalLastMonthFollower))
                 .newFollowers(calculation.addStatItem(newFollower, lastMonthNewFollower))
