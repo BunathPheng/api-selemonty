@@ -1,42 +1,59 @@
 package org.hrd.finalprojectmuseum.controller;
 
+import com.google.api.client.util.Value;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hrd.finalprojectmuseum.model.dto.request.AcceptTourRequest;
 import org.hrd.finalprojectmuseum.model.dto.response.ApiResponse;
 import org.hrd.finalprojectmuseum.model.dto.response.ListResponse;
 import org.hrd.finalprojectmuseum.model.entity.AppUserRegister;
+import org.hrd.finalprojectmuseum.model.entity.Guide;
 import org.hrd.finalprojectmuseum.model.entity.Tour;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
+import org.hrd.finalprojectmuseum.model.entity.visitor.BookingV2;
 import org.hrd.finalprojectmuseum.model.entity.visitor.Visitor;
 import org.hrd.finalprojectmuseum.model.enums.Role;
 import org.hrd.finalprojectmuseum.model.enums.TourStatus;
+import org.hrd.finalprojectmuseum.repository.GuideRepository;
 import org.hrd.finalprojectmuseum.repository.TourRepository;
 import org.hrd.finalprojectmuseum.service.AppUserService;
+import org.hrd.finalprojectmuseum.service.GuideService;
 import org.hrd.finalprojectmuseum.service.ProfileService;
 import org.hrd.finalprojectmuseum.service.TourService;
+import org.hrd.finalprojectmuseum.service.impl.AsyncEmailService;
+import org.hrd.finalprojectmuseum.service.impl.QRCodeService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
 @RequestMapping("api/v1/tours")
 @RequiredArgsConstructor
 @SecurityRequirement(name = "bearerAuth")
+@Slf4j
 public class ToursController {
 
     private final ProfileService profileService;
     private final TourService tourService;
     private final AppUserService appUserService;
+    private final QRCodeService qrCodeService;
+    private final AsyncEmailService asyncEmailService;
+    private final GuideService guideService;
+
+    @Value("${app.base-url:http://localhost:8080}")
+    private String baseUrl;
 
     @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER') or hasRole('ROLE_VISITOR')")
     @Operation(summary = "Use for get all tour. For museum owner and visitor")
@@ -138,13 +155,43 @@ public class ToursController {
     @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER') or hasRole('ROLE_VISITOR')")
     @Operation(summary = "Use to update tour status to paid after visitor paid.")
     @PatchMapping("/{tour-id}")
+    @Transactional
     public ResponseEntity<ApiResponse<Void>> updateTourStatus(@PathVariable("tour-id") @NotNull(message = "TourID can't be null") UUID tourId) {
-        tourService.updateTourStatus(tourId);
-        ApiResponse<Void> response = ApiResponse.<Void>builder()
-                .success(true)
-                .message("Tour status has been update to PAID successfully!")
-                .status(HttpStatus.OK)
-                .build();
-        return ResponseEntity.status(HttpStatus.OK).body(response);
+
+        try{
+            BookingV2 tourRequest = tourService.updateTourStatus(tourId);
+            System.out.println("tour request " + tourRequest.toString() + "\n");
+
+            // Generate QR code
+            byte[] qrCodeBytes = qrCodeService.generateQRCodeFromBookingCode(tourRequest.getQrCode());
+            tourRequest.setQRCodeData(qrCodeBytes, baseUrl);
+
+            String visitorEmail = tourService.getVisitorEmailByBookingId(tourRequest.getBookingId());
+            List<Guide> guides = guideService.getGuidesByTourId(tourId);
+
+            asyncEmailService.sendBookingConfirmationEmailAsync(tourRequest, visitorEmail, qrCodeBytes)
+                    .exceptionally(throwable -> {
+                        log.error("Email sending failed for booking: {}", tourRequest.getBookingId(), throwable);
+                        return null;
+                    });
+
+            ApiResponse<Void> response = ApiResponse.<Void>builder()
+                    .success(true)
+                    .message("Tour status has been update to PAID successfully!")
+                    .status(HttpStatus.OK)
+                    .build();
+            return ResponseEntity.status(HttpStatus.OK).body(response);
+
+        }catch (Exception e){
+            log.error("Failed to create booking: {}", e.getMessage());
+
+            ApiResponse<Void> response = ApiResponse.<Void>builder()
+                    .success(false)
+                    .message("Failed to create booking: " + e.getMessage())
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .build();
+
+            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }

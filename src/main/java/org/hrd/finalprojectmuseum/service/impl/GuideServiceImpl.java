@@ -57,4 +57,9 @@ public class GuideServiceImpl implements GuideService {
         return guideRepository.modifyGuideByGuideId(museumId, guideId, guideRequest, LocalDateTime.now());
     }
 
+    @Override
+    public List<Guide> getGuidesByTourId(UUID tourId) {
+        return guideRepository.getGuidesByTourId(tourId);
+    }
+
 }

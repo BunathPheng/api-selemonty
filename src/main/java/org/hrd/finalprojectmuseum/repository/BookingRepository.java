@@ -13,6 +13,7 @@ import org.hrd.finalprojectmuseum.model.entity.visitor.MuseumSchedule;
 import org.hrd.finalprojectmuseum.model.enums.BookingType;
 import org.hrd.finalprojectmuseum.model.enums.TicketType;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -109,15 +110,17 @@ public interface BookingRepository {
     """)
     UUID insertBookingForTourRequest(UUID museumId, UUID visitorId, @Param("booking") RequestTourRequest requestTourRequest);
 
-    @Update("""
-        UPDATE bookings SET qr_code = #{code} WHERE booking_id = #{bookingId}::UUID
+    @Select("""
+        UPDATE bookings SET qr_code = #{code}, expired_date = #{expiredDate}, total_price = #{tourPrice}
+        WHERE booking_id = #{bookingId}::UUID
+        RETURNING visitor_id
     """)
-    void setTicketCode(UUID bookingId, String code);
+    UUID setTicketCode(UUID bookingId, String code, BigDecimal tourPrice, LocalDateTime expiredDate);
 
     @Select("""
         SELECT bk.booking_id, mo.name, bk.booking_type, vt.full_name, bk.ticket_type, bk.booking_date, bk.ticket_type,
                       bk.ticket_price, bk.created_at, bk.slot_amount, bk.ticket_status, bk.qr_code, bk.total_price,
-                      bk.expired_date, bk.created_at, ui.email
+                      bk.expired_date, bk.created_at, ui.email, mo.contact_number
         FROM bookings bk
         INNER JOIN museum_owners mo ON mo.museum_id = bk.museum_id
         INNer JOIN visitors vt ON bk.visitor_id = vt.visitor_id
@@ -138,7 +141,7 @@ public interface BookingRepository {
 
     // Repository methods for finding bookings
     @Select("""
-        SELECT bk.booking_id, mo.name, mo.logo_link, bk.booking_type, bk.total_price, bk.ticket_status, mo.description
+        SELECT bk.booking_id, mo.name, mo.banner_link, bk.booking_type, bk.total_price, bk.ticket_status, mo.description
         FROM bookings bk
         INNER JOIN museum_owners mo ON mo.museum_id = bk.museum_id
         WHERE bk.visitor_id = #{visitorId}::UUID
@@ -155,7 +158,7 @@ public interface BookingRepository {
     );
 
     @Select("""
-        SELECT bk.booking_id, mo.name, mo.logo_link, bk.booking_type, bk.ticket_price, bk.ticket_status, mo.description
+        SELECT bk.booking_id, mo.name, mo.banner_link, bk.booking_type, bk.ticket_price, bk.ticket_status, mo.description
         FROM bookings bk
         INNER JOIN museum_owners mo ON mo.museum_id = bk.museum_id
         WHERE bk.visitor_id = #{visitorId}::UUID
@@ -174,7 +177,7 @@ public interface BookingRepository {
     );
 
     @Select("""
-    SELECT bk.booking_id, mo.name, mo.logo_link, bk.booking_type, bk.ticket_price, bk.ticket_status, mo.description
+    SELECT bk.booking_id, mo.name, mo.banner_link, bk.booking_type, bk.ticket_price, bk.ticket_status, mo.description
     FROM bookings bk
     INNER JOIN museum_owners mo ON mo.museum_id = bk.museum_id
     WHERE bk.visitor_id = #{visitorId}::UUID
@@ -194,7 +197,7 @@ public interface BookingRepository {
     );
 
     @Select("""
-    SELECT bk.booking_id, mo.name, mo.logo_link, bk.booking_type, bk.ticket_price, bk.ticket_status, mo.description
+    SELECT bk.booking_id, mo.name, mo.banner_link, bk.booking_type, bk.ticket_price, bk.ticket_status, mo.description
     FROM bookings bk
     INNER JOIN museum_owners mo ON mo.museum_id = bk.museum_id
     WHERE bk.visitor_id = #{visitorId}::UUID
@@ -363,6 +366,7 @@ public interface BookingRepository {
             @Result(property = "museumId", column = "museum_id"),
             @Result(property = "museumName", column = "name"),
             @Result(property = "museumDescription", column = "description"),
+            @Result(property = "museumContactNumber", column = "contact_number"),
             @Result(property = "visitorId", column = "visitor_id"),
             @Result(property = "visitorName", column = "full_name"),
             @Result(property = "bookingType", column = "booking_type"),
@@ -376,7 +380,7 @@ public interface BookingRepository {
             @Result(property = "ticketStatus", column = "ticket_status"),
             @Result(property = "tourStatus", column = "status"),
             @Result(property = "expiredDate", column = "expired_date"),
-            @Result(property = "museumLogo", column = "logo_link"),
+            @Result(property = "museumBanner", column = "banner_link"),
             @Result(property = "museumEmail", column = "email"),
     })
     BookingV2 insertBookingIndividual(

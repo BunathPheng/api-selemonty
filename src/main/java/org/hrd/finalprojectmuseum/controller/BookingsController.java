@@ -50,6 +50,7 @@ public class BookingsController {
 
     @Value("${app.base-url:http://localhost:8080}")
     private String baseUrl;
+
     @SecurityRequirement(name = "bearerAuth")
     @PreAuthorize("hasRole('ROLE_VISITOR')")
 @PostMapping("individual/{museum-id}")
@@ -61,19 +62,24 @@ public ResponseEntity<ApiResponse<BookingV2>> IndividualBookingByMuseumId(
     try {
         UUID visitorId = reviewService.getVisitorIdByUserId(appUserService.getUserId());
         BookingV2 booking = bookingService.bookingIndividualTicket(museumId, visitorId, ticketType, bookingRequest);
-        System.out.println(booking);
 
         // Generate QR code
         byte[] qrCodeBytes = qrCodeService.generateQRCodeFromBookingCode(booking.getQrCode());
         booking.setQRCodeData(qrCodeBytes, baseUrl);
 
-        // ✅ GET VISITOR EMAIL AND PASS AS PARAMETER
+        // GET VISITOR EMAIL AND PASS AS PARAMETER
         String visitorEmail = appUserService.getUserEmailByUserId(appUserService.getUserId());
 
         // Send email asynchronously
         asyncEmailService.sendBookingConfirmationEmailAsync(booking, visitorEmail, qrCodeBytes)
                 .exceptionally(throwable -> {
                     log.error("Email sending failed for booking: {}", booking.getBookingId(), throwable);
+                    return null;
+                });
+
+        asyncEmailService.sendBookingConfirmationEmailAsync(booking, visitorEmail, qrCodeBytes)
+                .exceptionally(throwable -> {
+                    log.error("Email sending failed for individual booking: {}", booking.getBookingId(), throwable);
                     return null;
                 });
 
@@ -178,7 +184,8 @@ public ResponseEntity<ApiResponse<BookingV2>> IndividualBookingByMuseumId(
     @GetMapping("/filter")
     @PreAuthorize("hasRole('ROLE_VISITOR') or hasRole('ROLE_MUSEUM_OWNER')")
     @Operation(summary = "Visitor and Museum Owner can use this for get all booking history",
-            description = "For Date must follow format (YYYY-MM-DD). If any filter dont want to use just leave it empty or search with letter."
+            description = "For Date must follow format (YYYY-MM-DD). If any filter dont want to use just leave it empty or search with letter." +
+                    "Museum Owner can use only search and pagination"
     )
     public ResponseEntity<ApiResponse<ListResponse<BookingV2>>> getALlBookingHistoryAndFilter(
             @RequestParam(value = "search", required = false) String search,

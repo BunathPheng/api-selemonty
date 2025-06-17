@@ -2,15 +2,27 @@ package org.hrd.finalprojectmuseum.service.impl;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.math.BigDecimal;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.text.NumberFormat;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hrd.finalprojectmuseum.model.entity.EmailDetails;
+import org.hrd.finalprojectmuseum.model.entity.Guide;
 import org.hrd.finalprojectmuseum.model.entity.visitor.BookingV2;
 import org.hrd.finalprojectmuseum.service.EmailService;
+import org.hrd.finalprojectmuseum.service.GuideService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
@@ -20,12 +32,15 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
 
 // Annotation
 @Service
 // Class
 // Implementing EmailService interface
 @RequiredArgsConstructor
+@Slf4j
 public class EmailServiceImpl implements EmailService {
 
     private final JavaMailSender javaMailSender;
@@ -33,6 +48,9 @@ public class EmailServiceImpl implements EmailService {
     @Value("${spring.mail.username}") private String sender;
     @Value("${app.name:Museum Booking System}")
     private String appName;
+
+    @Autowired
+    private TemplateEngine templateEngine;
 
     // Method 1
     // To send a simple email
@@ -202,6 +220,8 @@ public class EmailServiceImpl implements EmailService {
                 .replace("{{qrCode}}", safeString(booking.getQrCode()))
                 .replace("{{qrFileName}}", qrFileName)
                 .replace("{{museumName}}", safeString(booking.getMuseumName()))
+                .replace("{{museumEmail}}", safeString(booking.getMuseumEmail()))
+                .replace("{{museumContactNumber}}", safeString(booking.getMuseumContactNumber()))
                 .replace("{{bookingType}}", safeString(booking.getBookingType()))
                 .replace("{{ticketType}}", safeString(booking.getTicketType()))
                 .replace("{{slotAmount}}", safeString(booking.getSlotAmount()))
@@ -212,6 +232,7 @@ public class EmailServiceImpl implements EmailService {
                 .replace("{{purchasedDate}}", formatDate(booking.getPurchasedDate()))
                 .replace("{{ticketPrice}}", formatPrice(booking.getTicketPrice()));
     }
+
 
     private String safeString(Object obj) {
         return obj != null ? obj.toString() : "N/A";
@@ -251,4 +272,19 @@ public class EmailServiceImpl implements EmailService {
 
         return body.toString();
     }
+
+    private String buildFallbackPlainTextEmail(BookingV2 booking) {
+        StringBuilder body = new StringBuilder();
+        body.append("BOOKING CONFIRMATION\n\n");
+        body.append("Dear ").append(safeString(booking.getVisitorName())).append(",\n\n");
+        body.append("Your booking has been confirmed.\n\n");
+        body.append("Booking ID: ").append(safeString(booking.getBookingId())).append("\n");
+        body.append("Confirmation Code: ").append(safeString(booking.getQrCode())).append("\n");
+        body.append("Museum: ").append(safeString(booking.getMuseumName())).append("\n\n");
+        body.append("Please contact us if you need assistance.\n\n");
+        body.append("Best regards,\n");
+        body.append("The ").append(safeString(appName)).append(" Team");
+        return body.toString();
+    }
+
 }

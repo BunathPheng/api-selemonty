@@ -2,6 +2,7 @@ package org.hrd.finalprojectmuseum.repository;
 
 import jakarta.validation.constraints.NotNull;
 import org.apache.ibatis.annotations.*;
+import org.hrd.finalprojectmuseum.model.entity.Guide;
 import org.hrd.finalprojectmuseum.model.entity.Tour;
 import org.hrd.finalprojectmuseum.model.entity.TourGuide;
 
@@ -74,10 +75,26 @@ public interface TourRepository {
     """)
     Tour findTourByTourId(UUID tourId);
 
+    @Select("""
+        SELECT tb.*, bk.booking_date
+        FROM bookings bk
+        INNER JOIN tours tb ON bk.booking_id = tb.booking_id
+        WHERE tb.tour_id = #{tourId}::UUID
+    """)
+    @ResultMap("tourMapper")
+    Tour getTourById(UUID tourId);
+
     @Insert("""
         INSERT INTO tour_guides(tour_id, guide_id) VALUES (#{tourId}::UUID, #{guideId}::UUID)
     """)
     void setTourGuys(UUID tourId, UUID guideId);
+
+    @Update("""
+        UPDATE guides
+        SET is_available = false
+        WHERE guide_id = #{guideId}::UUID
+    """)
+    void setTourStatus(UUID guidId);
 
     @ResultMap("tourMapper")
     @Select("""
@@ -175,8 +192,10 @@ public interface TourRepository {
     """)
     Integer countAllTourWithStatusByVisitorId(UUID visitorId, String search, String status);
 
-    @Update("""
-        UPDATE tours SET status = #{status}, updated_at = #{updatedAt} WHERE tour_id = #{tourId}::UUID RETURNING booking_id;
+    @Select("""
+        UPDATE tours SET status = #{status}, updated_at = #{updatedAt}
+        WHERE tour_id = #{tourId}::UUID 
+        RETURNING booking_id;
     """)
     UUID modifyTourStatus(UUID tourId, String status, LocalDateTime updatedAt);
 
@@ -191,4 +210,14 @@ public interface TourRepository {
         WHERE t.tour_id = #{tourId}::UUID
     """)
     Integer getRequestSlot(UUID tourId);
+
+    @Select("""
+        SELECT ui.email FROM
+            bookings bk
+            INNER JOIN visitors vt ON bk.visitor_id = vt.visitor_id
+            INNER JOIN user_info ui ON vt.user_id = ui.user_id
+            WHERE booking_id = #{bookingId}::UUID
+    """)
+    String findVisitorEmailByBookingId(UUID bookingId);
+
 }

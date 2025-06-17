@@ -78,4 +78,21 @@ public interface GuideRepository {
         AND is_available = #{isAvailable}
     """)
     Integer countAllGuideWithType(UUID museumId, String search, Boolean isAvailable);
+
+    @Select("""
+    SELECT guide_id, is_available 
+    FROM guides 
+    WHERE museum_id = #{museumId}::UUID
+    """)
+    @ResultMap("guideMapper")
+    List<Guide> getGuideStatus(UUID museumId);
+
+    @Select("""
+        SELECT gd.*
+            FROM guides gd
+            INNER JOIN tour_guides tg ON gd.guide_id = tg.guide_id
+        WHERE tg.tour_id = #{tourId}::UUID
+    """)
+    @ResultMap("guideMapper")
+    List<Guide> getGuidesByTourId(UUID tourId);
 }

@@ -46,6 +46,8 @@ public class BookingServiceImpl implements BookingService {
     @Transactional
     public BookingV2 bookingIndividualTicket(UUID museumId, UUID visitorId, TicketType ticketType, BookingRequestV2 bookingRequest) {
         IndividualBookingInfo individualBookingInfo = bookingRepository.BooingIndividualInfo(museumId);
+        System.out.println(individualBookingInfo);
+
         if (individualBookingInfo == null) {
             throw new AppNotFoundException("Booking failed. This museum is not approved by admin");
         }
@@ -68,7 +70,8 @@ public class BookingServiceImpl implements BookingService {
                 throw new AppBadRequestException("Local Ticket price is wrong. Right LocalTicket price is: "+ individualBookingInfo.getLocalPrice());
             }
         }
-        if (individualBookingInfo.getMuseumSchedule() == null) {
+
+        if (individualBookingInfo.getMuseumSchedule().isEmpty()) {
             throw new AppNotFoundException("Booking failed. Museum doesn't have schedule");
         }
 
@@ -97,6 +100,7 @@ public class BookingServiceImpl implements BookingService {
             throw new AppBadRequestException("Booking failed! Please try again");
         }
         return bookingRepository.retrieveBookingDetailByVisitorId(booking.getBookingId(), visitorId);
+//        return null;
     }
 
     @Override
@@ -234,7 +238,7 @@ public class BookingServiceImpl implements BookingService {
         if(!individualBookingInfo.getMuseumId().equals(museumId)) {
             throw new AppNotFoundException("Museum with id " + museumId + " not exists");
         }
-        if (individualBookingInfo.getMuseumSchedule() == null) {
+        if (individualBookingInfo.getMuseumSchedule().isEmpty()) {
             throw new AppNotFoundException("Booking failed. Museum doesn't have schedule");
         }
 

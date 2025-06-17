@@ -7,6 +7,7 @@ import org.hrd.finalprojectmuseum.model.dto.response.ListResponse;
 import org.hrd.finalprojectmuseum.model.entity.Guide;
 import org.hrd.finalprojectmuseum.model.enums.GuideStatusType;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface GuideService {
@@ -15,4 +16,6 @@ public interface GuideService {
     Guide addNewGuideByMuseumId(UUID museumId, @Valid GuideRequest guideRequest);
 
     Guide updateGuideByGuideId(UUID museumId, @NotNull UUID guideId, @Valid GuideRequest guideRequest);
+
+    List<Guide> getGuidesByTourId(UUID tourId);
 }
