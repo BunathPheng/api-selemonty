@@ -59,7 +59,7 @@ public class ArtifactsController {
     @Operation(summary = "Update museum artifact by artifact Id")
     public ResponseEntity<ApiResponse<MuseumArtifact>> updateMuseumArtifactByArtifactId(
             @PathVariable("artifact-id") UUID artifactId,
-            MuseumArtifactRequest museumArtifactRequest) {
+            @RequestBody @Valid MuseumArtifactRequest museumArtifactRequest) {
 
         UUID museumId = profileService.getMuseumIdByUserId();
         artifactService.updateMuseumArtifactByArtifactId(artifactId, museumArtifactRequest, museumId);
