@@ -32,7 +32,7 @@ public interface ZoneRepository {
     """)
     UUID retrieveMuseumIDbyUserID(UUID userId);
 
-    @Insert("""
+    @Select("""
         INSERT INTO museum_zones(museum_id, zone_category_id, name, description, picture_link, video_link, updated_at)
         VALUES (#{museumId}::UUID, #{museum.categoryId}::UUID, #{museum.name}, #{museum.description}, #{museum.pictureLink},
                 #{museum.videoLink}, #{updatedAt})
