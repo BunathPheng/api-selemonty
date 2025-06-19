@@ -67,13 +67,14 @@ public class ReviewsController {
     @Operation(summary = "Get all reviews of a museum")
     public ResponseEntity<ApiResponse<ListResponse<VisitorReview>>> getVisitorReview(
             @PathVariable("museum-id") UUID museumId,
+            @RequestParam(value = "search", required = false) String search,
             @RequestParam(defaultValue = "1") @Positive @Min(value = 1, message = "must greater than 0") Integer page,
             @RequestParam(defaultValue = "3") @Positive @Min(value = 1, message = "must greater than 0") Integer size,
             @RequestParam("reviewType") ReviewType reviewType){
 
-        List<VisitorReview> reviews = reviewService.getAllVisitorReviews(museumId, page, size, reviewType);
+        List<VisitorReview> reviews = reviewService.getAllVisitorReviews(museumId, search, page, size, reviewType);
 
-        Integer totalReviews = reviewService.getAllVisitorReviews(museumId);
+        Integer totalReviews = reviewService.getAllVisitorReviews(museumId, search);
 
         Pagination pagination = new Pagination();
         pagination = pagination.calculatePagination(totalReviews, page, size);

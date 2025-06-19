@@ -28,6 +28,33 @@ public interface ChartRepository {
     })
     List<Map<String, Object>> getMonthlyFollowerStats(UUID museumId, int targetYear);
 
+    @Select("""
+        WITH monthly_visitors AS (
+            SELECT 
+                EXTRACT(MONTH FROM booking_date) AS month,
+                COUNT(DISTINCT visitor_id) AS visitor_count
+            FROM bookings
+            WHERE museum_id = #{museumId}::UUID
+                AND EXTRACT(YEAR FROM booking_date) = #{targetYear}
+                AND ticket_status = 'VALID'
+            GROUP BY EXTRACT(MONTH FROM booking_date)
+        ),
+        all_months AS (
+            SELECT generate_series(1, 12) AS month
+        )
+        SELECT 
+            all_months.month AS month, -- Raw integer month for mapping
+            COALESCE(monthly_visitors.visitor_count, 0)::INTEGER AS visitors
+        FROM all_months
+        LEFT JOIN monthly_visitors ON all_months.month = monthly_visitors.month
+        ORDER BY all_months.month
+    """)
+    @Results(id = "visitorChartMapper", value = {
+            @Result(property = "month", column = "month"),
+            @Result(property = "visitors", column = "visitors")
+    })
+    List<Map<String, Object>> getMonthlyVisitorStatsByMuseum(UUID museumId, int targetYear);
+
     @Select(""" 
         SELECT EXTRACT(MONTH FROM b.created_at) as month,
                b.booking_type,
