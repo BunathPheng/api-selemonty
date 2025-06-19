@@ -81,6 +81,7 @@ public interface VisitorRepository {
         LEFT JOIN tours t ON t.booking_id = b.booking_id
         WHERE ((t.booking_id IS NULL) OR (t.booking_id IS NOT NULL AND t.status = 'PAID'))
         AND (#{search} IS NULL OR v.full_name ILIKE CONCAT('%', #{search}, '%'))
+        AND u.is_verified = true
         GROUP BY v.full_name, u.email
         ORDER BY total_ticket DESC
         OFFSET (#{page}-1) * #{size} LIMIT #{size}
@@ -95,6 +96,7 @@ public interface VisitorRepository {
         INNER JOIN user_info u ON v.user_id = u.user_id
         LEFT JOIN tours t ON t.booking_id = b.booking_id
         WHERE (t.booking_id IS NULL) OR (t.booking_id IS NOT NULL AND t.status = 'PAID')
+        AND u.is_verified = true
         AND v.full_name ILIKE CONCAT('%', #{search}, '%') OR u.email ILIKE CONCAT('%', #{search}, '%')
     """)
     Integer countVisitorBooking(String search);

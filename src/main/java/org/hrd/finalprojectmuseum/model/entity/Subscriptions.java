@@ -13,6 +13,4 @@ public class Subscriptions {
     private String subscriptionCode;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    private AppUserRegister user;
-    private List<NotificationMessage> notificationMessages;
 }

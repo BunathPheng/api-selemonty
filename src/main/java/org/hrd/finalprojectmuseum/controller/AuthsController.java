@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hrd.finalprojectmuseum.exception.AppBadRequestException;
 import org.hrd.finalprojectmuseum.jwt.JwtUtils;
+import org.hrd.finalprojectmuseum.model.dto.request.SubscriptionRequest;
 import org.hrd.finalprojectmuseum.model.dto.request.auth.ChangePasswordRequest;
 import org.hrd.finalprojectmuseum.model.dto.request.auth.*;
 import org.hrd.finalprojectmuseum.model.dto.response.ApiResponse;
@@ -17,6 +18,7 @@ import org.hrd.finalprojectmuseum.model.dto.response.OtpExpiration;
 import org.hrd.finalprojectmuseum.model.entity.AppUserRegister;
 import org.hrd.finalprojectmuseum.model.entity.LoginToken;
 import org.hrd.finalprojectmuseum.model.entity.Otps;
+import org.hrd.finalprojectmuseum.model.entity.Subscriptions;
 import org.hrd.finalprojectmuseum.model.entity.admin.Admin;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
 import org.hrd.finalprojectmuseum.model.entity.visitor.Visitor;
@@ -303,6 +305,20 @@ public class AuthsController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    @SecurityRequirement(name = "bearerAuth")
+    @PostMapping("/subscribe-notification")
+    public ResponseEntity<ApiResponse<Subscriptions>> addUserToSubscription(
+        @RequestBody @Valid SubscriptionRequest subscriptionRequest
+    ){
+        Subscriptions subscriptions = oneSignalService.subscribeUser(appUserService.getUserId(), subscriptionRequest.getSubscriptionCode());
+        ApiResponse<Subscriptions> response = ApiResponse.<Subscriptions>builder()
+                .success(true)
+                .message("Successfully subscribed")
+                .status(HttpStatus.CREATED)
+                .payload(subscriptions)
+                .build();
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
 
 }
 

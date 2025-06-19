@@ -1,5 +1,6 @@
 package org.hrd.finalprojectmuseum.service.impl;
 
+import lombok.RequiredArgsConstructor;
 import org.hrd.finalprojectmuseum.config.OneSignalConfig;
 import org.hrd.finalprojectmuseum.model.dto.request.NotificationRequest;
 import org.hrd.finalprojectmuseum.model.entity.AppUserRegister;
@@ -7,12 +8,10 @@ import org.hrd.finalprojectmuseum.model.entity.NotificationMessage;
 import org.hrd.finalprojectmuseum.model.entity.Subscriptions;
 import org.hrd.finalprojectmuseum.repository.AppUserRepository;
 import org.hrd.finalprojectmuseum.repository.NotificationMessageRepository;
-import org.hrd.finalprojectmuseum.repository.ProfileRepository;
 import org.hrd.finalprojectmuseum.repository.SubscriptionRepository;
 import org.hrd.finalprojectmuseum.service.OneSignalService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -25,31 +24,21 @@ import java.util.*;
 
 @Service
 @Transactional
+@RequiredArgsConstructor // This will inject all final fields
 public class OneSignalServiceImpl implements OneSignalService {
 
     private static final Logger logger = LoggerFactory.getLogger(OneSignalServiceImpl.class);
-    @Autowired
-    private AppUserRepository appUserRepository;
 
-    @Autowired
-    private ProfileRepository profileRepository;
+    // All dependencies will be injected by @RequiredArgsConstructor
+    private final AppUserRepository appUserRepository;
+    private final SubscriptionRepository subscriptionRepository;
+    private final NotificationMessageRepository notificationMessageRepository;
+    private final OneSignalConfig oneSignalConfig;
+    private final WebClient webClient; // This will be injected from your WebConfig
 
-    @Autowired
-    private SubscriptionRepository subscriptionRepository;
+    // Remove the manual constructor - @RequiredArgsConstructor handles it
 
-    @Autowired
-    private OneSignalConfig oneSignalConfig;
-
-    private final WebClient webClient;
-    @Autowired
-    private NotificationMessageRepository notificationMessageRepository;
-
-    public OneSignalServiceImpl() {
-        this.webClient = WebClient.builder()
-                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .build();
-    }
-
+    @Override
     public Subscriptions subscribeUser(UUID userId, String oneSignalPlayerId) {
         AppUserRegister user = appUserRepository.getUserById(userId);
         if (user == null) {
@@ -59,19 +48,23 @@ public class OneSignalServiceImpl implements OneSignalService {
         // Check if subscription already exists
         Subscriptions existingSubscription = subscriptionRepository.findBySubscriptionCode(oneSignalPlayerId);
         if (existingSubscription != null) {
-            return existingSubscription;
+            if (existingSubscription.getUserId().equals(userId)) {
+                logger.info("User {} already subscribed with this device", userId);
+                return existingSubscription;
+            } else {
+                // Different user with same device - update to new user
+                existingSubscription.setUserId(userId);
+                existingSubscription.setUpdatedAt(LocalDateTime.now());
+                subscriptionRepository.update(existingSubscription);
+                logger.info("Updated subscription {} to new user {}", oneSignalPlayerId, userId);
+                return existingSubscription;
+            }
         }
 
-        Subscriptions subscription = new Subscriptions();
-        subscription.setSubscriptionCode(oneSignalPlayerId);
-        subscription.setUserId(userId);
-        subscriptionRepository.insert(subscription);
-        return subscription;
+        return subscriptionRepository.insert(userId, oneSignalPlayerId);
     }
 
-    /**
-     * Send notification to all subscribed users
-     */
+    @Override
     public Mono<String> sendToAllUsers(String title, String message) {
         List<String> allPlayerIds = subscriptionRepository.findAllSubscriptionCodes();
 
@@ -95,6 +88,7 @@ public class OneSignalServiceImpl implements OneSignalService {
                 .doOnSuccess(response -> saveNotificationToDatabase(title, message, allPlayerIds));
     }
 
+    @Override
     public Mono<String> sendToUser(UUID userId, String title, String message) {
         List<String> playerIds = subscriptionRepository.findSubscriptionCodesByUserId(userId);
 
@@ -118,9 +112,7 @@ public class OneSignalServiceImpl implements OneSignalService {
                 .doOnSuccess(response -> saveNotificationToDatabase(title, message, playerIds));
     }
 
-    /**
-     * Send notification to multiple users
-     */
+    @Override
     public Mono<String> sendToUsers(List<UUID> userIds, String title, String message) {
         List<String> playerIds = new ArrayList<>();
 
@@ -148,9 +140,7 @@ public class OneSignalServiceImpl implements OneSignalService {
                 .doOnSuccess(response -> saveNotificationToDatabase(title, message, playerIds));
     }
 
-    /**
-     * Send notification with custom data
-     */
+    @Override
     public Mono<String> sendWithCustomData(UUID userId, String title, String message,
                                            Map<String, Object> customData, String url) {
         List<String> playerIds = subscriptionRepository.findSubscriptionCodesByUserId(userId);
@@ -183,9 +173,7 @@ public class OneSignalServiceImpl implements OneSignalService {
                 .doOnSuccess(response -> saveNotificationToDatabase(title, message, playerIds));
     }
 
-    /**
-     * Send notification to verified users only
-     */
+    @Override
     public Mono<String> sendToVerifiedUsers(String title, String message) {
         List<AppUserRegister> verifiedUsers = appUserRepository.findByIsVerified(true);
         List<UUID> userIds = verifiedUsers.stream()
@@ -199,7 +187,7 @@ public class OneSignalServiceImpl implements OneSignalService {
      * Core method to send notification via OneSignal API
      */
     private Mono<String> sendNotification(NotificationRequest request) {
-        return webClient.post()
+        return webClient.post() // Use injected WebClient
                 .uri(oneSignalConfig.getApiUrl())
                 .header("Authorization", "Basic " + oneSignalConfig.getRestApiKey())
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -221,125 +209,109 @@ public class OneSignalServiceImpl implements OneSignalService {
                         .subscriptionId(subscription.getSubscriptionId())
                         .title(title)
                         .message(message)
+                        .isRead(false)
+                        .createdAt(LocalDateTime.now())
                         .build();
                 notificationMessageRepository.insert(notificationMessage);
             }
         }
     }
 
-    /**
-     * Get user's notification history
-     */
+    @Override
     public List<NotificationMessage> getUserNotifications(UUID userId) {
         return notificationMessageRepository.findByUserIdOrderByCreatedAtDesc(userId);
     }
 
-    /**
-     * Get user's notification history with full details
-     */
+    @Override
     public List<NotificationMessage> getUserNotificationsWithDetails(UUID userId) {
         return notificationMessageRepository.findByUserIdWithDetails(userId);
     }
 
-    /**
-     * Get unread notifications for user
-     */
+    @Override
     public List<NotificationMessage> getUserUnreadNotifications(UUID userId) {
         return notificationMessageRepository.findUnreadByUserId(userId);
     }
 
-    /**
-     * Mark notification as read
-     */
+    @Override
     public void markNotificationAsRead(UUID notificationId) {
         notificationMessageRepository.updateReadStatus(notificationId, true);
     }
 
-    /**
-     * Mark notification as unread
-     */
+    @Override
     public void markNotificationAsUnread(UUID notificationId) {
         notificationMessageRepository.updateReadStatus(notificationId, false);
     }
 
-    /**
-     * Mark all user notifications as read
-     */
+    @Override
     public void markAllUserNotificationsAsRead(UUID userId) {
         notificationMessageRepository.markAllAsReadByUserId(userId);
     }
 
-    /**
-     * Get notification by ID
-     */
+    @Override
     public NotificationMessage getNotificationById(UUID notificationId) {
         return notificationMessageRepository.findById(notificationId);
     }
 
-    /**
-     * Delete notification
-     */
+    @Override
     public void deleteNotification(UUID notificationId) {
         notificationMessageRepository.deleteById(notificationId);
     }
 
-    /**
-     * Unsubscribe user
-     */
+    @Override
     public void unsubscribeUser(UUID userId, String oneSignalPlayerId) {
         subscriptionRepository.deleteByUserIdAndSubscriptionCode(userId, oneSignalPlayerId);
+        logger.info("User {} unsubscribed from device {}", userId, oneSignalPlayerId);
     }
 
-    /**
-     * Unsubscribe user from all devices
-     */
+    @Override
     public void unsubscribeUserFromAllDevices(UUID userId) {
         List<Subscriptions> subscriptions = subscriptionRepository.findByUserId(userId);
         for (Subscriptions subscription : subscriptions) {
             subscriptionRepository.deleteById(subscription.getSubscriptionId());
         }
+        logger.info("User {} unsubscribed from all devices", userId);
     }
 
-    /**
-     * Get user's active subscriptions
-     */
+    @Override
     public List<Subscriptions> getUserSubscriptions(UUID userId) {
         return subscriptionRepository.findByUserId(userId);
     }
 
-    /**
-     * Get user's subscriptions with user details
-     */
+    @Override
     public List<Subscriptions> getUserSubscriptionsWithDetails(UUID userId) {
         return subscriptionRepository.findByUserIdWithUser(userId);
     }
 
-    /**
-     * Get subscription by player ID
-     */
+    @Override
     public Subscriptions getSubscriptionByPlayerId(String playerId) {
         return subscriptionRepository.findBySubscriptionCode(playerId);
     }
 
-    /**
-     * Update subscription
-     */
+    @Override
     public void updateSubscription(Subscriptions subscription) {
         subscription.setUpdatedAt(LocalDateTime.now());
         subscriptionRepository.update(subscription);
     }
 
-    /**
-     * Get total count of subscribers
-     */
+    @Override
     public int getTotalSubscriberCount() {
         return subscriptionRepository.findAllSubscriptionCodes().size();
     }
 
-    /**
-     * Get unread notification count for user
-     */
+    @Override
     public int getUserUnreadCount(UUID userId) {
         return getUserUnreadNotifications(userId).size();
+    }
+
+    // Additional helper methods you might need
+    @Override
+    public boolean canUserReceiveNotifications(UUID userId) {
+        List<String> playerIds = subscriptionRepository.findSubscriptionCodesByUserId(userId);
+        return !playerIds.isEmpty();
+    }
+
+    @Override
+    public List<String> getUserSubscriptionCodes(UUID userId) {
+        return subscriptionRepository.findSubscriptionCodesByUserId(userId);
     }
 }
