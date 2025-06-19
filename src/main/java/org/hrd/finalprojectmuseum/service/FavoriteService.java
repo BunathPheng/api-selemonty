@@ -17,5 +17,5 @@ public interface FavoriteService {
     VisitorFavorite getVisitorFavorite(UUID museumId, UUID visitorId);
     ListResponse<FavoriteMuseum> getAllFavoriteMuseums(UUID visitorId, Integer page, Integer size);
 
-    FollowerStat getFollowerStat();
+    FollowerStat getFollowerStat(UUID museumId);
 }
