@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 import org.hrd.finalprojectmuseum.model.entity.AppUserRegister;
 import org.hrd.finalprojectmuseum.model.entity.Schedule;
+import org.hrd.finalprojectmuseum.model.entity.TicketInfo;
 import org.hrd.finalprojectmuseum.model.entity.visitor.VisitorReviewStatistics;
 
 
@@ -29,6 +30,8 @@ public class MuseumOwner {
     private String bannerLink;
     private JSONObject landscapeLink;
     private String description;
+    private BigDecimal localPrice;
+    private BigDecimal foreignPrice;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private Integer totalZone;
     @JsonInclude(JsonInclude.Include.NON_NULL)
