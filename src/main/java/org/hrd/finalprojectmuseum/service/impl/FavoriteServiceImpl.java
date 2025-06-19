@@ -3,22 +3,19 @@ package org.hrd.finalprojectmuseum.service.impl;
 import lombok.RequiredArgsConstructor;
 import org.hrd.finalprojectmuseum.exception.AppBadRequestException;
 import org.hrd.finalprojectmuseum.exception.AppNotFoundException;
-import org.hrd.finalprojectmuseum.model.dto.response.FollowerTrendChartResponse;
 import org.hrd.finalprojectmuseum.model.dto.response.ListResponse;
+import org.hrd.finalprojectmuseum.model.entity.AppUserRegister;
 import org.hrd.finalprojectmuseum.model.entity.FollowerStat;
 import org.hrd.finalprojectmuseum.model.entity.Pagination;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.FavoriteMuseum;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
 import org.hrd.finalprojectmuseum.model.entity.visitor.VisitorFavorite;
 import org.hrd.finalprojectmuseum.model.enums.FavoriteType;
-import org.hrd.finalprojectmuseum.model.enums.YearFilter;
-import org.hrd.finalprojectmuseum.repository.BookingRepository;
-import org.hrd.finalprojectmuseum.repository.FavoriteRepository;
-import org.hrd.finalprojectmuseum.repository.ProfileRepository;
-import org.hrd.finalprojectmuseum.repository.ReviewRepository;
+import org.hrd.finalprojectmuseum.model.enums.Role;
+import org.hrd.finalprojectmuseum.repository.*;
 import org.hrd.finalprojectmuseum.service.AppUserService;
 import org.hrd.finalprojectmuseum.service.FavoriteService;
-import org.hrd.finalprojectmuseum.service.ProfileService;
+import org.hrd.finalprojectmuseum.service.MuseumService;
 import org.hrd.finalprojectmuseum.utils.Calculation;
 import org.springframework.stereotype.Service;
 
@@ -36,6 +33,7 @@ public class FavoriteServiceImpl implements FavoriteService {
     private final Calculation calculation = new Calculation();
     private final ProfileRepository profileRepository;
     private final BookingRepository bookingRepository;
+    private final MuseumRepository museumRepository;
 
     @Override
     public void addVisitorFavorite(UUID museumId, UUID visitorId, FavoriteType favoriteType) {
@@ -85,9 +83,17 @@ public class FavoriteServiceImpl implements FavoriteService {
     }
 
     @Override
-    public FollowerStat getFollowerStat() {
+    public FollowerStat getFollowerStat(UUID museumId) {
         UUID userId = appUserService.getUserId();
-        MuseumOwner museumOwner = profileRepository.findMuseumOwnerByUserId(userId);
+        MuseumOwner museumOwner = museumRepository.findMuseumByMuseumId(museumId);
+        AppUserRegister appUserRegister = appUserService.findUserByUserId(userId);
+
+        if (appUserRegister.getRole() == Role.ROLE_MUSEUM_OWNER){
+            UUID idMuseumLogin = profileRepository.findMuseumOwnerByUserId(userId).getMuseumId();
+            if (!idMuseumLogin.equals(museumId)) {
+                throw new AppBadRequestException("Museum " + museumId + " not found, Resource restriction");
+            }
+        }
 
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime todayEnd = now.toLocalDate().atTime(23, 59, 59);

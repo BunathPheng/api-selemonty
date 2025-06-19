@@ -29,6 +29,10 @@ public class MuseumOwner {
     private String bannerLink;
     private JSONObject landscapeLink;
     private String description;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private Integer totalZone;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private Integer totalArtifact;
     private Boolean isApproved;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private List<Schedule> schedule;

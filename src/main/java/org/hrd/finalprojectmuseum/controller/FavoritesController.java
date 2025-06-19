@@ -5,15 +5,13 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.hrd.finalprojectmuseum.model.dto.response.ApiResponse;
-import org.hrd.finalprojectmuseum.model.dto.response.FollowerTrendChartResponse;
 import org.hrd.finalprojectmuseum.model.dto.response.ListResponse;
+import org.hrd.finalprojectmuseum.model.entity.AppUserRegister;
 import org.hrd.finalprojectmuseum.model.entity.FollowerStat;
-import org.hrd.finalprojectmuseum.model.entity.Pagination;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.FavoriteMuseum;
 import org.hrd.finalprojectmuseum.model.entity.visitor.VisitorFavorite;
-import org.hrd.finalprojectmuseum.model.entity.visitor.VisitorReview;
 import org.hrd.finalprojectmuseum.model.enums.FavoriteType;
-import org.hrd.finalprojectmuseum.model.enums.YearFilter;
+import org.hrd.finalprojectmuseum.service.AppUserService;
 import org.hrd.finalprojectmuseum.service.FavoriteService;
 import org.hrd.finalprojectmuseum.service.ReviewService;
 import org.springframework.http.HttpStatus;
@@ -23,7 +21,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -34,6 +31,7 @@ import java.util.UUID;
 public class FavoritesController {
     private final FavoriteService favoriteService;
     private final ReviewService reviewService;
+    private final AppUserService appUserService;
 
     private UUID getVisitorIdByUserId(){
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -105,10 +103,10 @@ public class FavoritesController {
     }
 
     @Operation(summary = "Museum Owner dashboard follower statistic")
-    @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
-    @GetMapping("/stat")
-    public ResponseEntity<ApiResponse<FollowerStat>> getFollowerStat(){
-        FollowerStat followerStat = favoriteService.getFollowerStat();
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_MUSEUM_OWNER')")
+    @GetMapping("/stat/{museum-id}")
+    public ResponseEntity<ApiResponse<FollowerStat>> getFollowerStat(@PathVariable("museum-id") UUID museumId) {
+        FollowerStat followerStat = favoriteService.getFollowerStat(museumId);
         ApiResponse<FollowerStat> apiResponse = ApiResponse.<FollowerStat>builder()
                 .success(true)
                 .message("Follower stat fetched successfully")

@@ -22,24 +22,24 @@ public interface ScheduleRepository {
             @Result(property = "updatedAt", column = "updated_at"),
     })
     @Select("""
-    SELECT schedule_id, day, opening_time, closing_time, day_off, created_at, updated_at
-    FROM schedules
-    WHERE museum_id = #{museumId}::UUID
-    ORDER BY 
-        CASE day
-            WHEN 'Monday' THEN 1
-            WHEN 'Tuesday' THEN 2
-            WHEN 'Wednesday' THEN 3
-            WHEN 'Thursday' THEN 4
-            WHEN 'Friday' THEN 5
-            WHEN 'Saturday' THEN 6
-            WHEN 'Sunday' THEN 7
-        END;
-""")
+        SELECT schedule_id, day, opening_time, closing_time, day_off, created_at, updated_at
+        FROM schedules
+        WHERE museum_id = #{museumId}::UUID
+        ORDER BY
+            CASE day
+                WHEN 'MONDAY' THEN 1
+                WHEN 'TUESDAY' THEN 2
+                WHEN 'WEDNESDAY' THEN 3
+                WHEN 'THURSDAY' THEN 4
+                WHEN 'FRIDAY' THEN 5
+                WHEN 'SATURDAY' THEN 6
+                WHEN 'SUNDAY' THEN 7
+            END;
+    """)
     List<Schedule> findScheduleOfMuseum(UUID museumId);
 
     @Insert("""
-        INSERT INTO schedules (museum_id, day) VALUES (#{museumId}::UUID, #{dayOfWeek});
+        INSERT INTO schedules (museum_id, day, day_off) VALUES (#{museumId}::UUID, #{dayOfWeek}, true);
     """)
     void insertSchedule(UUID museumId, String dayOfWeek);
 
