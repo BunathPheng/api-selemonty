@@ -64,6 +64,7 @@ public interface VisitorRepository {
     Integer countAllVisitor(String search);
 
     @Results(id = "visitorBookingMapper", value = {
+            @Result(property = "visitorId", column = "visitor_id"),
             @Result(property = "fullName", column = "full_name"),
             @Result(property = "email", column = "email"),
             @Result(property = "totalBookings", column = "total_booking"),
@@ -71,6 +72,7 @@ public interface VisitorRepository {
     })
     @Select("""
         SELECT
+            v.visitor_id,
             v.full_name,
             u.email,
             COUNT(b.booking_id) as total_booking,
@@ -81,7 +83,7 @@ public interface VisitorRepository {
         LEFT JOIN tours t ON t.booking_id = b.booking_id
         WHERE ((t.booking_id IS NULL) OR (t.booking_id IS NOT NULL AND t.status = 'PAID'))
         AND (#{search} IS NULL OR v.full_name ILIKE CONCAT('%', #{search}, '%'))
-        GROUP BY v.full_name, u.email
+        GROUP BY v.visitor_id, v.full_name, u.email
         ORDER BY total_ticket DESC
         OFFSET (#{page}-1) * #{size} LIMIT #{size}
     """)
