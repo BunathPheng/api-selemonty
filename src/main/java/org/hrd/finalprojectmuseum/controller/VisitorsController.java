@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.hrd.finalprojectmuseum.model.dto.response.ApiResponse;
 import org.hrd.finalprojectmuseum.model.dto.response.ListResponse;
 import org.hrd.finalprojectmuseum.model.entity.*;
+import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwnerVisitorStat;
 import org.hrd.finalprojectmuseum.model.entity.visitor.Visitor;
 import org.hrd.finalprojectmuseum.model.enums.Role;
 import org.hrd.finalprojectmuseum.service.AppUserService;
@@ -56,6 +57,20 @@ public class VisitorsController {
                 .build();
 
         return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @Operation(summary = "For Museum Owner dashboard to get visitor statistic")
+    @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
+    @GetMapping("/museum/statistic")
+    public ResponseEntity<ApiResponse<MuseumOwnerVisitorStat>> getVisitorStatistic(){
+        MuseumOwnerVisitorStat visitorStat = visitorService.getVisitorStatistic();
+        ApiResponse<MuseumOwnerVisitorStat> apiResponse = ApiResponse.<MuseumOwnerVisitorStat>builder()
+                .success(true)
+                .message("Visitor visited a museum statistic is fetched successfully")
+                .payload(visitorStat)
+                .status(HttpStatus.OK)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
     }
 
     @Operation(summary = "For museum owner Get Top visitor booking their museum. For museum owner only")

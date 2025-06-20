@@ -13,6 +13,7 @@ import org.hrd.finalprojectmuseum.model.dto.response.ApiResponse;
 import org.hrd.finalprojectmuseum.model.dto.response.ListResponse;
 import org.hrd.finalprojectmuseum.model.dto.response.MuseumZoneResponse;
 import org.hrd.finalprojectmuseum.model.entity.Pagination;
+import org.hrd.finalprojectmuseum.model.entity.museum_owner.ArtifactZone;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumZone;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumZoneCategory;
 import org.hrd.finalprojectmuseum.service.ZoneService;
@@ -186,5 +187,21 @@ public class ZonesController {
                 .build();
 
         return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
+    }
+
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_MUSEUM_OWNER')")
+    @SecurityRequirement(name = "bearerAuth")
+    @GetMapping("admin/museum/{museum-id}")
+    @Operation(summary = "Find total artifacts and zone. Use for museum owner and admin role")
+    public ResponseEntity<ApiResponse<ArtifactZone>> getAmountArtifactZone(@PathVariable("museum-id") UUID museumId){
+        ArtifactZone amountArtifactZone = zoneService.getAmountArtifactZone(museumId);
+        ApiResponse<ArtifactZone> response = ApiResponse.<ArtifactZone>builder()
+                .success(true)
+                .message("Total zones and artifacts fetched successfully.")
+                .payload(amountArtifactZone)
+                .status(HttpStatus.OK)
+                .timestamp(LocalDateTime.now())
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 }

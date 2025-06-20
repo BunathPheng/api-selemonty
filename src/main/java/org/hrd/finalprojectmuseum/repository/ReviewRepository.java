@@ -53,6 +53,7 @@ public interface ReviewRepository {
     @Select("""
         SELECT * FROM reviews
         WHERE museum_id = #{museumId}::UUID
+        AND comment ILIKE CONCAT('%', #{search}::TEXT, '%')
         ORDER BY created_at DESC
         LIMIT #{size} OFFSET #{offset};
     """)
@@ -71,6 +72,7 @@ public interface ReviewRepository {
     })
     List<VisitorReview> retrieveAllVisitorReviewsRecently(
             @Param("museumId") UUID museumId,
+            @Param("search") String search,
             @Param("size") Integer size,
             @Param("offset") Integer offset);
 
@@ -88,12 +90,14 @@ public interface ReviewRepository {
     @Select("""
         SELECT * FROM reviews
         WHERE museum_id = #{museumId}::UUID
+        AND comment ILIKE CONCAT('%', #{search}::TEXT, '%')
         ORDER BY rating DESC
         LIMIT #{size} OFFSET #{offset};
     """)
     @ResultMap("visitorReviewInline")
     List<VisitorReview> retrieveAllVisitorReviewsHighest(
             @Param("museumId") UUID museumId,
+            @Param("search") String search,
             @Param("size") Integer size,
             @Param("offset") Integer offset
     );
@@ -101,12 +105,14 @@ public interface ReviewRepository {
     @Select("""
         SELECT * FROM reviews
         WHERE museum_id = #{museumId}::UUID
+        AND comment ILIKE CONCAT('%', #{search}::TEXT, '%')
         ORDER BY rating ASC
         LIMIT #{size} OFFSET #{offset};
     """)
     @ResultMap("visitorReviewInline")
     List<VisitorReview> retrieveAllVisitorReviewsLowest(
             @Param("museumId") UUID museumId,
+            @Param("search") String search,
             @Param("size") Integer size,
             @Param("offset") Integer offset
     );
@@ -114,8 +120,9 @@ public interface ReviewRepository {
     @Select("""
         SELECT COUNT(*) FROM reviews
         WHERE museum_id = #{museumId}::UUID
+        AND comment ILIKE CONCAT('%', #{search}::TEXT, '%')
     """)
-    Integer countAllVisitorReviews(UUID museumId);
+    Integer countAllVisitorReviews(UUID museumId, String search);
 
     @Select("""
         SELECT EXISTS(

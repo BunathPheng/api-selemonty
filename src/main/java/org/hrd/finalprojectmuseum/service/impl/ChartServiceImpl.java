@@ -2,6 +2,7 @@ package org.hrd.finalprojectmuseum.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.hrd.finalprojectmuseum.model.dto.response.FollowerTrendChartResponse;
+import org.hrd.finalprojectmuseum.model.dto.response.VisitorTrendChartResponse;
 import org.hrd.finalprojectmuseum.model.entity.BookingChart;
 import org.hrd.finalprojectmuseum.model.entity.MuseumChart;
 import org.hrd.finalprojectmuseum.model.entity.VisitorChart;
@@ -61,6 +62,40 @@ public class ChartServiceImpl implements ChartService {
                 data.setFollowers(((Number) row.get("followers")).intValue());
             } else {
                 data.setFollowers(0);
+            }
+
+            monthlyData.add(data);
+        }
+
+        return monthlyData;
+    }
+
+    @Override
+    public List<VisitorTrendChartResponse> getVisitorChartByMuseum(YearFilter yearFilter) {
+        UUID museumId = profileService.getMuseumIdByUserId();
+        int targetYear = yearFilter == YearFilter.THIS_YEAR ?
+                LocalDate.now().getYear() : // 2025
+                LocalDate.now().getYear() - 1; // 2024
+
+        List<Map<String, Object>> rawData = chartRepository.getMonthlyVisitorStatsByMuseum(museumId, targetYear);
+
+        Map<Integer, Map<String, Object>> dataMap = rawData.stream()
+                .collect(Collectors.toMap(
+                        row -> ((Number) row.get("month")).intValue(), // Now safe with integer month
+                        row -> row
+                ));
+
+        List<VisitorTrendChartResponse> monthlyData = new ArrayList<>();
+        for (int month = 1; month <= 12; month++) {
+            VisitorTrendChartResponse data = new VisitorTrendChartResponse();
+            data.setMonth(SHORT_MONTHS[month - 1]);
+            data.setFullMonth(MONTH_NAMES[month - 1]);
+
+            if (dataMap.containsKey(month)) {
+                Map<String, Object> row = dataMap.get(month);
+                data.setVisitors(((Number) row.get("visitors")).intValue());
+            } else {
+                data.setVisitors(0);
             }
 
             monthlyData.add(data);

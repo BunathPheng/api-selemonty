@@ -13,9 +13,9 @@ import java.util.UUID;
 public interface ReviewService {
     UUID getVisitorIdByUserId(UUID userId);
     VisitorReview addVisitorReview(UUID museumId, UUID visitorId, VisitorReviewRequest visitorReviewRequest);
-    List<VisitorReview> getAllVisitorReviews(UUID museumId, Integer page, Integer size, ReviewType reviewType);
+    List<VisitorReview> getAllVisitorReviews(UUID museumId, String search, Integer page, Integer size, ReviewType reviewType);
     VisitorReview updateVisitorReview(UUID reviewId, UUID visitorId, VisitorReviewRequest visitorReviewRequest);
-    Integer getAllVisitorReviews(UUID museumId);
+    Integer getAllVisitorReviews(UUID museumId, String search);
     void deleteVisitorReview(UUID reviewId, UUID visitorId);
     VisitorReviewStatistics getVisitorReviewStatistics(UUID museumId);
 

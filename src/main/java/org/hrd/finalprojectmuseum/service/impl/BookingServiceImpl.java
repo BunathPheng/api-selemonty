@@ -8,6 +8,7 @@ import org.hrd.finalprojectmuseum.model.dto.request.RequestTourRequest;
 import org.hrd.finalprojectmuseum.model.dto.request.visitor.BookingRequestV2;
 import org.hrd.finalprojectmuseum.model.dto.response.ListResponse;
 import org.hrd.finalprojectmuseum.model.entity.Booking;
+import org.hrd.finalprojectmuseum.model.entity.BookingAnalytics;
 import org.hrd.finalprojectmuseum.model.entity.Pagination;
 import org.hrd.finalprojectmuseum.model.entity.TicketInfo;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
@@ -37,15 +38,14 @@ import java.util.UUID;
 public class BookingServiceImpl implements BookingService {
     private final BookingRepository bookingRepository;
     private final UniqueTextCodeGenerator uniqueTextCodeGenerator;
-    private final MuseumRepository museumRepository;
     private final TourRepository tourRepository;
     private final TicketInfoRepository ticketInfoRepository;
-    private final TicketInfoService ticketInfoService;
 
     @Override
     @Transactional
     public BookingV2 bookingIndividualTicket(UUID museumId, UUID visitorId, TicketType ticketType, BookingRequestV2 bookingRequest) {
         IndividualBookingInfo individualBookingInfo = bookingRepository.BooingIndividualInfo(museumId);
+
         if (individualBookingInfo == null) {
             throw new AppNotFoundException("Booking failed. This museum is not approved by admin");
         }
@@ -68,12 +68,13 @@ public class BookingServiceImpl implements BookingService {
                 throw new AppBadRequestException("Local Ticket price is wrong. Right LocalTicket price is: "+ individualBookingInfo.getLocalPrice());
             }
         }
-        if (individualBookingInfo.getMuseumSchedule() == null) {
+
+        if (individualBookingInfo.getMuseumSchedule().isEmpty()) {
             throw new AppNotFoundException("Booking failed. Museum doesn't have schedule");
         }
 
-        LocalDateTime bookingDate = bookingRequest.getBookingDate();
-        String bookingDayName = bookingDate.getDayOfWeek().name(); // e.g., "MONDAY"
+//        LocalDateTime bookingDate = bookingRequest.getBookingDate();
+        String bookingDayName = bookingRequest.getBookingDate().getDayOfWeek().name(); // e.g., "MONDAY"
 
         boolean isClosed = individualBookingInfo.getMuseumSchedule().stream()
                 .anyMatch(schedule ->
@@ -81,6 +82,15 @@ public class BookingServiceImpl implements BookingService {
 
         if (isClosed) {
             throw new AppBadRequestException("Booking failed. Museum is closed on " + bookingDayName);
+        }
+
+        boolean hasNullTimes = individualBookingInfo.getMuseumSchedule().stream()
+                .anyMatch(schedule ->
+                        schedule.getDay().equalsIgnoreCase(bookingDayName) &&
+                                (schedule.getOpeningTime() == null || schedule.getClosingTime() == null));
+
+        if (hasNullTimes) {
+            throw new AppBadRequestException("Booking failed. Opening or closing time not available for " + bookingDayName);
         }
 
         if (individualBookingInfo.getTotalSlots() < bookingRequest.getSlotAmount()) {
@@ -97,6 +107,7 @@ public class BookingServiceImpl implements BookingService {
             throw new AppBadRequestException("Booking failed! Please try again");
         }
         return bookingRepository.retrieveBookingDetailByVisitorId(booking.getBookingId(), visitorId);
+//        return null;
     }
 
     @Override
@@ -108,6 +119,13 @@ public class BookingServiceImpl implements BookingService {
         boolean hasCategory = category != null;
         boolean hasDateRange = startDate != null && endDate != null;
 
+        List<BookingV2> bookingByVisitorId = getBookingByVisitorId(visitorId);
+        for (BookingV2 booking : bookingByVisitorId) {checkAndUpdateExpirationV2(booking.getBookingId());
+            if (category == BookingType.TOUR){
+                booking.setTotalPrice(tourRepository.getTourPriceByBookingId(booking.getBookingId()));
+            }
+        }
+
         List<BookingV2> bookings = null;
 
         if (!hasCategory && !hasDateRange) {
@@ -118,17 +136,6 @@ public class BookingServiceImpl implements BookingService {
             bookings = bookingRepository.findVisitorBookingHistoryBySearchAndDateRange(visitorId, search.trim(), startDate, endDate, page, size);
         } else {
             bookings = bookingRepository.findVisitorBookingHistoryBySearchCategoryAndDateRange(visitorId, search.trim(), category, startDate, endDate, page, size);
-        }
-
-//        for (BookingV2 booking : bookings) {
-//            checkAndUpdateExpirationV2(booking.getBookingId());
-//        }
-
-        for (BookingV2 booking : bookings) {
-            checkAndUpdateExpirationV2(booking.getBookingId());
-            if (category == BookingType.TOUR){
-                booking.setTotalPrice(tourRepository.getTourPriceByBookingId(booking.getBookingId()));
-            }
         }
 
         return bookings;
@@ -161,13 +168,11 @@ public class BookingServiceImpl implements BookingService {
     public List<BookingV2> getMuseumBookingHistory(UUID museumId, String search, Integer page, Integer size) {
         search = search == null ? "" : search;
 
-        List<BookingV2> museumHistoryBooking = bookingRepository.getMuseumBookingHistoryByMuseumId(museumId, search, page, size);
-
-        for (BookingV2 booking : museumHistoryBooking) {
+        List<BookingV2> bookingByMuseumId = getBookingByMuseumId(museumId);
+        for (BookingV2 booking : bookingByMuseumId) {
             checkAndUpdateExpirationV2(booking.getBookingId());
         }
-
-        return museumHistoryBooking;
+        return bookingRepository.getMuseumBookingHistoryByMuseumId(museumId, search, page, size);
     }
 
     @Override
@@ -191,13 +196,6 @@ public class BookingServiceImpl implements BookingService {
                 throw new AppNotFoundException("Booking with id " + bookingId + " not exists");
             }
         }
-
-//        BookingV2 bookingDetail = bookingRepository.retrieveBookingDetailByVisitorId(bookingId, visitorId);
-//
-//        if (bookingDetail == null) {
-//            throw new AppNotFoundException("Booking with id " + bookingId + " not exists");
-//        }
-
         return bookingDetail;
     }
 
@@ -210,6 +208,14 @@ public class BookingServiceImpl implements BookingService {
 
         checkAndUpdateExpiration(bookingId);
 
+        if (Objects.equals(bookingDetail.getTicketStatus(), "USED")) {
+            throw new AppNotFoundException("Booking with code " + bookingId + " is already used");
+        }
+
+        if (Objects.equals(bookingDetail.getTicketStatus(), "EXPIRED")) {
+            throw new AppNotFoundException("Booking with code " + bookingId + " is expired");
+        }
+
         if (Objects.equals(bookingDetail.getTicketStatus(), "VALID")) {
             bookingRepository.updateStatus(bookingId, "USED");
         }
@@ -220,8 +226,17 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public Booking findBookingByCodeQr(String codeQr, UUID museumId) {
         Booking bookingDetail = bookingRepository.findBookingByCodeQrAndMuseumId(codeQr, museumId);
+
         if (bookingDetail == null) {
             throw new AppNotFoundException("Code Qr: " + codeQr + " is incorrect");
+        }
+
+        if (Objects.equals(bookingDetail.getTicketStatus(), "USED")) {
+            throw new AppNotFoundException("Booking with code " + codeQr + " is already used");
+        }
+
+        if (Objects.equals(bookingDetail.getTicketStatus(), "EXPIRED")) {
+            throw new AppNotFoundException("Booking with code " + codeQr + " is expired");
         }
 
 //        checkAndUpdateExpiration(bookingDetail.getBookingId());
@@ -246,12 +261,12 @@ public class BookingServiceImpl implements BookingService {
         if(!individualBookingInfo.getMuseumId().equals(museumId)) {
             throw new AppNotFoundException("Museum with id " + museumId + " not exists");
         }
-        if (individualBookingInfo.getMuseumSchedule() == null) {
+        if (individualBookingInfo.getMuseumSchedule().isEmpty()) {
             throw new AppNotFoundException("Booking failed. Museum doesn't have schedule");
         }
 
-        LocalDateTime bookingDate = requestTourRequest.getBookingDate();
-        String bookingDayName = bookingDate.getDayOfWeek().name(); // e.g., "MONDAY"
+//        LocalDateTime bookingDate = requestTourRequest.getBookingDate();
+        String bookingDayName = requestTourRequest.getBookingDate().getDayOfWeek().name(); // e.g., "MONDAY"
 
         boolean isClosed = individualBookingInfo.getMuseumSchedule().stream()
                 .anyMatch(schedule ->
@@ -261,10 +276,21 @@ public class BookingServiceImpl implements BookingService {
             throw new AppBadRequestException("Booking failed. Museum is closed on " + bookingDayName);
         }
 
+        boolean hasNullTimes = individualBookingInfo.getMuseumSchedule().stream()
+                .anyMatch(schedule ->
+                        schedule.getDay().equalsIgnoreCase(bookingDayName) &&
+                                (schedule.getOpeningTime() == null || schedule.getClosingTime() == null));
+
+        if (hasNullTimes) {
+            throw new AppBadRequestException("Booking failed. Opening or closing time not available for " + bookingDayName);
+        }
+
         UUID bookingId = bookingRepository.insertBookingForTourRequest(museumId, visitorId, requestTourRequest);
         tourRepository.insertNewTourRequest(bookingId);
         return bookingRepository.getBookingByBookingId(bookingId, visitorId);
     }
+
+
 
     public void checkAndUpdateExpiration(UUID bookingId) {
         Booking booking = bookingRepository.findBookingByBookingId(bookingId);
@@ -297,5 +323,20 @@ public class BookingServiceImpl implements BookingService {
         return booking.getBookingType();
     }
 
+    public List<BookingV2> getBookingByVisitorId(UUID visitorId) {
+        return bookingRepository.findBookingByVisitorId(visitorId);
+    }
 
+    public List<BookingV2> getBookingByMuseumId(UUID museumId) {
+        return bookingRepository.findBookingByMuseumId(museumId);
+    }
+
+    @Override
+    public BookingAnalytics getBookingAnalytics(UUID museumId) {
+        BookingAnalytics bookingAnalytics = bookingRepository.findBookingAnalytics(museumId);
+        if (bookingAnalytics == null) {
+
+        }
+        return null;
+    }
 }

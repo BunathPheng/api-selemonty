@@ -7,6 +7,7 @@ import org.hrd.finalprojectmuseum.model.dto.request.museum_owner.GuideRequest;
 import org.hrd.finalprojectmuseum.model.dto.response.ListResponse;
 import org.hrd.finalprojectmuseum.model.entity.Guide;
 import org.hrd.finalprojectmuseum.model.entity.Pagination;
+import org.hrd.finalprojectmuseum.model.entity.visitor.BookingV2;
 import org.hrd.finalprojectmuseum.model.enums.GuideStatusType;
 import org.hrd.finalprojectmuseum.repository.GuideRepository;
 import org.hrd.finalprojectmuseum.service.GuideService;
@@ -28,6 +29,9 @@ public class GuideServiceImpl implements GuideService {
         Boolean isAvailable = statusType == GuideStatusType.AVAILABLE;
         List<Guide> guides;
         Integer allItems;
+
+        checkGuideStatus(museumId);
+
         if (statusType == GuideStatusType.ALL){
             guides = guideRepository.findAllGuideByMuseumId(museumId, search, page, size);
             allItems = guideRepository.countAllGuide(museumId, search);
@@ -55,6 +59,24 @@ public class GuideServiceImpl implements GuideService {
             throw new AppNotFoundException("Guide with id " + guideId + " not found");
         }
         return guideRepository.modifyGuideByGuideId(museumId, guideId, guideRequest, LocalDateTime.now());
+    }
+
+    @Override
+    public List<Guide> getGuidesByTourId(UUID tourId) {
+        return guideRepository.getGuidesByTourId(tourId);
+    }
+
+    public void checkGuideStatus(UUID museumId) {
+        List<Guide> guides = guideRepository.getGuidesByMuseumId(museumId);
+        if (guides == null || guides.isEmpty()) {
+            System.out.println("No guides found");
+            return;
+        }
+        for (Guide guide : guides) {
+            if (LocalDateTime.now().isAfter(guide.getExpiresAt()) && guide.getExpiresAt() != null) {
+                guideRepository.updateStatusGuide(guide.getGuideId());
+            }
+        }
     }
 
 }

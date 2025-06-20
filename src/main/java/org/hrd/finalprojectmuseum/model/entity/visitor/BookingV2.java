@@ -3,22 +3,28 @@ package org.hrd.finalprojectmuseum.model.entity.visitor;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
 import lombok.Data;
+import org.hrd.finalprojectmuseum.model.entity.Guide;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Base64;
+import java.util.List;
 import java.util.UUID;
 
 @Data
 public class BookingV2 {
     private UUID bookingId;
     @JsonInclude(JsonInclude.Include.NON_NULL)
+    private UUID tourId;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private UUID museumId;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private String museumName;
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    private String bannerLink;
+    private String museumDescription;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private String museumContactNumber;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private UUID visitorId;
     @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -46,10 +52,15 @@ public class BookingV2 {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private LocalDateTime expiredDate;
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    private String museumLogo;
+    private String museumBanner;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private String museumEmail;
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private QRCodeData qrCodeData;
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private List<Guide> guideList;
 
     @Data
     @Builder

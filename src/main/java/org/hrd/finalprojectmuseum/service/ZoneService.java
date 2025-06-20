@@ -3,6 +3,7 @@ package org.hrd.finalprojectmuseum.service;
 import org.hrd.finalprojectmuseum.model.dto.request.museum_owner.MuseumZoneRequest;
 import org.hrd.finalprojectmuseum.model.dto.request.museum_owner.MuseumZoneUpdateRequest;
 import org.hrd.finalprojectmuseum.model.dto.response.MuseumZoneResponse;
+import org.hrd.finalprojectmuseum.model.entity.museum_owner.ArtifactZone;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumZone;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumZoneCategory;
 
@@ -19,5 +20,5 @@ public interface ZoneService {
     void deleteMuseumZoneByZoneId(UUID zoneId, UUID museumId);
     List<MuseumZoneResponse> getAllMuseumZonesByMuseumId(UUID museumId, String search, UUID categoryId, Integer page, Integer size);
     Integer getTotalMuseumZonesByMuseumId(UUID museumId, String search, UUID categoryId);
-
+    ArtifactZone getAmountArtifactZone(UUID museumId);
 }
