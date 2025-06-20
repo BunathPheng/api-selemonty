@@ -56,7 +56,7 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
-    public List<VisitorReview> getAllVisitorReviews(UUID museumId, Integer page, Integer size, ReviewType reviewType) {
+    public List<VisitorReview> getAllVisitorReviews(UUID museumId, String search, Integer page, Integer size, ReviewType reviewType) {
         if (!reviewRepository.retrieveMuseumId(museumId)){
             throw new AppNotFoundException("Museum ID Not Found");
         }
@@ -65,17 +65,17 @@ public class ReviewServiceImpl implements ReviewService {
         List<VisitorReview> visitorReviews = new ArrayList<>();
 
         if (reviewType == ReviewType.MOST_RECENTLY){
-            visitorReviews = reviewRepository.retrieveAllVisitorReviewsRecently(museumId, size, offset);
+            visitorReviews = reviewRepository.retrieveAllVisitorReviewsRecently(museumId, search, size, offset);
             for(VisitorReview visitorReview : visitorReviews){
                 visitorReview.setIsReviewed(true);
             }
         }else if (reviewType == ReviewType.HIGHEST_RATE){
-            visitorReviews = reviewRepository.retrieveAllVisitorReviewsHighest(museumId, size, offset);
+            visitorReviews = reviewRepository.retrieveAllVisitorReviewsHighest(museumId, search, size, offset);
             for(VisitorReview visitorReview : visitorReviews){
                 visitorReview.setIsReviewed(true);
             }
         } else if (reviewType == ReviewType.LOWEST_RATE) {
-            visitorReviews = reviewRepository.retrieveAllVisitorReviewsLowest(museumId, size, offset);
+            visitorReviews = reviewRepository.retrieveAllVisitorReviewsLowest(museumId, search, size, offset);
             for(VisitorReview visitorReview : visitorReviews){
                 visitorReview.setIsReviewed(true);
             }
@@ -94,8 +94,8 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
-    public Integer getAllVisitorReviews(UUID museumId) {
-        return reviewRepository.countAllVisitorReviews(museumId);
+    public Integer getAllVisitorReviews(UUID museumId, String search) {
+        return reviewRepository.countAllVisitorReviews(museumId, search);
     }
 
     @Override

@@ -6,10 +6,12 @@ import org.hrd.finalprojectmuseum.model.dto.response.ListResponse;
 import org.hrd.finalprojectmuseum.model.dto.response.StatItem;
 import org.hrd.finalprojectmuseum.model.entity.*;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
+import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwnerVisitorStat;
 import org.hrd.finalprojectmuseum.model.entity.visitor.Visitor;
 import org.hrd.finalprojectmuseum.repository.BookingRepository;
 import org.hrd.finalprojectmuseum.repository.ProfileRepository;
 import org.hrd.finalprojectmuseum.repository.VisitorRepository;
+import org.hrd.finalprojectmuseum.service.AppUserService;
 import org.hrd.finalprojectmuseum.service.VisitorService;
 import org.hrd.finalprojectmuseum.utils.Calculation;
 import org.springframework.stereotype.Service;
@@ -26,6 +28,7 @@ public class VisitorServiceImpl implements VisitorService {
     private final VisitorRepository visitorRepository;
     private final ProfileRepository profileRepository;
     private final BookingRepository bookingRepository;
+    private final AppUserService appUserService;
     private final Calculation calculation = new Calculation();
 
 
@@ -148,5 +151,64 @@ public class VisitorServiceImpl implements VisitorService {
     @Override
     public List<Visitor> getTopVisitorByMuseumId(UUID museumId) {
         return visitorRepository.findTopVisitorByMuseumId(museumId);
+    }
+
+    @Override
+    public MuseumOwnerVisitorStat getVisitorStatistic() {
+        UUID userID = appUserService.getUserId();
+        MuseumOwner museumOwner = profileRepository.findMuseumOwnerByUserId(userID);
+
+        LocalDateTime now = LocalDateTime.now();
+        LocalDate today = now.toLocalDate();
+        LocalDateTime todayEnd = today.withDayOfMonth(today.lengthOfMonth()).atTime(23, 59, 59);
+
+        // Current month boundaries
+        LocalDate currentMonthStart = today.withDayOfMonth(1);
+        LocalDateTime currentMonthStartTime = currentMonthStart.atStartOfDay();
+
+        // Last month boundaries
+        LocalDate lastMonthStart = currentMonthStart.minusMonths(1);
+        LocalDateTime lastMonthStartTime = lastMonthStart.atStartOfDay();
+        LocalDate lastMonthEnd = currentMonthStart.minusDays(1);
+        LocalDateTime lastMonthEndTime = lastMonthEnd.atTime(23, 59, 59);
+
+        // Get total visitors (cumulative up to today)
+        Integer totalVisitorsThisMonth = visitorRepository.countVisitorByMuseumIdAndDateRange(
+                museumOwner.getMuseumId(), currentMonthStartTime, todayEnd);
+        Integer totalVisitorsLastMonth = visitorRepository.countVisitorByMuseumIdAndDateRange(
+                museumOwner.getMuseumId(), lastMonthStartTime, lastMonthEndTime);
+
+        // Get new visitors (first-time visitors in each period)
+        Integer newVisitorsThisMonth = visitorRepository.countNewVisitorByMuseumIdAndDateRange(
+                museumOwner.getMuseumId(), currentMonthStartTime, todayEnd);
+        Integer newVisitorsLastMonth = visitorRepository.countNewVisitorByMuseumIdAndDateRange(
+                museumOwner.getMuseumId(), lastMonthStartTime, lastMonthEndTime);
+
+        return MuseumOwnerVisitorStat.builder()
+                .totalVisitors(createStatItem(totalVisitorsThisMonth, totalVisitorsLastMonth))
+                .newVisitors(createStatItem(newVisitorsThisMonth, newVisitorsLastMonth))
+                .build();
+    }
+
+    private StatItem createStatItem(Integer currentValue, Integer previousValue) {
+        Double percentageChange = calculatePercentageChange(currentValue, previousValue);
+
+        return StatItem.builder()
+                .value(currentValue != null ? currentValue : 0)
+                .percentageChange(percentageChange)
+                .build();
+    }
+
+    private Double calculatePercentageChange(Integer currentValue, Integer previousValue) {
+        if (previousValue == null || previousValue == 0) {
+            return currentValue != null && currentValue > 0 ? 100.0 : 0.0;
+        }
+
+        if (currentValue == null) {
+            return -100.0;
+        }
+
+        double change = ((currentValue.doubleValue() - previousValue.doubleValue()) / previousValue.doubleValue()) * 100;
+        return Math.round(change * 100.0) / 100.0; // Round to 2 decimal places
     }
 }

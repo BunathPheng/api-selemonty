@@ -15,6 +15,7 @@ public class Visitor {
     private String contactNumber;
     private String gender;
     private LocalDate dob;
+    private Long bookingCount;
     private String profileImageLink;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

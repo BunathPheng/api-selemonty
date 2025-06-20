@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.hrd.finalprojectmuseum.model.dto.response.ApiResponse;
 import org.hrd.finalprojectmuseum.model.dto.response.FollowerTrendChartResponse;
+import org.hrd.finalprojectmuseum.model.dto.response.VisitorTrendChartResponse;
 import org.hrd.finalprojectmuseum.model.entity.BookingChart;
 import org.hrd.finalprojectmuseum.model.entity.MuseumChart;
 import org.hrd.finalprojectmuseum.model.entity.VisitorChart;
@@ -40,6 +41,22 @@ public class ChartController {
                 .success(true)
                 .message("Follower chart fetched successfully")
                 .payload(followerChart)
+                .status(HttpStatus.OK)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
+    }
+
+    @Operation(summary = "Museum Owner dashboard on visitors visit museum chart")
+    @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
+    @GetMapping("/visitor/museum")
+    public ResponseEntity<ApiResponse<List<VisitorTrendChartResponse>>> getVisitorByMuseumChart(
+            @RequestParam(defaultValue = "THIS_YEAR", required = true) YearFilter yearFilter
+    ){
+        List<VisitorTrendChartResponse> visitorChart = chartService.getVisitorChartByMuseum(yearFilter);
+        ApiResponse<List<VisitorTrendChartResponse>> apiResponse = ApiResponse.<List<VisitorTrendChartResponse>>builder()
+                .success(true)
+                .message("Visitor by museum chart fetched successfully")
+                .payload(visitorChart)
                 .status(HttpStatus.OK)
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(apiResponse);

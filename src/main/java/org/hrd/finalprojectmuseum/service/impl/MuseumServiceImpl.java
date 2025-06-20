@@ -5,10 +5,7 @@ import org.hrd.finalprojectmuseum.exception.AppBadRequestException;
 import org.hrd.finalprojectmuseum.exception.AppNotFoundException;
 import org.hrd.finalprojectmuseum.model.dto.response.ListResponse;
 import org.hrd.finalprojectmuseum.model.dto.response.MuseumWithDistanceResponse;
-import org.hrd.finalprojectmuseum.model.entity.AppUserRegister;
-import org.hrd.finalprojectmuseum.model.entity.MuseumStat;
-import org.hrd.finalprojectmuseum.model.entity.Pagination;
-import org.hrd.finalprojectmuseum.model.entity.Schedule;
+import org.hrd.finalprojectmuseum.model.entity.*;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
 import org.hrd.finalprojectmuseum.model.entity.visitor.Visitor;
 import org.hrd.finalprojectmuseum.model.entity.visitor.VisitorReviewStatistics;
@@ -40,6 +37,8 @@ public class MuseumServiceImpl implements MuseumService {
     private final ProfileRepository profileRepository;
     private final Calculation calculation = new Calculation();
     private final OneSignalService oneSignalService;
+    private final TicketInfoService ticketInfoService;
+    private final TicketInfoRepository ticketInfoRepository;
 
     @Override
     public MuseumOwner setFullData(MuseumOwner museumOwner) {
@@ -134,6 +133,13 @@ public class MuseumServiceImpl implements MuseumService {
 
         for (MuseumOwner museum : museums) {
             setFullData(museum);
+            TicketInfo ticketInfo= ticketInfoRepository.findTicketInfoByMuseumId(museum.getMuseumId());
+            if (ticketInfo != null){
+                museum.setLocalPrice(ticketInfo.getLocalPrice());
+                museum.setForeignPrice(ticketInfo.getForeignPrice());
+            }
+
+
         }
 
         Pagination pagination = new Pagination();
@@ -205,6 +211,12 @@ public class MuseumServiceImpl implements MuseumService {
 
         for (MuseumOwner museum : museums) {
             setFullData(museum);
+            TicketInfo ticketInfo= ticketInfoRepository.findTicketInfoByMuseumId(museum.getMuseumId());
+            if(ticketInfo != null){
+                museum.setLocalPrice(ticketInfo.getLocalPrice());
+                museum.setForeignPrice(ticketInfo.getForeignPrice());
+            }
+
         }
 
         Pagination pagination = new Pagination();
