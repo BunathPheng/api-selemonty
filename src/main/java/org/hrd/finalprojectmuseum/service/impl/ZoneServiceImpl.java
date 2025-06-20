@@ -7,13 +7,14 @@ import org.hrd.finalprojectmuseum.model.dto.request.museum_owner.MuseumArtifactR
 import org.hrd.finalprojectmuseum.model.dto.request.museum_owner.MuseumZoneRequest;
 import org.hrd.finalprojectmuseum.model.dto.request.museum_owner.MuseumZoneUpdateRequest;
 import org.hrd.finalprojectmuseum.model.dto.response.MuseumZoneResponse;
-import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumArtifact;
-import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
-import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumZone;
-import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumZoneCategory;
+import org.hrd.finalprojectmuseum.model.entity.AppUserRegister;
+import org.hrd.finalprojectmuseum.model.entity.museum_owner.*;
+import org.hrd.finalprojectmuseum.model.enums.Role;
 import org.hrd.finalprojectmuseum.repository.ArtifactRepository;
 import org.hrd.finalprojectmuseum.repository.MuseumRepository;
+import org.hrd.finalprojectmuseum.repository.ProfileRepository;
 import org.hrd.finalprojectmuseum.repository.ZoneRepository;
+import org.hrd.finalprojectmuseum.service.AppUserService;
 import org.hrd.finalprojectmuseum.service.ZoneService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +30,8 @@ public class ZoneServiceImpl implements ZoneService {
     private final ZoneRepository zoneRepository;
     private final ArtifactRepository artifactRepository;
     private final MuseumRepository museumRepository;
+    private final ProfileRepository profileRepository;
+    private final AppUserService appUserService;
     LocalDateTime updatedAt = LocalDateTime.now();
 
     @Override
@@ -144,6 +147,20 @@ public class ZoneServiceImpl implements ZoneService {
         }else {
             return zoneRepository.countMuseumZonesByMuseumIdWithCategory(museumId, search, categoryId);
         }
+    }
+
+    @Override
+    public ArtifactZone getAmountArtifactZone(UUID museumId) {
+        UUID userId = appUserService.getUserId();
+        AppUserRegister appUserRegister = appUserService.findUserByUserId(userId);
+
+        if (appUserRegister.getRole() == Role.ROLE_MUSEUM_OWNER){
+            UUID idMuseumLogin = profileRepository.findMuseumOwnerByUserId(userId).getMuseumId();
+            if (!idMuseumLogin.equals(museumId)) {
+                throw new AppBadRequestException("Museum " + museumId + " not found, Resource restriction");
+            }
+        }
+        return zoneRepository.findTotalArtifactZone(museumId);
     }
 
     @Override
