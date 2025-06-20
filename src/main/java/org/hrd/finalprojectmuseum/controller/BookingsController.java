@@ -13,6 +13,7 @@ import org.hrd.finalprojectmuseum.model.dto.request.visitor.BookingRequestV2;
 import org.hrd.finalprojectmuseum.model.dto.response.ApiResponse;
 import org.hrd.finalprojectmuseum.model.dto.response.ListResponse;
 import org.hrd.finalprojectmuseum.model.entity.AppUserRegister;
+import org.hrd.finalprojectmuseum.model.entity.BookingAnalytics;
 import org.hrd.finalprojectmuseum.model.entity.Pagination;
 import org.hrd.finalprojectmuseum.model.entity.visitor.BookingV2;
 import org.hrd.finalprojectmuseum.model.entity.PaymentCredential;
@@ -230,6 +231,15 @@ public ResponseEntity<ApiResponse<BookingV2>> IndividualBookingByMuseumId(
                 .payload(response)
                 .build();
         return ResponseEntity.ok(listResponse);
+    }
+
+    @SecurityRequirement(name = "bearerAuth")
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_MUSEUM_OWNER')")
+    @GetMapping("/admin/museum/{museum-id}")
+    public ResponseEntity<ApiResponse<BookingAnalytics>> getBookingAnalytics(@PathVariable("museum-id") UUID museumId){
+        bookingService.getBookingAnalytics(museumId);
+
+        return null;
     }
 
 }

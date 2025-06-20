@@ -7,6 +7,7 @@ import org.hrd.finalprojectmuseum.model.dto.request.RequestTourRequest;
 import org.hrd.finalprojectmuseum.model.dto.request.visitor.BookingRequestV2;
 import org.hrd.finalprojectmuseum.model.dto.response.ListResponse;
 import org.hrd.finalprojectmuseum.model.entity.Booking;
+import org.hrd.finalprojectmuseum.model.entity.BookingAnalytics;
 import org.hrd.finalprojectmuseum.model.entity.visitor.BookingV2;
 import org.hrd.finalprojectmuseum.model.enums.BookingType;
 import org.hrd.finalprojectmuseum.model.enums.TicketType;
@@ -34,4 +35,6 @@ public interface BookingService {
     Booking findBookingByCodeQr(String codeQr, UUID museumId);
 
     BookingV2 tourRequest(UUID museumId, UUID visitorId, RequestTourRequest requestTourRequest);
+
+    BookingAnalytics getBookingAnalytics(UUID museumId);
 }

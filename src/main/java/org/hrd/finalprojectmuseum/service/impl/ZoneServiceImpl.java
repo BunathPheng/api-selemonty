@@ -160,7 +160,11 @@ public class ZoneServiceImpl implements ZoneService {
                 throw new AppBadRequestException("Museum " + museumId + " not found, Resource restriction");
             }
         }
-        return zoneRepository.findTotalArtifactZone(museumId);
+        ArtifactZone totalArtifactZone = zoneRepository.findTotalArtifactZone(museumId);
+        if (totalArtifactZone == null) {
+            throw new AppNotFoundException("Museum zone not found");
+        }
+        return totalArtifactZone;
     }
 
     @Override

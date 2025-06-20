@@ -8,6 +8,7 @@ import org.hrd.finalprojectmuseum.model.dto.request.RequestTourRequest;
 import org.hrd.finalprojectmuseum.model.dto.request.visitor.BookingRequestV2;
 import org.hrd.finalprojectmuseum.model.dto.response.ListResponse;
 import org.hrd.finalprojectmuseum.model.entity.Booking;
+import org.hrd.finalprojectmuseum.model.entity.BookingAnalytics;
 import org.hrd.finalprojectmuseum.model.entity.Pagination;
 import org.hrd.finalprojectmuseum.model.entity.TicketInfo;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
@@ -37,10 +38,8 @@ import java.util.UUID;
 public class BookingServiceImpl implements BookingService {
     private final BookingRepository bookingRepository;
     private final UniqueTextCodeGenerator uniqueTextCodeGenerator;
-    private final MuseumRepository museumRepository;
     private final TourRepository tourRepository;
     private final TicketInfoRepository ticketInfoRepository;
-    private final TicketInfoService ticketInfoService;
 
     @Override
     @Transactional
@@ -291,6 +290,8 @@ public class BookingServiceImpl implements BookingService {
         return bookingRepository.getBookingByBookingId(bookingId, visitorId);
     }
 
+
+
     public void checkAndUpdateExpiration(UUID bookingId) {
         Booking booking = bookingRepository.findBookingByBookingId(bookingId);
         if (booking == null) {
@@ -328,5 +329,14 @@ public class BookingServiceImpl implements BookingService {
 
     public List<BookingV2> getBookingByMuseumId(UUID museumId) {
         return bookingRepository.findBookingByMuseumId(museumId);
+    }
+
+    @Override
+    public BookingAnalytics getBookingAnalytics(UUID museumId) {
+        BookingAnalytics bookingAnalytics = bookingRepository.findBookingAnalytics(museumId);
+        if (bookingAnalytics == null) {
+
+        }
+        return null;
     }
 }

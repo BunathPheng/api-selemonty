@@ -6,6 +6,7 @@ import org.hrd.finalprojectmuseum.model.dto.request.BookingRequest;
 import org.hrd.finalprojectmuseum.model.dto.request.RequestTourRequest;
 import org.hrd.finalprojectmuseum.model.dto.request.visitor.BookingRequestV2;
 import org.hrd.finalprojectmuseum.model.entity.Booking;
+import org.hrd.finalprojectmuseum.model.entity.BookingAnalytics;
 import org.hrd.finalprojectmuseum.model.entity.Schedule;
 import org.hrd.finalprojectmuseum.model.entity.visitor.BookingV2;
 import org.hrd.finalprojectmuseum.model.entity.visitor.IndividualBookingInfo;
@@ -141,7 +142,7 @@ public interface BookingRepository {
 
     // Repository methods for finding bookings
     @Select("""
-        SELECT bk.booking_id, mo.name, mo.banner_link, bk.booking_type, bk.total_price, bk.ticket_status, mo.description
+        SELECT bk.booking_id, mo.museum_id, mo.name, mo.banner_link, bk.booking_type, bk.total_price, bk.ticket_status, mo.description
         FROM bookings bk
         INNER JOIN museum_owners mo ON mo.museum_id = bk.museum_id
         WHERE bk.visitor_id = #{visitorId}::UUID
@@ -158,7 +159,7 @@ public interface BookingRepository {
     );
 
     @Select("""
-        SELECT bk.booking_id, mo.name, mo.banner_link, bk.booking_type, bk.ticket_price, bk.ticket_status, mo.description
+        SELECT bk.booking_id, mo.museum_id, mo.name, mo.banner_link, bk.booking_type, bk.total_price, bk.ticket_status, mo.description
         FROM bookings bk
         INNER JOIN museum_owners mo ON mo.museum_id = bk.museum_id
         WHERE bk.visitor_id = #{visitorId}::UUID
@@ -177,7 +178,7 @@ public interface BookingRepository {
     );
 
     @Select("""
-    SELECT bk.booking_id, mo.name, mo.banner_link, bk.booking_type, bk.ticket_price, bk.ticket_status, mo.description
+    SELECT bk.booking_id, mo.museum_id, mo.name, mo.banner_link, bk.booking_type, bk.total_price, bk.ticket_status, mo.description
     FROM bookings bk
     INNER JOIN museum_owners mo ON mo.museum_id = bk.museum_id
     WHERE bk.visitor_id = #{visitorId}::UUID
@@ -197,7 +198,7 @@ public interface BookingRepository {
     );
 
     @Select("""
-    SELECT bk.booking_id, mo.name, mo.banner_link, bk.booking_type, bk.ticket_price, bk.ticket_status, mo.description
+    SELECT bk.booking_id, mo.museum_id, mo.name, mo.banner_link, bk.booking_type, bk.total_price, bk.ticket_status, mo.description
     FROM bookings bk
     INNER JOIN museum_owners mo ON mo.museum_id = bk.museum_id
     WHERE bk.visitor_id = #{visitorId}::UUID
@@ -401,7 +402,6 @@ public interface BookingRepository {
             WHERE bk.booking_id = #{bookingId}::UUID
             AND bk.visitor_id = #{visitorId}::UUID
     """)
-//    @ResultMap("IndividualBooking")
     @Results(id = "TourBooking", value = {
             @Result(property = "bookingId", column = "booking_id"),
             @Result(property = "tourId", column = "tour_id"),
@@ -453,4 +453,49 @@ public interface BookingRepository {
 
 
     Integer countNewBookingByMuseumId(UUID museumId, LocalDateTime startDate, LocalDateTime endDate);
+
+    @Select("""
+        SELECT
+            (SELECT COUNT(DISTINCT bk.visitor_id)
+             FROM bookings bk
+             WHERE bk.ticket_type = 'LOCAL'
+               AND bk.museum_id = 'aa9e7772-409d-403c-b835-4ed4e1f1ab9d'
+               AND DATE(bk.created_at) = CURRENT_DATE -7) AS local_Visitors,
+    
+            (SELECT COUNT(DISTINCT bk.visitor_id)
+             FROM bookings bk
+             WHERE bk.ticket_type = 'FOREIGNER'
+               AND bk.museum_id = 'aa9e7772-409d-403c-b835-4ed4e1f1ab9d'
+               AND DATE(bk.created_at) = CURRENT_DATE -7) AS foreigner_Visitors,
+    
+            (SELECT COUNT(DISTINCT bk.visitor_id)
+             FROM bookings bk
+             WHERE bk.booking_type = 'TOUR'
+               AND bk.museum_id = 'aa9e7772-409d-403c-b835-4ed4e1f1ab9d'
+               AND DATE(bk.created_at) = CURRENT_DATE -7) AS tour_Visitors,
+        
+            (SELECT COUNT(bk.ticket_type)
+             FROM bookings bk
+             WHERE bk.ticket_type = 'LOCAL'
+               AND bk.museum_id = 'aa9e7772-409d-403c-b835-4ed4e1f1ab9d') AS total_Locals,
+        
+            (SELECT COUNT(bk.ticket_type)
+             FROM bookings bk
+             WHERE bk.ticket_type = 'FOREIGNER'
+               AND bk.museum_id = 'aa9e7772-409d-403c-b835-4ed4e1f1ab9d') AS total_Foreigners,
+        
+            (SELECT COUNT(bk.ticket_type)
+             FROM bookings bk
+             WHERE bk.booking_type = 'TOUR'
+               AND bk.museum_id = 'aa9e7772-409d-403c-b835-4ed4e1f1ab9d') AS total_Tours;
+    """)
+    @Results(id = "BookingAnalyticMapper", value = {
+            @Result(property = "localVisitors", column = "local_Visitors"),
+            @Result(property = "foreignerVisitors", column = "foreigner_Visitors"),
+            @Result(property = "tourVisitors", column = "tour_Visitors"),
+            @Result(property = "totalLocals", column = "total_Locals"),
+            @Result(property = "totalForeigners", column = "total_Foreigners"),
+            @Result(property = "totalTours", column = "total_Tours"),
+    })
+    BookingAnalytics findBookingAnalytics(UUID bookingId);
 }
