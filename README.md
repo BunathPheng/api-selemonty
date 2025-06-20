@@ -1,5 +1,16 @@
 # Museum Management System API
 
+# Account For Testing
+1. Admin: 
+   email: selamonty.team@gmail.com
+   password: @M1nBtb007
+2. Museum Owner
+   email: test@gmail.com
+   password: Test123@
+3. Visitor:
+   email: good123vichet@gmail.com
+   password: Test123@
+
 ## About The Project
 
 A comprehensive museum management system that provides features for museum owners to manage their museums, zones, artifacts, events, and tours, while allowing visitors to explore, book tickets, and interact with museums.
