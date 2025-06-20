@@ -23,7 +23,7 @@ A comprehensive museum management system that provides features for museum owner
 
 ## 🌐 API Access
 
-You can access the API at the following URL:http://34.129.192.53:8080/swagger-ui/index.html
+You can access the API at the following URL:http://34.143.146.124:9125/swagger-ui/index.html
 
 ## Usage
 
