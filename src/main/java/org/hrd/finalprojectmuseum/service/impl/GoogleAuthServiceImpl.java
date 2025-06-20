@@ -16,7 +16,9 @@ import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
 import org.hrd.finalprojectmuseum.model.entity.visitor.Visitor;
 import org.hrd.finalprojectmuseum.model.enums.Role;
 import org.hrd.finalprojectmuseum.repository.AppUserRepository;
+import org.hrd.finalprojectmuseum.service.AppUserService;
 import org.hrd.finalprojectmuseum.service.GoogleAuthService;
+import org.hrd.finalprojectmuseum.service.OneSignalService;
 import org.hrd.finalprojectmuseum.service.ProfileService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -32,6 +34,8 @@ import java.util.Collections;
 public class GoogleAuthServiceImpl implements GoogleAuthService {
 
     private final ProfileService profileService;
+    private final OneSignalService oneSignalService;
+    private final AppUserService appUserService;
     @Value("${app.google.client-id}")
     private String webClientId;
     private final HttpTransport transport = new NetHttpTransport();
@@ -67,6 +71,14 @@ public class GoogleAuthServiceImpl implements GoogleAuthService {
                 }else {
                     appUserRepository.storeMeseumOwner(registerUser.getUserId(), (String) payload.get("name"), (String) payload.get("picture"), null, null, null, null);
                     MuseumOwner museumOwner = profileService.getMuseumOwnerByUserId(registerUser.getUserId());
+                    String notificationMsg = "New museum registration request from: " +
+                            museumOwner.getName() +
+                            " (" + payload.getEmail() + ")";
+                    oneSignalService.sendToUser(
+                            appUserService.getAdminUserId(),
+                            "New Museum Request",
+                            notificationMsg
+                    ).subscribe();
                     loginToken = LoginToken.<MuseumOwner>builder()
                             .token(jwtUtils.generateToken(registerUser.getEmail(), registerUser.getUserId(), registerUser.getRole().toString()))
                             .user(museumOwner)

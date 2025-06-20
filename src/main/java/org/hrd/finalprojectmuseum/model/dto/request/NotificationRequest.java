@@ -8,7 +8,6 @@ import java.util.Map;
 
 @Data
 public class NotificationRequest {
-
     @JsonProperty("app_id")
     private String appId;
 
@@ -18,15 +17,8 @@ public class NotificationRequest {
     @JsonProperty("include_player_ids")
     private List<String> includePlayerIds;
 
-    @JsonProperty("contents")
     private Map<String, String> contents;
-
-    @JsonProperty("headings")
     private Map<String, String> headings;
-
-    @JsonProperty("data")
     private Map<String, Object> data;
-
-    @JsonProperty("url")
     private String url;
 }

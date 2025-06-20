@@ -304,21 +304,5 @@ public class AuthsController {
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
-
-    @SecurityRequirement(name = "bearerAuth")
-    @PostMapping("/subscribe-notification")
-    public ResponseEntity<ApiResponse<Subscriptions>> addUserToSubscription(
-        @RequestBody @Valid SubscriptionRequest subscriptionRequest
-    ){
-        Subscriptions subscriptions = oneSignalService.subscribeUser(appUserService.getUserId(), subscriptionRequest.getSubscriptionCode());
-        ApiResponse<Subscriptions> response = ApiResponse.<Subscriptions>builder()
-                .success(true)
-                .message("Successfully subscribed")
-                .status(HttpStatus.CREATED)
-                .payload(subscriptions)
-                .build();
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    }
-
 }
 

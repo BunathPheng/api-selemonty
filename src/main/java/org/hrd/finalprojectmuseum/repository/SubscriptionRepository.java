@@ -1,6 +1,7 @@
 package org.hrd.finalprojectmuseum.repository;
 
 import org.apache.ibatis.annotations.*;
+import org.hrd.finalprojectmuseum.model.entity.NotificationMessage;
 import org.hrd.finalprojectmuseum.model.entity.Subscriptions;
 import org.springframework.stereotype.Repository;
 
@@ -11,9 +12,18 @@ import java.util.UUID;
 @Mapper
 @Repository
 public interface SubscriptionRepository {
+
+    @ResultMap("subscriptionMapper")
     @Select("SELECT * FROM subscriptions WHERE user_id = #{userId}::UUID")
     List<Subscriptions> findByUserId(@Param("userId") UUID userId);
 
+    @Results(id = "subscriptionMapper", value = {
+            @Result(property = "subscriptionId", column = "subscription_id"),
+            @Result(property = "userId", column = "user_id"),
+            @Result(property = "subscriptionCode", column = "subscription_code"),
+            @Result(property = "createdAt", column = "created_at"),
+            @Result(property = "updatedAt", column = "updated_at"),
+    })
     @Select("SELECT * FROM subscriptions WHERE subscription_code = #{subscriptionCode}")
     Subscriptions findBySubscriptionCode(@Param("subscriptionCode") String subscriptionCode);
 
@@ -23,21 +33,14 @@ public interface SubscriptionRepository {
     @Select("SELECT subscription_code FROM subscriptions")
     List<String> findAllSubscriptionCodes();
 
+    @ResultMap("subscriptionMapper")
     @Select("SELECT s.* FROM subscriptions s " +
             "WHERE s.user_id = #{userId}::UUID")
-    @Results(id = "subscriptionMapper", value = {
-            @Result(property = "subscriptionId", column = "subscription_id"),
-            @Result(property = "userId", column = "user_id"),
-            @Result(property = "subscriptionCode", column = "subscription_code"),
-            @Result(property = "createdAt", column = "created_at"),
-            @Result(property = "updatedAt", column = "updated_at"),
-    })
     List<Subscriptions> findByUserIdWithUser(@Param("userId") UUID userId);
 
-    @ResultMap("subscriptionMapper")
-    @Select("INSERT INTO subscriptions (user_id, subscription_code) " +
-            "VALUES (#{userId}::UUID, #{subscriptionCode}) RETURNING *")
-    Subscriptions insert(UUID userId, String subscriptionCode);
+    @Insert("INSERT INTO notification_message (subscription_id, title, message, is_read, created_at) " +
+            "VALUES (#{notification.subscriptionId}, #{notification.title}, #{notification.message}, #{notification.isRead}, #{notification.createdAt})")
+    void insert(@Param("notification") NotificationMessage notificationMessage);
 
     @Update("UPDATE subscriptions SET subscription_code = #{subscriptionCode}, updated_at = #{updatedAt} " +
             "WHERE subscription_id = #{subscriptionId}")

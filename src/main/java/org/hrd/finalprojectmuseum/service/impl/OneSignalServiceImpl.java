@@ -1,7 +1,10 @@
 package org.hrd.finalprojectmuseum.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.apache.ibatis.javassist.NotFoundException;
 import org.hrd.finalprojectmuseum.config.OneSignalConfig;
+import org.hrd.finalprojectmuseum.exception.AppBadRequestException;
+import org.hrd.finalprojectmuseum.exception.AppNotFoundException;
 import org.hrd.finalprojectmuseum.model.dto.request.NotificationRequest;
 import org.hrd.finalprojectmuseum.model.entity.AppUserRegister;
 import org.hrd.finalprojectmuseum.model.entity.NotificationMessage;
@@ -61,7 +64,8 @@ public class OneSignalServiceImpl implements OneSignalService {
             }
         }
 
-        return subscriptionRepository.insert(userId, oneSignalPlayerId);
+//        return subscriptionRepository.insert(userId, oneSignalPlayerId);
+        return null;
     }
 
     @Override
@@ -85,13 +89,15 @@ public class OneSignalServiceImpl implements OneSignalService {
         request.setHeadings(headings);
 
         return sendNotification(request)
-                .doOnSuccess(response -> saveNotificationToDatabase(title, message, allPlayerIds));
+                .doOnSuccess(response -> {
+                    System.out.println(response);
+                    saveNotificationToDatabase(title, message, allPlayerIds);
+                });
     }
 
     @Override
     public Mono<String> sendToUser(UUID userId, String title, String message) {
         List<String> playerIds = subscriptionRepository.findSubscriptionCodesByUserId(userId);
-
         if (playerIds.isEmpty()) {
             return Mono.just("User has no active subscriptions");
         }
@@ -107,9 +113,10 @@ public class OneSignalServiceImpl implements OneSignalService {
         Map<String, String> headings = new HashMap<>();
         headings.put("en", title);
         request.setHeadings(headings);
-
         return sendNotification(request)
-                .doOnSuccess(response -> saveNotificationToDatabase(title, message, playerIds));
+                .doOnSuccess(response -> {
+                    saveNotificationToDatabase(title, message, playerIds);
+                });
     }
 
     @Override
@@ -204,15 +211,18 @@ public class OneSignalServiceImpl implements OneSignalService {
     private void saveNotificationToDatabase(String title, String message, List<String> playerIds) {
         for (String playerId : playerIds) {
             Subscriptions subscription = subscriptionRepository.findBySubscriptionCode(playerId);
+            System.out.println("Subscription:"+subscription);
             if (subscription != null) {
                 NotificationMessage notificationMessage = NotificationMessage.builder()
-                        .subscriptionId(subscription.getSubscriptionId())
+                        .subscriptionId(subscription.getSubscriptionId()) // Set the foreign key
                         .title(title)
                         .message(message)
                         .isRead(false)
                         .createdAt(LocalDateTime.now())
                         .build();
                 notificationMessageRepository.insert(notificationMessage);
+            } else {
+                System.out.println("Subscription not found for playerId: " + playerId);
             }
         }
     }
@@ -233,7 +243,14 @@ public class OneSignalServiceImpl implements OneSignalService {
     }
 
     @Override
-    public void markNotificationAsRead(UUID notificationId) {
+    public void markNotificationAsRead(UUID notificationId, UUID userId) {
+        NotificationMessage notificationMessage = notificationMessageRepository.findById(notificationId);
+        if (notificationMessage == null) {
+            throw new AppNotFoundException("Notification Id: " + notificationId + " not found");
+        }
+        if (!notificationMessageRepository.isNotificationBelongToUser(userId, notificationId)) {
+            throw new AppBadRequestException("Notification Id: " + notificationId + " is not belong to user");
+        }
         notificationMessageRepository.updateReadStatus(notificationId, true);
     }
 

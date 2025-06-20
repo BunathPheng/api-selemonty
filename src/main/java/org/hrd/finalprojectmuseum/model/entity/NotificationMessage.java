@@ -13,12 +13,11 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class NotificationMessage {
-    private UUID notificationMessageId;
+    private UUID notificationId;
     private UUID subscriptionId;
     private String title;
     private String message;
     private Boolean isRead;
     private LocalDateTime createdAt;
-
-    private Subscriptions subscription;
+    private LocalDateTime updatedAt;
 }

@@ -34,7 +34,7 @@ public interface OneSignalService {
     List<NotificationMessage> getUserNotificationsWithDetails(UUID userId);
     List<NotificationMessage> getUserUnreadNotifications(UUID userId);
     NotificationMessage getNotificationById(UUID notificationId);
-    void markNotificationAsRead(UUID notificationId);
+    void markNotificationAsRead(UUID notificationId, UUID userId);
     void markNotificationAsUnread(UUID notificationId);
     void markAllUserNotificationsAsRead(UUID userId);
     void deleteNotification(UUID notificationId);
