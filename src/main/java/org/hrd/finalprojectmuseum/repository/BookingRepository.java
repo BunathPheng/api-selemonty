@@ -454,48 +454,48 @@ public interface BookingRepository {
 
     Integer countNewBookingByMuseumId(UUID museumId, LocalDateTime startDate, LocalDateTime endDate);
 
-    @Select("""
-        SELECT
-            (SELECT COUNT(DISTINCT bk.visitor_id)
-             FROM bookings bk
-             WHERE bk.ticket_type = 'LOCAL'
-               AND bk.museum_id = 'aa9e7772-409d-403c-b835-4ed4e1f1ab9d'
-               AND DATE(bk.created_at) = CURRENT_DATE -7) AS local_Visitors,
-    
-            (SELECT COUNT(DISTINCT bk.visitor_id)
-             FROM bookings bk
-             WHERE bk.ticket_type = 'FOREIGNER'
-               AND bk.museum_id = 'aa9e7772-409d-403c-b835-4ed4e1f1ab9d'
-               AND DATE(bk.created_at) = CURRENT_DATE -7) AS foreigner_Visitors,
-    
-            (SELECT COUNT(DISTINCT bk.visitor_id)
-             FROM bookings bk
-             WHERE bk.booking_type = 'TOUR'
-               AND bk.museum_id = 'aa9e7772-409d-403c-b835-4ed4e1f1ab9d'
-               AND DATE(bk.created_at) = CURRENT_DATE -7) AS tour_Visitors,
-        
-            (SELECT COUNT(bk.ticket_type)
-             FROM bookings bk
-             WHERE bk.ticket_type = 'LOCAL'
-               AND bk.museum_id = 'aa9e7772-409d-403c-b835-4ed4e1f1ab9d') AS total_Locals,
-        
-            (SELECT COUNT(bk.ticket_type)
-             FROM bookings bk
-             WHERE bk.ticket_type = 'FOREIGNER'
-               AND bk.museum_id = 'aa9e7772-409d-403c-b835-4ed4e1f1ab9d') AS total_Foreigners,
-        
-            (SELECT COUNT(bk.ticket_type)
-             FROM bookings bk
-             WHERE bk.booking_type = 'TOUR'
-               AND bk.museum_id = 'aa9e7772-409d-403c-b835-4ed4e1f1ab9d') AS total_Tours;
-    """)
-    @Results(id = "BookingAnalyticMapper", value = {
-            @Result(property = "localVisitors", column = "local_Visitors"),
-            @Result(property = "foreignerVisitors", column = "foreigner_Visitors"),
-            @Result(property = "tourVisitors", column = "tour_Visitors"),
-            @Result(property = "totalLocals", column = "total_Locals"),
-            @Result(property = "totalForeigners", column = "total_Foreigners"),
-            @Result(property = "totalTours", column = "total_Tours"),
-    })
-    BookingAnalytics findBookingAnalytics(UUID bookingId);
+//    @Select("""
+//        SELECT
+//            (SELECT COUNT(DISTINCT bk.visitor_id)
+//             FROM bookings bk
+//             WHERE bk.ticket_type = 'LOCAL'
+//               AND bk.museum_id = 'aa9e7772-409d-403c-b835-4ed4e1f1ab9d'
+//               AND DATE(bk.created_at) = CURRENT_DATE -7) AS local_Visitors,
+//
+//            (SELECT COUNT(DISTINCT bk.visitor_id)
+//             FROM bookings bk
+//             WHERE bk.ticket_type = 'FOREIGNER'
+//               AND bk.museum_id = 'aa9e7772-409d-403c-b835-4ed4e1f1ab9d'
+//               AND DATE(bk.created_at) = CURRENT_DATE -7) AS foreigner_Visitors,
+//
+//            (SELECT COUNT(DISTINCT bk.visitor_id)
+//             FROM bookings bk
+//             WHERE bk.booking_type = 'TOUR'
+//               AND bk.museum_id = 'aa9e7772-409d-403c-b835-4ed4e1f1ab9d'
+//               AND DATE(bk.created_at) = CURRENT_DATE -7) AS tour_Visitors,
+//
+//            (SELECT COUNT(bk.ticket_type)
+//             FROM bookings bk
+//             WHERE bk.ticket_type = 'LOCAL'
+//               AND bk.museum_id = 'aa9e7772-409d-403c-b835-4ed4e1f1ab9d') AS total_Locals,
+//
+//            (SELECT COUNT(bk.ticket_type)
+//             FROM bookings bk
+//             WHERE bk.ticket_type = 'FOREIGNER'
+//               AND bk.museum_id = 'aa9e7772-409d-403c-b835-4ed4e1f1ab9d') AS total_Foreigners,
+//
+//            (SELECT COUNT(bk.ticket_type)
+//             FROM bookings bk
+//             WHERE bk.booking_type = 'TOUR'
+//               AND bk.museum_id = 'aa9e7772-409d-403c-b835-4ed4e1f1ab9d') AS total_Tours;
+//    """)
+//    @Results(id = "BookingAnalyticMapper", value = {
+//            @Result(property = "localVisitors", column = "local_Visitors"),
+//            @Result(property = "foreignerVisitors", column = "foreigner_Visitors"),
+//            @Result(property = "tourVisitors", column = "tour_Visitors"),
+//            @Result(property = "totalLocals", column = "total_Locals"),
+//            @Result(property = "totalForeigners", column = "total_Foreigners"),
+//            @Result(property = "totalTours", column = "total_Tours"),
+//    })
+//    BookingAnalytics findBookingAnalytics(UUID bookingId);
 }
