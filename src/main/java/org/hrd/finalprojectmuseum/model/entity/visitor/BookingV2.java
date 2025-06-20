@@ -18,6 +18,8 @@ public class BookingV2 {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private String museumName;
     @JsonInclude(JsonInclude.Include.NON_NULL)
+    private String bannerLink;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private UUID visitorId;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private String visitorName;

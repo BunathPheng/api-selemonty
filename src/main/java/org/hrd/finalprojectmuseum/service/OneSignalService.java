@@ -1,5 +1,6 @@
 package org.hrd.finalprojectmuseum.service;
 
+import org.hrd.finalprojectmuseum.model.entity.NotificationCountUnread;
 import org.hrd.finalprojectmuseum.model.entity.NotificationMessage;
 import org.hrd.finalprojectmuseum.model.entity.Subscriptions;
 import reactor.core.publisher.Mono;
@@ -41,5 +42,5 @@ public interface OneSignalService {
 
     // Statistics
     int getTotalSubscriberCount();
-    int getUserUnreadCount(UUID userId);
+    NotificationCountUnread getUserUnreadCount(UUID userId);
 }

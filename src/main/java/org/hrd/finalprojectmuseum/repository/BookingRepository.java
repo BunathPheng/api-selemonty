@@ -115,7 +115,7 @@ public interface BookingRepository {
     void setTicketCode(UUID bookingId, String code);
 
     @Select("""
-        SELECT bk.booking_id, mo.name, bk.booking_type, vt.full_name, bk.ticket_type, bk.booking_date, bk.ticket_type,
+        SELECT bk.booking_id, mo.name, mo.banner_link, bk.booking_type, vt.full_name, bk.ticket_type, bk.booking_date, bk.ticket_type,
                       bk.ticket_price, bk.created_at, bk.slot_amount, bk.ticket_status, bk.qr_code, bk.total_price,
                       bk.expired_date
         FROM bookings bk
@@ -137,7 +137,7 @@ public interface BookingRepository {
 
     // Repository methods for finding bookings
     @Select("""
-        SELECT bk.booking_id, mo.name, mo.logo_link, bk.booking_type, bk.total_price, bk.ticket_status
+        SELECT bk.booking_id, mo.name, mo.banner_link, bk.museum_id, mo.logo_link, bk.booking_type, bk.total_price, bk.ticket_status
         FROM bookings bk
         INNER JOIN museum_owners mo ON mo.museum_id = bk.museum_id
         WHERE bk.visitor_id = #{visitorId}::UUID
@@ -154,7 +154,7 @@ public interface BookingRepository {
     );
 
     @Select("""
-        SELECT bk.booking_id, mo.name, mo.logo_link, bk.booking_type, bk.ticket_price, bk.ticket_status
+        SELECT bk.booking_id, mo.name, mo.banner_link, bk.museum_id, mo.logo_link, bk.booking_type, bk.ticket_price, bk.ticket_status
         FROM bookings bk
         INNER JOIN museum_owners mo ON mo.museum_id = bk.museum_id
         WHERE bk.visitor_id = #{visitorId}::UUID
@@ -173,7 +173,7 @@ public interface BookingRepository {
     );
 
     @Select("""
-    SELECT bk.booking_id, mo.name, mo.logo_link, bk.booking_type, bk.ticket_price, bk.ticket_status
+    SELECT bk.booking_id, mo.name, mo.banner_link, bk.museum_id, mo.logo_link, bk.booking_type, bk.ticket_price, bk.ticket_status
     FROM bookings bk
     INNER JOIN museum_owners mo ON mo.museum_id = bk.museum_id
     WHERE bk.visitor_id = #{visitorId}::UUID
@@ -193,7 +193,7 @@ public interface BookingRepository {
     );
 
     @Select("""
-    SELECT bk.booking_id, mo.name, mo.logo_link, bk.booking_type, bk.ticket_price, bk.ticket_status
+    SELECT bk.booking_id, mo.name, mo.banner_link, bk.museum_id, mo.logo_link, bk.booking_type, bk.ticket_price, bk.ticket_status
     FROM bookings bk
     INNER JOIN museum_owners mo ON mo.museum_id = bk.museum_id
     WHERE bk.visitor_id = #{visitorId}::UUID
@@ -361,6 +361,7 @@ public interface BookingRepository {
             @Result(property = "bookingId", column = "booking_id"),
             @Result(property = "museumId", column = "museum_id"),
             @Result(property = "museumName", column = "name"),
+            @Result(property = "bannerLink", column = "banner_link"),
             @Result(property = "visitorId", column = "visitor_id"),
             @Result(property = "visitorName", column = "full_name"),
             @Result(property = "bookingType", column = "booking_type"),

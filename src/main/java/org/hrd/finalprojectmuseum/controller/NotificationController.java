@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.hrd.finalprojectmuseum.model.dto.request.SubscriptionRequest;
 import org.hrd.finalprojectmuseum.model.dto.response.ApiResponse;
+import org.hrd.finalprojectmuseum.model.entity.NotificationCountUnread;
 import org.hrd.finalprojectmuseum.model.entity.NotificationMessage;
 import org.hrd.finalprojectmuseum.model.entity.Subscriptions;
 import org.hrd.finalprojectmuseum.service.AppUserService;
@@ -75,6 +76,19 @@ public class NotificationController {
                 .success(true)
                 .message("Mark as read successfully")
                 .status(HttpStatus.OK)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @GetMapping("/count/unread")
+    public ResponseEntity<ApiResponse<NotificationCountUnread>> getCountUdnreadNotification(){
+        UUID userId = appUserService.getUserId();
+        NotificationCountUnread notificationCountUnread = oneSignalService.getUserUnreadCount(userId);
+        ApiResponse<NotificationCountUnread> response = ApiResponse.<NotificationCountUnread>builder()
+                .success(true)
+                .message("Mark as read successfully")
+                .status(HttpStatus.OK)
+                .payload(notificationCountUnread)
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }

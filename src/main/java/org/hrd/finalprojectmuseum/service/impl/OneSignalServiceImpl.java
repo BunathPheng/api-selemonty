@@ -7,6 +7,7 @@ import org.hrd.finalprojectmuseum.exception.AppBadRequestException;
 import org.hrd.finalprojectmuseum.exception.AppNotFoundException;
 import org.hrd.finalprojectmuseum.model.dto.request.NotificationRequest;
 import org.hrd.finalprojectmuseum.model.entity.AppUserRegister;
+import org.hrd.finalprojectmuseum.model.entity.NotificationCountUnread;
 import org.hrd.finalprojectmuseum.model.entity.NotificationMessage;
 import org.hrd.finalprojectmuseum.model.entity.Subscriptions;
 import org.hrd.finalprojectmuseum.repository.AppUserRepository;
@@ -316,8 +317,10 @@ public class OneSignalServiceImpl implements OneSignalService {
     }
 
     @Override
-    public int getUserUnreadCount(UUID userId) {
-        return getUserUnreadNotifications(userId).size();
+    public NotificationCountUnread getUserUnreadCount(UUID userId) {
+        return NotificationCountUnread.builder()
+                .unreadCount(getUserUnreadNotifications(userId).size())
+                .build();
     }
 
     // Additional helper methods you might need
