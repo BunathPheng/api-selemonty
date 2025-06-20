@@ -333,10 +333,10 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public BookingAnalytics getBookingAnalytics(UUID museumId) {
-        BookingAnalytics bookingAnalytics = bookingRepository.findBookingAnalytics(museumId);
-        if (bookingAnalytics == null) {
-
-        }
+//        BookingAnalytics bookingAnalytics = bookingRepository.findBookingAnalytics(museumId);
+//        if (bookingAnalytics == null) {
+//
+//        }
         return null;
     }
 }
