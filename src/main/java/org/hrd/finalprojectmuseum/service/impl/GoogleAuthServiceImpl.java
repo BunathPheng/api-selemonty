@@ -9,12 +9,17 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.gson.GsonFactory;
 import lombok.RequiredArgsConstructor;
 import org.hrd.finalprojectmuseum.jwt.JwtUtils;
-import org.hrd.finalprojectmuseum.model.entity.AppUser;
 import org.hrd.finalprojectmuseum.model.entity.AppUserRegister;
 import org.hrd.finalprojectmuseum.model.entity.LoginToken;
+import org.hrd.finalprojectmuseum.model.entity.admin.Admin;
+import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
+import org.hrd.finalprojectmuseum.model.entity.visitor.Visitor;
 import org.hrd.finalprojectmuseum.model.enums.Role;
 import org.hrd.finalprojectmuseum.repository.AppUserRepository;
+import org.hrd.finalprojectmuseum.service.AppUserService;
 import org.hrd.finalprojectmuseum.service.GoogleAuthService;
+import org.hrd.finalprojectmuseum.service.OneSignalService;
+import org.hrd.finalprojectmuseum.service.ProfileService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -28,6 +33,9 @@ import java.util.Collections;
 @RequiredArgsConstructor
 public class GoogleAuthServiceImpl implements GoogleAuthService {
 
+    private final ProfileService profileService;
+    private final OneSignalService oneSignalService;
+    private final AppUserService appUserService;
     @Value("${app.google.client-id}")
     private String webClientId;
     private final HttpTransport transport = new NetHttpTransport();
@@ -38,7 +46,8 @@ public class GoogleAuthServiceImpl implements GoogleAuthService {
 
     @Override
     @Transactional
-    public LoginToken verifyAndExtractUserInfo(String idTokenString, String role) throws GeneralSecurityException, IOException {
+    public LoginToken<?>
+    verifyAndExtractUserInfo(String idTokenString, String role) throws GeneralSecurityException, IOException {
         GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(transport, jsonFactory)
                 .setAudience(Collections.singletonList(webClientId))
                 .build();
@@ -46,20 +55,61 @@ public class GoogleAuthServiceImpl implements GoogleAuthService {
         GoogleIdToken idToken = verifier.verify(idTokenString);
         if (idToken != null) {
             Payload payload = idToken.getPayload();
-            System.out.println((String) payload.get("name"));
             AppUserRegister appUserRegister = appUserRepository.findUserByEmail(payload.getEmail());
             if(appUserRegister == null) {
                 String encodedPass = passwordEncoder.encode("Kom@3");
                 Role roleEnum = role.equals("VISITOR") ? Role.ROLE_VISITOR : Role.ROLE_MUSEUM_OWNER;
                 AppUserRegister registerUser = appUserRepository.registerUser(payload.getEmail(), encodedPass, roleEnum, true);
+                LoginToken<?> loginToken;
                 if (role.equals("VISITOR")){
                     appUserRepository.storeVisitor(registerUser.getUserId(), (String) payload.get("name"), (String) payload.get("picture"));
+                    Visitor visitor = profileService.getProfile(registerUser.getUserId());
+                    loginToken = LoginToken.<Visitor>builder()
+                            .token(jwtUtils.generateToken(registerUser.getEmail(), registerUser.getUserId(), registerUser.getRole().toString()))
+                            .user(visitor)
+                            .build();
                 }else {
-                    appUserRepository.storeMeseumOwner(registerUser.getUserId(), (String) payload.get("name"), (String) payload.get("picture"), null, null, null);
+                    appUserRepository.storeMeseumOwner(registerUser.getUserId(), (String) payload.get("name"), (String) payload.get("picture"), null, null, null, null);
+                    MuseumOwner museumOwner = profileService.getMuseumOwnerByUserId(registerUser.getUserId());
+                    String notificationMsg = "New museum registration request from: " +
+                            museumOwner.getName() +
+                            " (" + payload.getEmail() + ")";
+                    oneSignalService.sendToUser(
+                            appUserService.getAdminUserId(),
+                            "New Museum Request",
+                            notificationMsg
+                    ).subscribe();
+                    loginToken = LoginToken.<MuseumOwner>builder()
+                            .token(jwtUtils.generateToken(registerUser.getEmail(), registerUser.getUserId(), registerUser.getRole().toString()))
+                            .user(museumOwner)
+                            .build();
                 }
-                return new LoginToken(jwtUtils.generateToken(registerUser.getEmail(), registerUser.getUserId(), registerUser.getRole().toString()));
+
+                return loginToken;
             }else {
-                return new LoginToken(jwtUtils.generateToken(appUserRegister.getEmail(), appUserRegister.getUserId(), appUserRegister.getRole().toString()));
+                LoginToken<?> loginToken;
+                if (appUserRegister.getRole() == Role.ROLE_ADMIN) {
+                    Admin admin = profileService.getAdminByUserId(appUserRegister.getUserId());
+                    loginToken = LoginToken.<Admin>builder()
+                            .token(jwtUtils.generateToken(appUserRegister.getEmail(), appUserRegister.getUserId(), String.valueOf(appUserRegister.getRole())))
+                            .user(admin)
+                            .build();
+                }
+                else if (appUserRegister.getRole() == Role.ROLE_MUSEUM_OWNER) {
+                    MuseumOwner museumOwner = profileService.getMuseumOwnerByUserId(appUserRegister.getUserId());
+                    loginToken = LoginToken.<MuseumOwner>builder()
+                            .token(jwtUtils.generateToken(appUserRegister.getEmail(), appUserRegister.getUserId(), String.valueOf(appUserRegister.getRole())))
+                            .user(museumOwner)
+                            .build();
+                }
+                else {
+                    Visitor visitor = profileService.getProfile(appUserRegister.getUserId());
+                    loginToken = LoginToken.<Visitor>builder()
+                            .token(jwtUtils.generateToken(appUserRegister.getEmail(), appUserRegister.getUserId(), String.valueOf(appUserRegister.getRole())))
+                            .user(visitor)
+                            .build();
+                }
+                return loginToken;
             }
         } else {
             throw new IllegalArgumentException("Invalid ID token.");

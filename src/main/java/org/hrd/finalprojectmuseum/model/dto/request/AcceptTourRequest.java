@@ -13,7 +13,7 @@ import java.util.UUID;
 public class AcceptTourRequest {
     @NotNull(message = "Tour price cannot be null")
     @Positive(message = "Tour price must be positive")
-    @Digits(integer = 8, fraction = 2, message = "Tour price must have at most 8 digits and 2 decimal places")
+    @Digits(integer = 8, fraction = 3, message = "Tour price must have at most 8 digits and 3 decimal places")
     private BigDecimal tourPrice;
 
     @NotNull(message = "Guide Id is request")

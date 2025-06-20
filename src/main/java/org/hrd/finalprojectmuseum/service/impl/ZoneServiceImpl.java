@@ -7,12 +7,14 @@ import org.hrd.finalprojectmuseum.model.dto.request.museum_owner.MuseumArtifactR
 import org.hrd.finalprojectmuseum.model.dto.request.museum_owner.MuseumZoneRequest;
 import org.hrd.finalprojectmuseum.model.dto.request.museum_owner.MuseumZoneUpdateRequest;
 import org.hrd.finalprojectmuseum.model.dto.response.MuseumZoneResponse;
-import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
-import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumZone;
-import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumZoneCategory;
+import org.hrd.finalprojectmuseum.model.entity.AppUserRegister;
+import org.hrd.finalprojectmuseum.model.entity.museum_owner.*;
+import org.hrd.finalprojectmuseum.model.enums.Role;
 import org.hrd.finalprojectmuseum.repository.ArtifactRepository;
 import org.hrd.finalprojectmuseum.repository.MuseumRepository;
+import org.hrd.finalprojectmuseum.repository.ProfileRepository;
 import org.hrd.finalprojectmuseum.repository.ZoneRepository;
+import org.hrd.finalprojectmuseum.service.AppUserService;
 import org.hrd.finalprojectmuseum.service.ZoneService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +30,8 @@ public class ZoneServiceImpl implements ZoneService {
     private final ZoneRepository zoneRepository;
     private final ArtifactRepository artifactRepository;
     private final MuseumRepository museumRepository;
+    private final ProfileRepository profileRepository;
+    private final AppUserService appUserService;
     LocalDateTime updatedAt = LocalDateTime.now();
 
     @Override
@@ -77,24 +81,29 @@ public class ZoneServiceImpl implements ZoneService {
         if (museumZone == null) {
             throw new AppNotFoundException("Museum zone ID not found");
         }
+        Integer countArtifact = artifactRepository.countArtifact(museumZone.getZoneId(), "");
+        museumZone.setCountArtifact(countArtifact);
         return museumZone;
     };
 
     @Override
+    @Transactional
     public void updateMuseumZoneDetailByZoneId(UUID museumZoneId, MuseumZoneUpdateRequest museumZoneUpdateRequest, UUID museumId) {
         MuseumZone zone = zoneRepository.retrieveMuseumZoneDetailByZoneId(museumZoneId);
         if (zone == null) {
             throw new AppNotFoundException("Museum zone ID not found");
         }
-        if (zone.getMuseumId().equals(museumId)) {
+
+        if (!zone.getMuseumId().equals(museumId)) {
             throw new AppBadRequestException("Zone belongs to another Museum. You can not update this zone");
         }
 
-        boolean zoneCategoryId = zoneRepository.retrieveMuseumZoneCategoryId(museumZoneUpdateRequest.getCategoryId());
-        if (!zoneCategoryId) {
+        boolean zoneCategoryExists = zoneRepository.retrieveMuseumZoneCategoryId(museumZoneUpdateRequest.getCategoryId());
+        if (!zoneCategoryExists) {
             throw new AppNotFoundException("Museum zone category Id Not Found");
         }
-        zoneRepository.updateMuseumZoneDetailByZoneId(museumZoneId, museumZoneUpdateRequest, updatedAt);
+
+        zoneRepository.updateMuseumZoneDetailByZoneId(museumZoneId, museumZoneUpdateRequest, LocalDateTime.now());
     }
 
     @Override
@@ -103,7 +112,7 @@ public class ZoneServiceImpl implements ZoneService {
         if (zone == null) {
             throw new AppNotFoundException("Museum zone ID not found");
         }
-        if (zone.getMuseumId().equals(museumId)) {
+        if (!zone.getMuseumId().equals(museumId)) {
             throw new AppBadRequestException("Zone belongs to another Museum. You can not update this zone");
         }
         zoneRepository.deleteMuseumZoneByZoneId(museumZoneId, true);
@@ -123,6 +132,10 @@ public class ZoneServiceImpl implements ZoneService {
         if (museumZoneResponses == null) {
             throw new AppNotFoundException("Museum Zone Not Found");
         }
+        for(MuseumZoneResponse museumZoneResponse : museumZoneResponses){
+            Integer countArtifact = artifactRepository.countArtifact(museumZoneResponse.getZoneId(), "");
+            museumZoneResponse.setCountArtifact(countArtifact);
+        }
         return museumZoneResponses;
     }
 
@@ -134,6 +147,24 @@ public class ZoneServiceImpl implements ZoneService {
         }else {
             return zoneRepository.countMuseumZonesByMuseumIdWithCategory(museumId, search, categoryId);
         }
+    }
+
+    @Override
+    public ArtifactZone getAmountArtifactZone(UUID museumId) {
+        UUID userId = appUserService.getUserId();
+        AppUserRegister appUserRegister = appUserService.findUserByUserId(userId);
+
+        if (appUserRegister.getRole() == Role.ROLE_MUSEUM_OWNER){
+            UUID idMuseumLogin = profileRepository.findMuseumOwnerByUserId(userId).getMuseumId();
+            if (!idMuseumLogin.equals(museumId)) {
+                throw new AppBadRequestException("Museum " + museumId + " not found, Resource restriction");
+            }
+        }
+        ArtifactZone totalArtifactZone = zoneRepository.findTotalArtifactZone(museumId);
+        if (totalArtifactZone == null) {
+            throw new AppNotFoundException("Museum zone not found");
+        }
+        return totalArtifactZone;
     }
 
     @Override

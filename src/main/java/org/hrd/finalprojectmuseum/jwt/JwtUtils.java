@@ -30,6 +30,7 @@ public class JwtUtils {
 
     // generate token for user
     public String generateToken(String email, UUID userId, String role) {
+        System.out.println(expiration);
         return Jwts.builder()
                 .setSubject(email)
                 .claim("userId", userId)

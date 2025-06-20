@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.hrd.finalprojectmuseum.model.dto.request.TicketInfoRequest;
 import org.hrd.finalprojectmuseum.model.dto.response.ApiResponse;
 import org.hrd.finalprojectmuseum.model.entity.TicketInfo;
+import org.hrd.finalprojectmuseum.model.entity.TicketStat;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
 import org.hrd.finalprojectmuseum.service.ProfileService;
 import org.hrd.finalprojectmuseum.service.TicketInfoService;
@@ -74,5 +75,20 @@ public class TicketsInfoController {
                 .status(HttpStatus.CREATED)
                 .build();
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @Operation(summary = "Museum Dashboard ticket sold")
+    @SecurityRequirement(name = "bearerAuth")
+    @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
+    @GetMapping("/stat")
+    public ResponseEntity<ApiResponse<TicketStat>> getTicketInfoStat() {
+        TicketStat ticketStat = ticketInfoService.getTicketStat();
+        ApiResponse<TicketStat> response = ApiResponse.<TicketStat>builder()
+                .success(true)
+                .message("Ticket statistic has been fetched")
+                .payload(ticketStat)
+                .status(HttpStatus.OK)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 }

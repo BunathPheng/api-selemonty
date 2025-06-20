@@ -1,5 +1,7 @@
 package org.hrd.finalprojectmuseum.service;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import org.hrd.finalprojectmuseum.model.dto.request.auth.ChangePasswordRequest;
 import org.hrd.finalprojectmuseum.model.entity.AppUserRegister;
 import org.hrd.finalprojectmuseum.model.enums.Role;
@@ -11,7 +13,6 @@ import java.math.BigDecimal;
 import java.util.UUID;
 
 public interface AppUserService extends UserDetailsService {
-    @Override
     UserDetails loadUserByUsername(String email) throws UsernameNotFoundException;
 
     AppUserRegister registerUser(String email, String password, Role role);
@@ -30,7 +31,7 @@ public interface AppUserService extends UserDetailsService {
 
     void storeVisitor(UUID userId, String fullName);
 
-    void storeMuseumOwner(UUID userId, String name, String logoLink, BigDecimal lat, BigDecimal lng, String description);
+    void storeMuseumOwner(UUID userId, String name, String logoLink, String address, BigDecimal lat, BigDecimal lng, String description);
 
     void updatePassword(UUID userId, ChangePasswordRequest passwordRequest);
 
@@ -39,4 +40,10 @@ public interface AppUserService extends UserDetailsService {
     UUID getUserId();
 
     AppUserRegister getAppUserRegister();
+
+    void isGoogleAccount(String email);
+
+    String getUserEmailByUserId(UUID userId);
+
+    UUID getAdminUserId();
 }

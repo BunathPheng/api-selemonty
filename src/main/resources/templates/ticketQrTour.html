@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="x-apple-disable-message-reformatting">
+    <title>Booking Confirmation - <span th:text="${appName}">Museum App</span></title>
+    <!--[if mso]>
+    <noscript>
+        <xml>
+            <o:OfficeDocumentSettings>
+                <o:AllowPNG/>
+                <o:PixelsPerInch>96</o:PixelsPerInch>
+            </o:OfficeDocumentSettings>
+        </xml>
+    </noscript>
+    <![endif]-->
+    <style>
+        @media only screen and (max-width: 600px) {
+            .container {
+                width: 100% !important;
+            }
+            .content {
+                padding: 20px !important;
+            }
+            .ticket-code {
+                font-size: 18px !important;
+                padding: 12px 16px !important;
+            }
+            .qr-container {
+                padding: 20px !important;
+            }
+            .detail-row {
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                padding: 12px 0 !important;
+            }
+            .detail-value {
+                margin-top: 5px !important;
+            }
+            .tour-guide-qr {
+                width: 100% !important;
+                margin: 10px 0 !important;
+            }
+            .guide-container {
+                display: block !important;
+                text-align: center !important;
+            }
+            .guide-item {
+                display: inline-block !important;
+                margin: 8px !important;
+                max-width: 200px !important;
+            }
+        }
+    </style>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; background-color: #f9fafb; line-height: 1.6;">
+
+<!-- Email Container -->
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f9fafb;">
+    <tr>
+        <td align="center" style="padding: 40px 20px;">
+            <!-- Main Content Container -->
+            <table class="container" role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="background-color: #ffffff; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); overflow: hidden;">
+                <!-- Header -->
+                <tr>
+                    <td align="center" style="background: linear-gradient(to right, #b91c1c, #991b1b); padding: 32px 24px; color: #ffffff;">
+                        <h1 style="margin: 0 0 12px 0; font-size: 28px; font-weight: 600; color: #ffffff;">🎫 Booking Confirmed!</h1>
+                        <p style="margin: 0; font-size: 16px; color: rgba(255,255,255,0.95);">Your museum visit is all set</p>
+                    </td>
+                </tr>
+
+                <!-- Welcome Message -->
+                <tr>
+                    <td class="content" style="padding: 32px 32px 24px;">
+                        <div style="font-size: 18px; margin-bottom: 16px; color: #374151; font-weight: 500;">
+                            Dear <strong style="color: #b91c1c;" th:text="${visitorName}">Visitor</strong>,
+                        </div>
+                        <p style="margin: 0; color: #4b5563; font-size: 16px; line-height: 1.75;">
+                            Great news! Your booking with <strong style="color: #b91c1c;" th:text="${appName}">Museum App</strong> has been successfully confirmed. We're excited to welcome you to <strong th:text="${museumName}">the museum</strong>!
+                        </p>
+                    </td>
+                </tr>
+
+                <!-- QR Code Section -->
+                <tr>
+                    <td align="center" class="qr-container" style="padding: 24px 32px;">
+                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="background: linear-gradient(to bottom right, #f9fafb, #f3f4f6); border: 2px dashed #b91c1c; border-radius: 12px; padding: 32px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); display: inline-block;">
+                            <tr>
+                                <td align="center">
+                                    <h3 style="margin: 0 0 8px 0; color: #1f2937; font-size: 20px; font-weight: 600;">📱 Your Entry QR Code</h3>
+                                    <p style="margin: 0 0 24px 0; color: #6b7280; font-size: 14px; line-height: 1.5;">Present this QR code at the museum entrance for quick entry</p>
+                                    <!-- QR Code - Fixed CID reference -->
+                                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="display: inline-block; padding: 20px; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 1px solid #e5e7eb;">
+                                        <tr>
+                                            <td>
+                                                <img src="cid:qrcode" alt="Museum Ticket QR Code" style="display: block; width: 192px; height: 192px; margin: 0 auto; image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges; image-rendering: pixelated; -ms-interpolation-mode: nearest-neighbor;" />
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+
+                <!-- Ticket Reference Section -->
+                <tr>
+                    <td align="center" style="padding: 0 32px 32px;">
+                        <h3 style="margin: 0 0 20px 0; color: #1f2937; font-size: 18px; font-weight: 600;">🎟️ Confirmation Code</h3>
+                        <div class="ticket-code" style="display: inline-block; background: linear-gradient(to bottom right, #ffffff, #f9fafb); border: 2px dashed #b91c1c; border-radius: 8px; padding: 16px 24px; font-size: 24px; font-weight: bold; color: #b91c1c; letter-spacing: 3px; font-family: 'Courier New', monospace; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                            <span th:text="${qrCode}">ABC123DEF</span>
+                        </div>
+                    </td>
+                </tr>
+
+                <!-- Booking Details Section -->
+                <tr>
+                    <td style="padding: 24px 32px 32px;">
+                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background: linear-gradient(to bottom right, #f9fafb, #f3f4f6); padding: 28px; border-radius: 12px; border-left: 4px solid #b91c1c; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                            <tr>
+                                <td>
+                                    <h3 style="margin: 0 0 24px 0; color: #1f2937; font-size: 20px; font-weight: 600;">
+                                        📋 Booking Summary
+                                    </h3>
+                                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                        <tr class="detail-row">
+                                            <td style="padding: 12px 0; border-bottom: 1px solid #d1d5db;">
+                                                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                                    <tr>
+                                                        <td style="font-weight: 600; color: #4b5563; font-size: 15px;">Booking ID:</td>
+                                                        <td align="right" style="color: #b91c1c; font-weight: bold; font-family: 'Courier New', monospace; font-size: 14px;" th:text="${bookingId}">BK123456</td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                        <tr class="detail-row">
+                                            <td style="padding: 12px 0; border-bottom: 1px solid #d1d5db;">
+                                                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                                    <tr>
+                                                        <td style="font-weight: 600; color: #4b5563; font-size: 15px;">Museum:</td>
+                                                        <td align="right" style="color: #1f2937; font-weight: 600; font-size: 15px;" th:text="${museumName}">Museum Name</td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                        <tr class="detail-row">
+                                            <td style="padding: 12px 0; border-bottom: 1px solid #d1d5db;">
+                                                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                                    <tr>
+                                                        <td style="font-weight: 600; color: #4b5563; font-size: 15px;">Visit Date & Time:</td>
+                                                        <td align="right" style="color: #374151; font-size: 15px;" th:text="${bookingDate}">Date & Time</td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                        <tr class="detail-row">
+                                            <td style="padding: 12px 0; border-bottom: 1px solid #d1d5db;">
+                                                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                                    <tr>
+                                                        <td style="font-weight: 600; color: #4b5563; font-size: 15px;">Booking Type:</td>
+                                                        <td align="right" style="color: #374151; font-size: 15px;" th:text="${bookingType}">Tour</td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                        <tr class="detail-row">
+                                            <td style="padding: 12px 0; border-bottom: 1px solid #d1d5db;">
+                                                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                                    <tr>
+                                                        <td style="font-weight: 600; color: #4b5563; font-size: 15px;">Ticket Type:</td>
+                                                        <td align="right" style="color: #374151; font-size: 15px;" th:text="${ticketType}">Adult</td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                        <tr class="detail-row">
+                                            <td style="padding: 12px 0; border-bottom: 1px solid #d1d5db;">
+                                                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                                    <tr>
+                                                        <td style="font-weight: 600; color: #4b5563; font-size: 15px;">Number of Tickets:</td>
+                                                        <td align="right" style="color: #1f2937; font-weight: 600; font-size: 15px;" th:text="${slotAmount}">2</td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                        <tr class="detail-row">
+                                            <td style="padding: 12px 0; border-bottom: 1px solid #d1d5db;">
+                                                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                                    <tr>
+                                                        <td style="font-weight: 600; color: #4b5563; font-size: 15px;">Price per Ticket:</td>
+                                                        <td align="right" style="color: #374151; font-size: 15px;" th:text="${ticketPrice}">$25.00</td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                        <tr class="detail-row">
+                                            <td style="padding: 12px 0; border-bottom: 1px solid #d1d5db;">
+                                                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                                    <tr>
+                                                        <td style="font-weight: 600; color: #4b5563; font-size: 15px;">Total Amount:</td>
+                                                        <td align="right" style="color: #059669; font-weight: bold; font-size: 18px;" th:text="${totalPrice}">$50.00</td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                        <tr class="detail-row">
+                                            <td style="padding: 12px 0; border-bottom: 1px solid #d1d5db;">
+                                                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                                    <tr>
+                                                        <td style="font-weight: 600; color: #4b5563; font-size: 15px;">Status:</td>
+                                                        <td align="right">
+                                                            <span style="display: inline-block; padding: 8px 16px; background: linear-gradient(to right, #10b981, #059669); color: white; border-radius: 9999px; font-size: 12px; font-weight: bold; text-transform: uppercase; box-shadow: 0 4px 6px rgba(0,0,0,0.1);" th:text="${ticketStatus}">CONFIRMED</span>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                        <tr class="detail-row">
+                                            <td style="padding: 12px 0; border-bottom: 1px solid #d1d5db;">
+                                                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                                    <tr>
+                                                        <td style="font-weight: 600; color: #4b5563; font-size: 15px;">Purchased Date:</td>
+                                                        <td align="right" style="color: #374151; font-size: 15px;" th:text="${purchasedDate}">Purchase Date</td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                        <tr class="detail-row">
+                                            <td style="padding: 12px 0;">
+                                                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                                    <tr>
+                                                        <td style="font-weight: 600; color: #4b5563; font-size: 15px;">Valid Until:</td>
+                                                        <td align="right" style="color: #dc2626; font-weight: 600; font-size: 15px;" th:text="${expiredDate}">Expiry Date</td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+
+                <!-- Tour Guide Donation QR Codes Section - Fixed with proper conditional -->
+                <tr th:if="${tourGuides != null and !#lists.isEmpty(tourGuides)}">
+                    <td style="padding: 24px 32px 32px;">
+                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background: linear-gradient(to bottom right, #f9fafb, #f3f4f6); padding: 28px; border-radius: 12px; border-left: 4px solid #b91c1c; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                            <tr>
+                                <td>
+                                    <h3 style="margin: 0 0 24px 0; color: #1f2937; font-size: 20px; font-weight: 600;">
+                                        🙌 Support Your Tour Guide
+                                    </h3>
+                                    <p style="margin: 0 0 24px 0; color: #4b5563; font-size: 16px; line-height: 1.75;">
+                                        Enjoyed your tour? Show your appreciation by donating to your guide(s) using the QR code(s) below.
+                                    </p>
+
+                                    <!-- Guide container - better mobile layout -->
+                                    <div class="guide-container" style="text-align: center;">
+                                        <!-- Loop through tour guides with proper structure -->
+                                        <div th:each="guide : ${tourGuides}" class="guide-item" style="display: inline-block; margin: 12px; vertical-align: top;">
+                                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 1px solid #e5e7eb; padding: 20px;">
+                                                <tr>
+                                                    <td align="center">
+                                                        <!-- Guide QR Code - Fixed to use proper CID format -->
+                                                        <img th:src="${'cid:guide_' + guide.id}"
+                                                             th:alt="${guide.name + ' Donation QR Code'}"
+                                                             style="display: block; width: 140px; height: 140px; margin: 0 auto; image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges; image-rendering: pixelated; -ms-interpolation-mode: nearest-neighbor;" />
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td align="center" style="padding-top: 12px;">
+                                                        <p style="margin: 0; color: #1f2937; font-size: 15px; font-weight: 600;" th:text="${guide.guideName}">Guide Name</p>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+
+                <!-- Footer -->
+                <tr>
+                    <td style="background: linear-gradient(to right, #1f2937, #111827); color: #ffffff; padding: 32px 24px; text-align: center; font-size: 14px; line-height: 1.6;">
+                        <p style="margin: 0 0 8px 0; font-weight: 500;">
+                            © 2025 <strong th:text="${appName}">Museum App</strong>. All rights reserved.
+                        </p>
+                        <p style="margin: 0 0 8px 0; opacity: 0.8;">
+                            This is an automated email. Please do not reply to this message.
+                        </p>
+                        <p style="margin: 0;">
+                            <strong>Questions? We're here to help</strong><br>
+                            <a th:href="${'mailto:' + museumEmail}"
+                               style="color: #fbbf24 !important; text-decoration: none !important; font-weight: 500 !important;"
+                               th:text="${museumEmail}">museum@example.com</a> |
+                            <a th:href="${'tel:' + museumContactNumber}"
+                               style="color: #fbbf24 !important; text-decoration: none !important; font-weight: 500 !important;"
+                               th:text="${museumContactNumber}">+1-555-0123</a>
+                        </p>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+
+</body>
+</html>

@@ -7,9 +7,14 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.hrd.finalprojectmuseum.model.dto.response.*;
+import org.hrd.finalprojectmuseum.model.entity.AppUserRegister;
 import org.hrd.finalprojectmuseum.model.entity.Booking;
+import org.hrd.finalprojectmuseum.model.entity.MuseumStat;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
+import org.hrd.finalprojectmuseum.model.entity.visitor.Visitor;
 import org.hrd.finalprojectmuseum.model.enums.MuseumStatus;
+import org.hrd.finalprojectmuseum.model.enums.Role;
+import org.hrd.finalprojectmuseum.model.enums.SortMuseum;
 import org.hrd.finalprojectmuseum.service.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,12 +38,13 @@ public class MuseumsController {
     private final TicketInfoService ticketInfoService;
     private final ScheduleService scheduleService;
     private final MuseumService museumService;
+    private final AppUserService appUserService;
 
     @SecurityRequirement(name = "bearerAuth")
     @PreAuthorize("hasRole('ROLE_MUSEUM_OWNER')")
     @Operation(summary = "For check and verify booking ticket by bookingId which provide by qr scan. Only museum owner can use.")
     @PatchMapping("/management/verify/qr")
-    public ResponseEntity<ApiResponse<Booking>> verifyScanQrCodeBookingId(@RequestParam("scan") @NotNull UUID bookingId) {
+    public ResponseEntity<ApiResponse<Booking>> verifyScanQrCodeBookingId(@RequestParam("scannedBookingId") @NotNull UUID bookingId) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UUID userId = UUID.fromString((String) auth.getCredentials());
         MuseumOwner museum = profileService.getMuseumOwnerByUserId(userId);
@@ -94,7 +100,7 @@ public class MuseumsController {
             @RequestParam(defaultValue = "10") @Min(value = 1, message = "must be greater than 0") Integer size,
             @RequestParam("status") MuseumStatus museumStatus
             ) {
-        ListResponse<MuseumOwner> museums = museumService.getAllMuseum(null, null, page, size, museumStatus);
+        ListResponse<MuseumOwner> museums = museumService.getAllMuseum(null, null, page, size, null, museumStatus);
         ApiResponse<ListResponse<MuseumOwner>> response = ApiResponse.<ListResponse<MuseumOwner>>builder()
                 .success(true)
                 .message("Museums has been fetched successfully")
@@ -104,6 +110,7 @@ public class MuseumsController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    @SecurityRequirement(name = "bearerAuth")
     @Operation(summary = "For get all museums with filter. Allowed guest")
     @GetMapping("/filter")
     public ResponseEntity<ApiResponse<ListResponse<MuseumOwner>>> getMuseumOwnersByFilter(
@@ -111,9 +118,17 @@ public class MuseumsController {
             @RequestParam(required = false) UUID museumCategoryId,
             @RequestParam(defaultValue = "1") @Min(value = 1, message = "must be greater than 0") Integer page,
             @RequestParam(defaultValue = "10") @Min(value = 1, message = "must be greater than 0") Integer size,
+            @RequestParam() SortMuseum museumSort,
             @RequestParam("status") MuseumStatus museumStatus
     ) {
-        ListResponse<MuseumOwner> museums = museumService.getAllMuseum(search, museumCategoryId, page, size, museumStatus);
+        AppUserRegister appUser = appUserService.getAppUserRegister();
+        ListResponse<MuseumOwner> museums;
+        if (appUser != null && appUser.getRole() == Role.ROLE_VISITOR){
+            Visitor visitor = profileService.getProfile(appUser.getUserId());
+            museums = museumService.getAllMuseumForVisitor(visitor.getVisitorId(), search, museumCategoryId, page, size, museumSort, museumStatus);
+        }else{
+            museums = museumService.getAllMuseum(search, museumCategoryId, page, size, museumSort, museumStatus);
+        }
         ApiResponse<ListResponse<MuseumOwner>> response = ApiResponse.<ListResponse<MuseumOwner>>builder()
                 .success(true)
                 .message("Museums has been fetched successfully")
@@ -123,12 +138,13 @@ public class MuseumsController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    @SecurityRequirement(name = "bearerAuth")
     @Operation(summary = "For get all approved museums filter by distance. Allowed all role and guest")
     @GetMapping("/nearby")
     public ResponseEntity<ApiResponse<List<MuseumWithDistanceResponse>>> getAllMuseumOwnersByLocation(
-            @RequestParam(required = false) @Digits(integer = 4, fraction = 6, message = "Must be a number with up to 4 integer digits and 6 fractional digits") BigDecimal lat,
-            @RequestParam(required = false) @Digits(integer = 4, fraction = 6, message = "Must be a number with up to 4 integer digits and 6 fractional digits") BigDecimal lng,
-            @RequestParam(required = false) Integer distance
+            @RequestParam() @Digits(integer = 4, fraction = 6, message = "Must be a number with up to 4 integer digits and 6 fractional digits") BigDecimal lat,
+            @RequestParam() @Digits(integer = 4, fraction = 6, message = "Must be a number with up to 4 integer digits and 6 fractional digits") BigDecimal lng,
+            @RequestParam() Integer distance
     ) {
         List<MuseumWithDistanceResponse> museums = museumService.getAllMuseumByLocation(lat, lng, distance);
         ApiResponse<List<MuseumWithDistanceResponse>> response = ApiResponse.<List<MuseumWithDistanceResponse>>builder()
@@ -173,4 +189,21 @@ public class MuseumsController {
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
+
+    @SecurityRequirement(name = "bearerAuth")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @GetMapping("/stat")
+    public ResponseEntity<ApiResponse<MuseumStat>> getMuseumStat() {
+        MuseumStat museumStat = museumService.getMuseumStat();
+        ApiResponse<MuseumStat> response = ApiResponse.<MuseumStat>builder()
+                .success(true)
+                .message("Museum stat fetched successfully")
+                .payload(museumStat)
+                .status(HttpStatus.OK)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+
+
 }

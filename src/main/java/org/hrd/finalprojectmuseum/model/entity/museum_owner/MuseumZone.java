@@ -15,12 +15,13 @@ public class MuseumZone {
     private UUID zoneId;
     private UUID museumId;
     private String zoneCategoryName;
+    private UUID zoneCategoryId;
     private String zoneName;
     private String description;
     private String pictureLink;
     private String videoLink;
+    private Integer countArtifact;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private boolean isDeleted;
-    private List<MuseumArtifact> artifacts;
 }

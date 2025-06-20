@@ -1,6 +1,7 @@
 package org.hrd.finalprojectmuseum.repository;
 
 import org.apache.ibatis.annotations.*;
+import org.hrd.finalprojectmuseum.model.dto.request.ReplyRequest;
 import org.hrd.finalprojectmuseum.model.dto.request.visitor.VisitorReviewRequest;
 import org.hrd.finalprojectmuseum.model.entity.visitor.VisitorReview;
 import org.hrd.finalprojectmuseum.model.entity.visitor.VisitorReviewStatistics;
@@ -38,6 +39,7 @@ public interface ReviewRepository {
             @Result(property = "fullName", column = "visitor_id",
                     one = @One(select = "retrieveVisitorName")),
             @Result(property = "comment", column = "comment"),
+            @Result(property = "reply", column = "reply"),
             @Result(property = "rating", column = "rating"),
             @Result(property = "createdAt", column = "created_at"),
             @Result(property = "updatedAt", column = "updated_at")
@@ -51,6 +53,7 @@ public interface ReviewRepository {
     @Select("""
         SELECT * FROM reviews
         WHERE museum_id = #{museumId}::UUID
+        AND comment ILIKE CONCAT('%', #{search}::TEXT, '%')
         ORDER BY created_at DESC
         LIMIT #{size} OFFSET #{offset};
     """)
@@ -59,6 +62,9 @@ public interface ReviewRepository {
             @Result(property = "museumId", column = "museum_id"),
             @Result(property = "fullName", column = "visitor_id",
                     one = @One(select = "retrieveVisitorName")),
+            @Result(property = "profileImageLink", column = "visitor_id",
+                    one = @One(select = "retrieveProfileImageLink")
+            ),
             @Result(property = "comment", column = "comment"),
             @Result(property = "rating", column = "rating"),
             @Result(property = "createdAt", column = "created_at"),
@@ -66,6 +72,7 @@ public interface ReviewRepository {
     })
     List<VisitorReview> retrieveAllVisitorReviewsRecently(
             @Param("museumId") UUID museumId,
+            @Param("search") String search,
             @Param("size") Integer size,
             @Param("offset") Integer offset);
 
@@ -76,14 +83,21 @@ public interface ReviewRepository {
     String retrieveVisitorName(UUID visitorId);
 
     @Select("""
+        SELECT profile_image_link FROM visitors WHERE visitor_id = #{visitorId}::UUID
+    """)
+    String retrieveProfileImageLink(UUID visitorId);
+
+    @Select("""
         SELECT * FROM reviews
         WHERE museum_id = #{museumId}::UUID
+        AND comment ILIKE CONCAT('%', #{search}::TEXT, '%')
         ORDER BY rating DESC
         LIMIT #{size} OFFSET #{offset};
     """)
     @ResultMap("visitorReviewInline")
     List<VisitorReview> retrieveAllVisitorReviewsHighest(
             @Param("museumId") UUID museumId,
+            @Param("search") String search,
             @Param("size") Integer size,
             @Param("offset") Integer offset
     );
@@ -91,12 +105,14 @@ public interface ReviewRepository {
     @Select("""
         SELECT * FROM reviews
         WHERE museum_id = #{museumId}::UUID
+        AND comment ILIKE CONCAT('%', #{search}::TEXT, '%')
         ORDER BY rating ASC
         LIMIT #{size} OFFSET #{offset};
     """)
     @ResultMap("visitorReviewInline")
     List<VisitorReview> retrieveAllVisitorReviewsLowest(
             @Param("museumId") UUID museumId,
+            @Param("search") String search,
             @Param("size") Integer size,
             @Param("offset") Integer offset
     );
@@ -104,8 +120,9 @@ public interface ReviewRepository {
     @Select("""
         SELECT COUNT(*) FROM reviews
         WHERE museum_id = #{museumId}::UUID
+        AND comment ILIKE CONCAT('%', #{search}::TEXT, '%')
     """)
-    Integer countAllVisitorReviews(UUID museumId);
+    Integer countAllVisitorReviews(UUID museumId, String search);
 
     @Select("""
         SELECT EXISTS(
@@ -173,4 +190,17 @@ public interface ReviewRepository {
         WHERE review_id = #{reviewId}::UUID AND museum_id = #{museumId}::UUID;
     """)
     void deleteVisitorReviewByMuseumOwner(UUID reviewId, UUID museumId);
+
+    @ResultMap("visitorReview")
+    @Select("""
+        SELECT * FROM reviews WHERE museum_id = #{museumId}::UUID AND visitor_id = #{visitorId}::UUID;
+    """)
+    VisitorReview retrieveReviewByVisitorId(UUID museumId, UUID visitorId);
+
+    @ResultMap("visitorReview")
+    @Select("""
+        UPDATE reviews SET reply = #{reply.replyText}::TEXT WHERE museum_id = #{museumId}::UUID
+        AND review_id = #{reviewId}::UUID RETURNING *;
+    """)
+    VisitorReview addAndUpdateReview(UUID museumId, UUID reviewId, @Param("reply") ReplyRequest replyRequest);
 }

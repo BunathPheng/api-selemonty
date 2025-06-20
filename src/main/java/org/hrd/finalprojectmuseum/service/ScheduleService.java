@@ -14,9 +14,9 @@ public interface ScheduleService {
 
     void addSchedule(UUID museumId);
 
-    List<Schedule> updateScheduleOfMuseum(UUID museumId, @Valid List<ScheduleRequest> scheduleRequests);
+    List<Schedule> updateScheduleOfMuseum(UUID museumId, List<ScheduleRequest> scheduleRequests);
 
-    Schedule getScheduleOfMuseumByScheduleId(@NotNull(message = "scheduleId is required") UUID scheduleId);
+    Schedule getScheduleOfMuseumByScheduleId(UUID scheduleId);
 
     List<Schedule> getShortSchedulesOfMuseum(UUID museumId);
 

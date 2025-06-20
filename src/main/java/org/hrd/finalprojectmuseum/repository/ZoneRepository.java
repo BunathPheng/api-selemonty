@@ -4,6 +4,7 @@ import org.apache.ibatis.annotations.*;
 import org.hrd.finalprojectmuseum.model.dto.request.museum_owner.MuseumZoneRequest;
 import org.hrd.finalprojectmuseum.model.dto.request.museum_owner.MuseumZoneUpdateRequest;
 import org.hrd.finalprojectmuseum.model.dto.response.MuseumZoneResponse;
+import org.hrd.finalprojectmuseum.model.entity.museum_owner.ArtifactZone;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumZone;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumZoneCategory;
 
@@ -32,7 +33,7 @@ public interface ZoneRepository {
     """)
     UUID retrieveMuseumIDbyUserID(UUID userId);
 
-    @Insert("""
+    @Select("""
         INSERT INTO museum_zones(museum_id, zone_category_id, name, description, picture_link, video_link, updated_at)
         VALUES (#{museumId}::UUID, #{museum.categoryId}::UUID, #{museum.name}, #{museum.description}, #{museum.pictureLink},
                 #{museum.videoLink}, #{updatedAt})
@@ -59,6 +60,7 @@ public interface ZoneRepository {
             @Result(property = "zoneCategoryName", column = "zone_category_id",
                     one = @One(select = "retrieveZoneCategoryNameByCategoryId")
             ),
+            @Result(property = "zoneCategoryId", column = "zone_category_id"),
             @Result(property = "zoneName", column = "name"),
             @Result(property = "description", column = "description"),
             @Result(property = "pictureLink", column = "picture_link"),
@@ -66,9 +68,6 @@ public interface ZoneRepository {
             @Result(property = "createdAt", column = "created_at"),
             @Result(property = "updatedAt", column = "updated_at"),
             @Result(property = "isDeleted", column = "is_deleted"),
-            @Result(property = "artifacts", column = "museum_zone_id",
-                    many = @Many(select = "org.hrd.finalprojectmuseum.repository.ArtifactRepository.retrieveMuseumArtifactByZoneId")
-            )
     })
     MuseumZone retrieveMuseumZoneDetailByZoneId(UUID zoneID);
 
@@ -76,7 +75,7 @@ public interface ZoneRepository {
         SELECT name FROM zone_categories
         WHERE zone_category_id = #{zoneCategoryId}::UUID;
     """)
-    String retrieveZoneCategoryNameByCategoryId(UUID categoryId);
+    String retrieveZoneCategoryNameByCategoryId(UUID zoneCategoryId);
 
     @Update("""
         UPDATE museum_zones
@@ -128,6 +127,7 @@ public interface ZoneRepository {
             @Result(property = "zoneCategoryName", column = "zone_category_id",
                     one = @One(select = "retrieveZoneCategoryNameByCategoryId")
             ),
+            @Result(property = "zoneCategoryId", column = "zone_category_id"),
             @Result(property = "zoneName", column = "name"),
             @Result(property = "description", column = "description"),
             @Result(property = "pictureLink", column = "picture_link"),
@@ -168,4 +168,21 @@ public interface ZoneRepository {
         AND mz.is_deleted = false;
     """)
     Integer countMuseumZonesByMuseumIdWithCategory(UUID museumId, String search, UUID categoryId);
+
+    @Select("""
+        SELECT
+            (SELECT COUNT(mz.museum_id)
+            FROM museum_zones mz
+            WHERE mz.museum_id = #{museumId}::UUID) as total_zones,
+        
+            (SELECT COUNT(at.artifact_id)
+             FROM artifacts at
+             INNER JOIN museum_zones mz ON at.museum_zone_id = mz.museum_zone_id
+             WHERE mz.museum_id = #{museumId}::UUID) as total_artifacts;
+    """)
+    @Results(id = "TotalMapper", value = {
+            @Result(property = "zones", column = "total_zones"),
+            @Result(property = "artifacts", column = "total_artifacts"),
+    })
+    ArtifactZone findTotalArtifactZone(UUID museumId);
 }

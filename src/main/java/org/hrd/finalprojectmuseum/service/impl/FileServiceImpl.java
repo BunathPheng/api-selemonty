@@ -16,10 +16,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -32,6 +29,8 @@ public class FileServiceImpl implements FileService {
     public String uploadFile(MultipartFile file, BucketType bucketType) throws ServerException, InsufficientDataException,
             ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException,
             InvalidResponseException, XmlParserException, InternalException {
+
+        validateFileType(file, bucketType);
 
         String bucketName = "";
         if(bucketType == BucketType.LOGO){
@@ -67,6 +66,211 @@ public class FileServiceImpl implements FileService {
 
         ObjectWriteResponse response = minioClient.putObject(putObjectArgs);
         return response.object();
+    }
+
+    private void validateFileType(MultipartFile file, BucketType bucketType) {
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("File cannot be null or empty");
+        }
+
+        String originalFileName = file.getOriginalFilename();
+        if (originalFileName == null || originalFileName.trim().isEmpty()) {
+            throw new IllegalArgumentException("File name cannot be null or empty");
+        }
+
+        String fileExtension = getFileExtension(originalFileName).toLowerCase();
+        String contentType = file.getContentType();
+
+        switch (bucketType) {
+            case LOGO:
+            case IMAGE:
+                validateImageFile(fileExtension, contentType, bucketType);
+                break;
+            case ARTIFACT3D:
+                validate3DArtifactFile(fileExtension, contentType);
+                break;
+            default:
+                throw new IllegalArgumentException("Unsupported bucket type: " + bucketType);
+        }
+    }
+
+    private void validateImageFile(String fileExtension, String contentType, BucketType bucketType) {
+        Set<String> allowedExtensions = Set.of("jpg", "jpeg", "png", "gif", "bmp", "webp", "svg");
+
+        Set<String> allowedMimeTypes = Set.of(
+                "image/jpeg",
+                "image/jpg",
+                "image/png",
+                "image/gif",
+                "image/bmp",
+                "image/webp",
+                "image/svg+xml"
+        );
+
+        if (!allowedExtensions.contains(fileExtension)) {
+            throw new IllegalArgumentException(
+                    String.format("Invalid file extension for %s. Allowed extensions: %s. Received: %s",
+                            bucketType.name().toLowerCase(),
+                            String.join(", ", allowedExtensions),
+                            fileExtension)
+            );
+        }
+
+        if (contentType != null && !allowedMimeTypes.contains(contentType.toLowerCase())) {
+            throw new IllegalArgumentException(
+                    String.format("Invalid content type for %s. Allowed types: %s. Received: %s",
+                            bucketType.name().toLowerCase(),
+                            String.join(", ", allowedMimeTypes),
+                            contentType)
+            );
+        }
+    }
+
+    private void validate3DArtifactFile(String fileExtension, String contentType) {
+        if (!"glb".equals(fileExtension)) {
+            throw new IllegalArgumentException(
+                    String.format("Invalid file extension for 3D artifact. Only .glb files are allowed. Received: %s",
+                            fileExtension)
+            );
+        }
+
+        Set<String> allowedMimeTypes = Set.of(
+                "application/octet-stream",
+                "model/gltf-binary",
+                "model/gltf+json"
+        );
+
+        if (contentType != null && !allowedMimeTypes.contains(contentType.toLowerCase())) {
+            System.out.println("Warning: Unexpected MIME type for .glb file: " + contentType);
+        }
+    }
+
+    private String getFileExtension(String fileName) {
+        if (fileName == null || fileName.trim().isEmpty()) {
+            return "";
+        }
+
+        int lastDotIndex = fileName.lastIndexOf('.');
+        if (lastDotIndex == -1 || lastDotIndex == fileName.length() - 1) {
+            return ""; // No extension found
+        }
+
+        return fileName.substring(lastDotIndex + 1);
+    }
+
+    private void validateFileTypeAdvanced(MultipartFile file, BucketType bucketType) {
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("File cannot be null or empty");
+        }
+
+        String originalFileName = file.getOriginalFilename();
+        if (originalFileName == null || originalFileName.trim().isEmpty()) {
+            throw new IllegalArgumentException("File name cannot be null or empty");
+        }
+
+        validateFileSize(file, bucketType);
+
+        String fileExtension = getFileExtension(originalFileName).toLowerCase();
+        String contentType = file.getContentType();
+
+        switch (bucketType) {
+            case LOGO:
+                validateLogoFile(fileExtension, contentType, file.getSize());
+                break;
+            case IMAGE:
+                validateImageFileAdvanced(fileExtension, contentType, file.getSize());
+                break;
+            case ARTIFACT3D:
+                validate3DArtifactFileAdvanced(fileExtension, contentType, file.getSize());
+                break;
+            default:
+                throw new IllegalArgumentException("Unsupported bucket type: " + bucketType);
+        }
+    }
+
+    private void validateFileSize(MultipartFile file, BucketType bucketType) {
+        long maxSize;
+        switch (bucketType) {
+            case LOGO:
+                maxSize = 5 * 1024 * 1024; // 5MB for logos
+                break;
+            case IMAGE:
+                maxSize = 10 * 1024 * 1024; // 10MB for images
+                break;
+            case ARTIFACT3D:
+                maxSize = 100 * 1024 * 1024; // 100MB for 3D artifacts
+                break;
+            default:
+                maxSize = 10 * 1024 * 1024; // Default 10MB
+        }
+
+        if (file.getSize() > maxSize) {
+            throw new IllegalArgumentException(
+                    String.format("File size exceeds limit for %s. Maximum allowed: %d MB, Received: %.2f MB",
+                            bucketType.name().toLowerCase(),
+                            maxSize / (1024 * 1024),
+                            file.getSize() / (1024.0 * 1024.0))
+            );
+        }
+    }
+
+    private void validateLogoFile(String fileExtension, String contentType, long fileSize) {
+        Set<String> allowedExtensions = Set.of("jpg", "jpeg", "png", "svg");
+
+        if (!allowedExtensions.contains(fileExtension)) {
+            throw new IllegalArgumentException(
+                    String.format("Invalid file extension for logo. Allowed extensions: %s. Received: %s",
+                            String.join(", ", allowedExtensions),
+                            fileExtension)
+            );
+        }
+    }
+
+    private void validateImageFileAdvanced(String fileExtension, String contentType, long fileSize) {
+        Set<String> allowedExtensions = Set.of("jpg", "jpeg", "png", "gif", "bmp", "webp");
+
+        if (!allowedExtensions.contains(fileExtension)) {
+            throw new IllegalArgumentException(
+                    String.format("Invalid file extension for image. Allowed extensions: %s. Received: %s",
+                            String.join(", ", allowedExtensions),
+                            fileExtension)
+            );
+        }
+    }
+
+    private void validate3DArtifactFileAdvanced(String fileExtension, String contentType, long fileSize) {
+        if (!"glb".equals(fileExtension)) {
+            throw new IllegalArgumentException(
+                    String.format("Invalid file extension for 3D artifact. Only .glb files are allowed. Received: %s",
+                            fileExtension)
+            );
+        }
+    }
+
+    @Override
+    public boolean fileExists(String fileName) {
+        for (String bucket : bucketNames) {
+            try {
+                minioClient.statObject(
+                        StatObjectArgs.builder()
+                                .bucket(bucket)
+                                .object(fileName)
+                                .build()
+                );
+                return true; // File exists in this bucket
+            } catch (ErrorResponseException e) {
+                if ("NoSuchKey".equals(e.errorResponse().code())) {
+                    // File doesn't exist in this bucket, continue to next
+                    continue;
+                }
+                // Other error, log it but continue checking other buckets
+                System.err.println("Error checking file in bucket " + bucket + ": " + e.getMessage());
+            } catch (Exception e) {
+                // Other exceptions, log and continue
+                System.err.println("Unexpected error checking file in bucket " + bucket + ": " + e.getMessage());
+            }
+        }
+        return false; // File not found in any bucket
     }
 
     @Override

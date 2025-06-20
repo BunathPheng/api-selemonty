@@ -1,17 +1,24 @@
 package org.hrd.finalprojectmuseum.repository;
 
 import org.apache.ibatis.annotations.*;
+import org.hrd.finalprojectmuseum.model.entity.museum_owner.FavoriteMuseum;
+import org.hrd.finalprojectmuseum.model.entity.museum_owner.FavoriteMuseumSchedule;
 import org.hrd.finalprojectmuseum.model.entity.visitor.VisitorFavorite;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Mapper
 public interface FavoriteRepository {
 
-//    ON CONFLICT (museum_id, visitor_id)
-//        DO UPDATE SET is_favorite = true
-//ON CONFLICT (museum_id, visitor_id)
-//    DO UPDATE SET is_favorite = false
+    @Select("""
+        SELECT is_approved
+        FROM museum_owners
+        WHERE museum_id = #{museumId}::UUID
+    """)
+    boolean isApproveMuseum(UUID museumId);
 
     @Insert("""
         INSERT INTO favorites(museum_id, visitor_id, is_favorite)
@@ -50,6 +57,7 @@ public interface FavoriteRepository {
         SELECT favorite_id, museum_id, visitor_id, is_favorite, created_at
         FROM favorites
         WHERE museum_id = #{museumId}::UUID AND visitor_id = #{visitorId}::UUID
+        AND is_favorite = true
     """)
     @Results({
             @Result(property = "favoriteId", column = "favorite_id"),
@@ -59,4 +67,69 @@ public interface FavoriteRepository {
             @Result(property = "createdAt", column = "created_at")
     })
     VisitorFavorite getFavoriteByIds(@Param("museumId") UUID museumId, @Param("visitorId") UUID visitorId);
+
+    @Select("""
+        SELECT mo.museum_id, mo.name, mo.address, mo.logo_link, ui.email, f.is_favorite
+        FROM museum_owners mo
+        INNER JOIN user_info ui ON mo.user_id = ui.user_id
+        INNER JOIN favorites f ON f.museum_id = mo.museum_id
+        WHERE f.visitor_id = #{visitorId}::UUID
+        AND is_favorite = true
+        OFFSET (#{page}-1) * #{size} LIMIT #{size};
+    """)
+    @Results(id = "AllFavoriteMuseums", value = {
+            @Result(property = "museumId", column = "museum_id"),
+            @Result(property = "museumName", column = "name"),
+            @Result(property = "museumEmail", column = "email"),
+            @Result(property = "logoLink", column = "logo_link"),
+            @Result(property = "museumAddress", column = "address"),
+            @Result(property = "isFavorite", column = "is_favorite"),
+            @Result(property = "favoriteMuseumSchedule", column = "museum_id",
+                    many = @Many(select = "getFavoriteMuseumSchedule")
+            )
+    })
+    List<FavoriteMuseum> retrieveFavoriteMuseums(UUID visitorId, Integer page, Integer size);
+
+    @Select("""
+        SELECT day, opening_time, closing_time
+        FROM schedules
+        WHERE museum_id = #{museumId}::UUID
+        AND day_off = false;
+    """)
+    @Results({
+            @Result(property = "day", column = "day"),
+            @Result(property = "openingTime", column = "opening_time"),
+            @Result(property = "closingTime", column = "closing_time")
+    })
+    List<FavoriteMuseumSchedule> getFavoriteMuseumSchedule(UUID museumId);
+
+    @Select("""
+        SELECT COUNT(mo.museum_id)
+        FROM museum_owners mo
+        INNER JOIN user_info ui ON mo.user_id = ui.user_id
+        INNER JOIN favorites f ON f.museum_id = mo.museum_id
+        WHERE f.visitor_id = #{visitorId}::UUID
+        AND is_favorite = true
+    """)
+    Integer countFavoriteMuseum(UUID visitorId);
+
+    @Select("""
+        SELECT COUNT(favorite_id) FROM favorites WHERE museum_id = #{museumId}::UUID
+        AND created_at <= #{endDate}
+        AND is_favorite = true
+    """)
+    Integer countFollowerByMuseumIdAndEndDate(UUID museumId, LocalDateTime endDate);
+
+    @Select("""
+        SELECT COUNT(favorite_id) FROM favorites WHERE museum_id = #{museumId}::UUID
+        AND is_favorite = true
+        AND (created_at BETWEEN #{startDate} AND #{endDate})
+    """)
+    Integer countFollowerByMuseumIdAndDateRange(UUID museumId, LocalDateTime startDate, LocalDateTime endDate);
+
+    @Select("""
+        SELECT is_favorite FROM favorites WHERE museum_id = #{museumId}::UUID
+        AND visitor_id = #{visitorId}::UUID
+    """)
+    Boolean getCurrentFavoriteStatus(UUID museumId, UUID visitorId);
 }

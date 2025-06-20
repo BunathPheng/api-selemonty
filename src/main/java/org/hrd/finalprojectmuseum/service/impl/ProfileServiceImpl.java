@@ -1,31 +1,32 @@
 package org.hrd.finalprojectmuseum.service.impl;
 
-import com.alibaba.fastjson2.JSONObject;
 import lombok.RequiredArgsConstructor;
+import org.hrd.finalprojectmuseum.exception.AppBadRequestException;
 import org.hrd.finalprojectmuseum.exception.AppNotFoundException;
+import org.hrd.finalprojectmuseum.model.dto.request.museum_owner.*;
 import org.hrd.finalprojectmuseum.model.dto.request.PaymentAccountRequest;
 import org.hrd.finalprojectmuseum.model.dto.request.admin.AdminRequest;
-import org.hrd.finalprojectmuseum.model.dto.request.museum_owner.MuseumOwnerRequest;
 import org.hrd.finalprojectmuseum.model.dto.request.visitor.VisitorRequest;
 import org.hrd.finalprojectmuseum.model.entity.AppUserRegister;
-import org.hrd.finalprojectmuseum.model.entity.Schedule;
+import org.hrd.finalprojectmuseum.model.entity.PaymentCredential;
 import org.hrd.finalprojectmuseum.model.entity.admin.Admin;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumCategory;
 import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
 import org.hrd.finalprojectmuseum.model.entity.visitor.Visitor;
-import org.hrd.finalprojectmuseum.model.entity.visitor.VisitorReviewStatistics;
 import org.hrd.finalprojectmuseum.repository.*;
+import org.hrd.finalprojectmuseum.service.FileService;
+import org.hrd.finalprojectmuseum.service.MuseumService;
 import org.hrd.finalprojectmuseum.service.ProfileService;
+import org.hrd.finalprojectmuseum.utils.LandscapeProcessor;
+import org.springframework.core.io.Resource;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
-
-import static org.hrd.finalprojectmuseum.utils.RequestUtils.getOrDefault;
 
 @Service
 @RequiredArgsConstructor
@@ -33,22 +34,20 @@ public class ProfileServiceImpl implements ProfileService {
     private final ProfileRepository profileRepository;
     private final MuseumRepository museumRepository;
     private final AppUserRepository appUserRepository;
-    private final ReviewRepository reviewRepository;
-    private final ScheduleRepository scheduleRepository;
+    private final MuseumService museumService;
+    private final FileService fileService;
 
     @Override
     public MuseumOwner getMuseumOwnerByUserId(UUID userId) {
         MuseumOwner museumOwner = profileRepository.findMuseumOwnerByUserId(userId);
-        VisitorReviewStatistics reviewStatistics = reviewRepository.retriveVisitorReviewStatistics(museumOwner.getMuseumId());
-        List<Schedule> schedules = scheduleRepository.findScheduleOfMuseum(museumOwner.getMuseumId());
-        Schedule todaySchedule = scheduleRepository.findScheduleOfMuseumByDay(museumOwner.getMuseumId(), LocalDateTime.now().getDayOfWeek().toString());
-        museumOwner.setReview(reviewStatistics);
-        museumOwner.setSchedule(schedules);
-        museumOwner.setTodaySchedule(todaySchedule);
         if (museumOwner == null) {
             throw new AppNotFoundException("Museum Owner Not Found");
         }
-        System.out.println("museum: "+museumOwner);
+        museumService.setFullData(museumOwner);
+        Integer totalZone = profileRepository.totalZoneByMuseumId(museumOwner.getMuseumId());
+        Integer totalArtifact = profileRepository.totalArtifactByMuseumId(museumOwner.getMuseumId());
+        museumOwner.setTotalZone(totalZone);
+        museumOwner.setTotalArtifact(totalArtifact);
         return museumOwner;
     }
 
@@ -60,12 +59,7 @@ public class ProfileServiceImpl implements ProfileService {
         MuseumOwner existing = getMuseumOwnerByUserId(userId);
         profileRepository.modifyMuseumOwnerById(existing.getMuseumId(), request, LocalDateTime.now());
         MuseumOwner updatedMuseum = getMuseumOwnerByUserId(userId);
-        VisitorReviewStatistics reviewStatistics = reviewRepository.retriveVisitorReviewStatistics(updatedMuseum.getMuseumId());
-        List<Schedule> schedules = scheduleRepository.findScheduleOfMuseum(updatedMuseum.getMuseumId());
-        Schedule todaySchedule = scheduleRepository.findScheduleOfMuseumByDay(updatedMuseum.getMuseumId(), LocalDateTime.now().getDayOfWeek().toString());
-        updatedMuseum.setReview(reviewStatistics);
-        updatedMuseum.setSchedule(schedules);
-        updatedMuseum.setTodaySchedule(todaySchedule);
+        museumService.setFullData(updatedMuseum);
         return updatedMuseum;
     }
 
@@ -79,15 +73,12 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     @Override
-    public MuseumOwner updateMuseumOwnerPaymentByUserId(UUID userId, PaymentAccountRequest paymentAccountRequest) {
+    public PaymentCredential updateMuseumOwnerPaymentByUserId(UUID userId, PaymentAccountRequest paymentAccountRequest) {
         getMuseumOwnerByUserId(userId);
-        MuseumOwner updatedMuseum = profileRepository.updateMuseumPaymentByUserId(userId, paymentAccountRequest, LocalDateTime.now());
-        VisitorReviewStatistics reviewStatistics = reviewRepository.retriveVisitorReviewStatistics(updatedMuseum.getMuseumId());
-        List<Schedule> schedules = scheduleRepository.findScheduleOfMuseum(updatedMuseum.getMuseumId());
-        Schedule todaySchedule = scheduleRepository.findScheduleOfMuseumByDay(updatedMuseum.getMuseumId(), LocalDateTime.now().getDayOfWeek().toString());
-        updatedMuseum.setReview(reviewStatistics);
-        updatedMuseum.setSchedule(schedules);
-        updatedMuseum.setTodaySchedule(todaySchedule);
+        PaymentCredential updatedMuseum = profileRepository.updateMuseumPaymentByUserId(userId, paymentAccountRequest, LocalDateTime.now());
+        if (updatedMuseum == null) {
+            throw new AppNotFoundException("Museum Not Found");
+        }
         return updatedMuseum;
     }
     
@@ -145,5 +136,104 @@ public class ProfileServiceImpl implements ProfileService {
         UUID userId = UUID.fromString((String) auth.getCredentials());
 
         return profileRepository.getMuseumIdByUserId(userId);
+    }
+
+    @Override
+    public PaymentCredential getMuseumPaymentCredential(UUID museumId) {
+        PaymentCredential paymentCredential = profileRepository.retrieveMuseumPaymentCredential(museumId);
+        if (paymentCredential == null) {
+            throw new AppNotFoundException("Museum with id " + museumId + " not found");
+        }
+        return paymentCredential;
+    }
+
+    @Override
+    public MuseumOwner updateMuseumAboutDetailByMuseumId(UUID museumId, MuseumAboutRequest museumAboutRequest) {
+        MuseumOwner museumOwner = profileRepository.modifyMuseumAboutDetailByMuseumId(museumId, museumAboutRequest);
+        if (museumOwner == null) {
+            throw new AppBadRequestException("Update failed");
+        }
+        return museumOwner;
+    }
+
+    @Transactional
+    @Override
+    public MuseumOwner updateMuseumContactByMuseumId(UUID museumId, MuseumContactRequest museumContactRequest) {
+        MuseumOwner museumOwner = profileRepository.modifyMuseumContactByMuseumId(museumId, museumContactRequest.getContactNumber());
+        if (museumOwner == null) {
+            throw new AppBadRequestException("Update failed");
+        }
+        return museumOwner;
+    }
+
+    @Override
+    public MuseumOwner updateMuseumlandscapeByMuseumId(UUID museumId, LandscapeRequest landscapeRequest) {
+        MuseumOwner existMuseum = museumRepository.findMuseumByMuseumId(museumId);
+        MuseumOwner museumOwner = profileRepository.modifyMuseumLandscapeByMuseumId(museumId, landscapeRequest.getLandscapeLink());
+        if (museumOwner == null) {
+            throw new AppBadRequestException("Update failed");
+        }
+        List<String> landscapeLinks = LandscapeProcessor.getImageUrls(existMuseum.getLandscapeLink());
+        for(String landscapeLink : landscapeLinks){
+            String imageName = LandscapeProcessor.extractFilename(landscapeLink);
+            try {
+                boolean isFileExist = fileService.fileExists(imageName);
+                if (isFileExist){
+                    fileService.deleteFile(imageName);
+                }
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+        }
+        return museumOwner;
+    }
+
+    @Override
+    public MuseumOwner updateMuseumBannerByMuseumId(UUID museumId, BannerRequest bannerRequest) {
+        MuseumOwner existMuseum = museumRepository.findMuseumByMuseumId(museumId);
+        MuseumOwner museumOwner = profileRepository.modifyMuseumBannerByMuseumId(museumId, bannerRequest.getBannerLink());
+        if (museumOwner == null) {
+            throw new AppBadRequestException("Update failed");
+        }
+
+        String imageName = LandscapeProcessor.extractFilename(existMuseum.getBannerLink());
+        try {
+            boolean isFileExist = fileService.fileExists(imageName);
+            if (isFileExist){
+                fileService.deleteFile(imageName);
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return museumOwner;
+    }
+
+    @Override
+    public MuseumOwner updateMuseumLogoByMuseumId(UUID museumId, LogoRequest logoRequest) {
+        MuseumOwner existMuseum = museumRepository.findMuseumByMuseumId(museumId);
+        MuseumOwner museumOwner = profileRepository.modifyMuseumLogoByMuseumId(museumId, logoRequest.getLogoLink());
+        if (museumOwner == null) {
+            throw new AppBadRequestException("Update failed");
+        }
+
+        String imageName = LandscapeProcessor.extractFilename(existMuseum.getLogoLink());
+        try {
+            boolean isFileExist = fileService.fileExists(imageName);
+            if (isFileExist){
+                fileService.deleteFile(imageName);
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return museumOwner;
+    }
+
+    @Override
+    public MuseumOwner updateMuseumLocationByMuseumId(UUID museumId, MuseumLocationRequest museumLocationRequest) {
+        MuseumOwner museumOwner = profileRepository.modifyMuseumLocationByMuseumId(museumId, museumLocationRequest);
+        if (museumOwner == null) {
+            throw new AppBadRequestException("Update failed");
+        }
+        return museumOwner;
     }
 }

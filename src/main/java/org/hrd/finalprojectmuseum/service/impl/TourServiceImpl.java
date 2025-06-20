@@ -6,11 +6,14 @@ import org.hrd.finalprojectmuseum.exception.AppNotFoundException;
 import org.hrd.finalprojectmuseum.model.dto.request.AcceptTourRequest;
 import org.hrd.finalprojectmuseum.model.dto.response.ListResponse;
 import org.hrd.finalprojectmuseum.model.dto.response.TourVisitorResponse;
+import org.hrd.finalprojectmuseum.model.entity.Guide;
 import org.hrd.finalprojectmuseum.model.entity.Pagination;
 import org.hrd.finalprojectmuseum.model.entity.TicketInfo;
 import org.hrd.finalprojectmuseum.model.entity.Tour;
+import org.hrd.finalprojectmuseum.model.entity.visitor.BookingV2;
 import org.hrd.finalprojectmuseum.model.enums.TourStatus;
 import org.hrd.finalprojectmuseum.repository.BookingRepository;
+import org.hrd.finalprojectmuseum.repository.GuideRepository;
 import org.hrd.finalprojectmuseum.repository.TicketInfoRepository;
 import org.hrd.finalprojectmuseum.repository.TourRepository;
 import org.hrd.finalprojectmuseum.service.AppUserService;
@@ -31,10 +34,9 @@ public class TourServiceImpl implements TourService {
     private final TourRepository tourRepository;
     private final UniqueTextCodeGenerator uniqueTextCodeGenerator;
     private final BookingRepository bookingRepository;
-    private final TicketInfoService ticketInfoService;
     private final TicketInfoRepository ticketInfoRepository;
-    private final AppUserService appUserService;
     private final ProfileService profileService;
+    private final GuideRepository guideRepository;
 
     @Override
     public ListResponse<Tour> getAllTourByMuseumId(UUID id, String search, Integer page, Integer size, TourStatus statusType) {
@@ -88,8 +90,9 @@ public class TourServiceImpl implements TourService {
 
     @Transactional
     @Override
-    public void updateTourStatus(UUID tourId) {
-        Tour tour = tourRepository.findTourByTourId(tourId);
+    public BookingV2 updateTourStatus(UUID tourId) {
+        Tour tour = tourRepository.getTourById(tourId);
+        System.out.println("getting tour "+ tour + "\n");
         if(tour == null){
             throw new AppNotFoundException("Tour with id " + tourId + " not found");
         }
@@ -98,16 +101,27 @@ public class TourServiceImpl implements TourService {
         } else if (tour.getStatus() == TourStatus.PAID) {
             throw new AppBadRequestException("Tour is already paid");
         }
+        if(tour.getBookingDate().isBefore(LocalDateTime.now())){
+            throw new AppBadRequestException("Booking date is over");
+        }
         UUID bookingId = tourRepository.modifyTourStatus(tourId, TourStatus.PAID.toString(), LocalDateTime.now());
+        System.out.println(bookingId + "\n" );
         String code = uniqueTextCodeGenerator.generateUniqueTextCode();
-        bookingRepository.setTicketCode(bookingId, code);
+        UUID visitorId = bookingRepository.setTicketCode(bookingId, code, tour.getTourPrice(), tour.getBookingDate().plusHours(12));
 
         UUID museumId = profileService.getMuseumIdByUserId();
         Integer requestSlot = tourRepository.getRequestSlot(tourId);
         TicketInfo ticketInfo = ticketInfoRepository.findTicketInfoByMuseumId(museumId);
-        System.out.println("ticketInfo: " + museumId);
+        System.out.println("ticketInfo: " + museumId + "\n");
         Integer updatedAmount = ticketInfo.getTotalSlot() - requestSlot;
         ticketInfoRepository.updateSlotAmount(museumId, updatedAmount);
+
+        return bookingRepository.retrieveBookingDetailByVisitorId(bookingId, visitorId);
+    }
+
+    @Override
+    public String getVisitorEmailByBookingId(UUID bookingId) {
+        return tourRepository.findVisitorEmailByBookingId(bookingId);
     }
 
     @Override
@@ -124,19 +138,49 @@ public class TourServiceImpl implements TourService {
     @Override
     public Tour acceptTourByTourId(UUID tourId, AcceptTourRequest acceptTourRequest) {
         UUID museumId = profileService.getMuseumIdByUserId();
-        Tour tour = tourRepository.findTourByTourId(tourId);
+        System.out.println(museumId);
+        Tour tour = tourRepository.getTourById(tourId);
+
+        List<Guide> guideStatus = guideRepository.getGuideStatus(museumId);
+        System.out.println(guideStatus);
+        System.out.println("guide status" + guideStatus);
         if(tour == null){
             throw new AppNotFoundException("Tour with id " + tourId + " not found");
         }
         if (tour.getStatus() != TourStatus.REQUEST){
             throw new AppBadRequestException("Tour already accepted. Tour status is " + tour.getStatus());
         }
+        if(tour.getBookingDate().isBefore(LocalDateTime.now())){
+            throw new AppBadRequestException("Booking date is over");
+        }
+
         tourRepository.setTourPrice(tourId, acceptTourRequest.getTourPrice());
+
+        List<UUID> requestedGuideIds = acceptTourRequest.getGuideId();
+        for (UUID requestedGuideId : requestedGuideIds) {
+            boolean guideFound = false;
+
+            for (Guide guide : guideStatus) {
+                if (guide.getGuideId().equals(requestedGuideId)) {
+                    guideFound = true;
+
+                    if (!guide.getIsAvailable()) {
+                        throw new AppBadRequestException("Tour guide " + requestedGuideId + " is not available");
+                    }
+                    break; // Found the guide, no need to continue inner loop
+                }
+            }
+
+            if (!guideFound) {
+                throw new AppNotFoundException("Guide with ID " + requestedGuideId + " not found");
+            }
+        }
+
         for (UUID guideId : acceptTourRequest.getGuideId()){
             tourRepository.setTourGuys(tourId, guideId);
+            tourRepository.setTourStatus(guideId);
         }
+
         return tourRepository.findTourByTourId(tourId);
     }
-
-
 }

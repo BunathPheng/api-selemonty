@@ -96,4 +96,17 @@ public interface ArtifactRepository {
         AND is_deleted = false
     """)
     Integer countArtifact(UUID zoneID, String search);
+
+
+
+    @ResultMap("artifact")
+    @Select("""
+        SELECT a.* FROM artifacts a
+        INNER JOIN museum_zones z ON a.museum_zone_id = z.museum_zone_id
+        INNER JOIN museum_owners m ON z.museum_id = m.museum_id
+        WHERE z.museum_id = #{museumId}::UUID
+        AND a.is_deleted = false
+        OFFSET 1 LIMIT 1;
+    """)
+    MuseumArtifact findMuseumArtifactByMuseumId(UUID museumId);
 }

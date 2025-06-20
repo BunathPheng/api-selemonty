@@ -1,6 +1,7 @@
 package org.hrd.finalprojectmuseum.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.hrd.finalprojectmuseum.exception.AppBadRequestException;
 import org.hrd.finalprojectmuseum.exception.AppNotFoundException;
 import org.hrd.finalprojectmuseum.model.dto.request.museum_owner.ScheduleRequest;
 import org.hrd.finalprojectmuseum.model.entity.Schedule;
@@ -29,18 +30,19 @@ public class ScheduleServiceImpl implements ScheduleService {
     @Override
     public void addSchedule(UUID museumId) {
         for(DayOfWeek dayOfWeek : DayOfWeek.values()) {
-            scheduleRepository.insertSchedule(museumId, dayOfWeek.getValue());
+            scheduleRepository.insertSchedule(museumId, dayOfWeek.name());
         }
     }
 
     @Override
     public List<Schedule> updateScheduleOfMuseum(UUID museumId, List<ScheduleRequest> scheduleRequests) {
-        List<Schedule> responseSchedule = new ArrayList<>();
         for (ScheduleRequest schedule : scheduleRequests) {
             Schedule updatedSchedule = scheduleRepository.modifySchedule(museumId, schedule, LocalDateTime.now());
-            responseSchedule.add(updatedSchedule);
+            if (updatedSchedule == null) {
+                throw new AppBadRequestException("Some error occurred while modifying the schedule");
+            }
         }
-        return responseSchedule;
+        return scheduleRepository.findScheduleOfMuseum(museumId);
     }
 
     @Override

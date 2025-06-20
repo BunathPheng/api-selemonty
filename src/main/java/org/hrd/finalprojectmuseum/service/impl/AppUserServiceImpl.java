@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -61,11 +62,11 @@ public class AppUserServiceImpl implements AppUserService {
     @Override
     public AppUserRegister findUserByIdentifier(String email, String password) {
         AppUser appUser = appUserRepository.getUserByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-        if (appUser == null) throw new AppBadRequestException("Invalid username, email, or password. Please check your credentials and try again.");
+                .orElseThrow(() -> new AppNotFoundException("User not found"));
+        if (appUser == null) throw new AppBadRequestException("Invalid email, or password. Please check your credentials and try again.");
 
         boolean isCorrect = passwordEncoder.matches(password, appUser.getPassword());
-        if (!isCorrect) throw new AppBadRequestException("Invalid username, email, or password. Please check your credentials and try again.");
+        if (!isCorrect) throw new AppBadRequestException("Invalid email, or password. Please check your credentials and try again.");
 
         if (!appUser.getIsVerified()) throw new AppBadRequestException("User has not verified yet.");
 
@@ -120,14 +121,14 @@ public class AppUserServiceImpl implements AppUserService {
     public void checkEmail(String email) {
         AppUserRegister appUser = appUserRepository.findUserByEmail(email);
         if (appUser == null) {
-            throw new AppBadRequestException("Email not found.");
+            throw new AppNotFoundException("Email not found.");
         }
     }
 
     @Override
     public String getToken(String email) {
         appUserRepository.getUserByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("Email not found"));
+                .orElseThrow(() -> new AppNotFoundException("Email not found"));
         return jwtUtils.generateResetToken(email);
     }
 
@@ -137,8 +138,8 @@ public class AppUserServiceImpl implements AppUserService {
     }
 
     @Override
-    public void storeMuseumOwner(UUID userId, String name, String logoLink, BigDecimal lat, BigDecimal lng, String description) {
-        appUserRepository.storeMeseumOwner(userId, name, logoLink, lat, lng, description);
+    public void storeMuseumOwner(UUID userId, String name, String logoLink, String address, BigDecimal lat, BigDecimal lng, String description) {
+        appUserRepository.storeMeseumOwner(userId, name, logoLink, address, lat, lng, description);
     }
 
     @Override
@@ -163,13 +164,65 @@ public class AppUserServiceImpl implements AppUserService {
 
     @Override
     public UUID getUserId() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        return UUID.fromString((String) auth.getCredentials());
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+            if (auth != null &&
+                    auth.isAuthenticated() &&
+                    !auth.getPrincipal().equals("anonymousUser") &&
+                    auth.getCredentials() != null) {
+
+                Object credentials = auth.getCredentials();
+                if (credentials instanceof String && !((String) credentials).isEmpty()) {
+                    return UUID.fromString((String) credentials);
+                }
+            }
+        } catch (IllegalArgumentException e) {
+            System.out.println(e.getMessage());
+        } catch (Exception e) {
+            System.out.println(e.toString());
+        }
+
+        return null;
     }
 
     @Override
     public AppUserRegister getAppUserRegister() {
-        return findUserByUserId(getUserId());
+        UUID userId = getUserId();
+        if (userId != null) {
+            try {
+                return appUserRepository.getUserById(userId);
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+                return null;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public void isGoogleAccount(String email) {
+        AppUserRegister appUser = appUserRepository.findUserByEmail(email);
+        if (appUser == null){
+            throw new AppNotFoundException("Email not exist in system.");
+        }
+        if (passwordEncoder.matches("Kom@3", appUser.getPassword())){
+            throw new AppBadRequestException("Account is Sign In with Google Account can not be changed password.");
+        }
+    }
+
+    @Override
+    public String getUserEmailByUserId(UUID visitorId) {
+        String email = appUserRepository.getEmailByVisitorId(visitorId);
+        if (email == null) {
+            throw new AppNotFoundException("Email not found.");
+        }
+        return email;
+    }
+
+    @Override
+    public UUID getAdminUserId() {
+        return appUserRepository.findAdminUserId();
     }
 }
 

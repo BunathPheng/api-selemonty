@@ -1,13 +1,20 @@
 package org.hrd.finalprojectmuseum.service.impl;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.hrd.finalprojectmuseum.exception.AppBadRequestException;
 import org.hrd.finalprojectmuseum.exception.AppNotFoundException;
+import org.hrd.finalprojectmuseum.model.dto.request.ReplyRequest;
 import org.hrd.finalprojectmuseum.model.dto.request.visitor.VisitorReviewRequest;
+import org.hrd.finalprojectmuseum.model.entity.museum_owner.MuseumOwner;
+import org.hrd.finalprojectmuseum.model.entity.visitor.Visitor;
 import org.hrd.finalprojectmuseum.model.entity.visitor.VisitorReview;
 import org.hrd.finalprojectmuseum.model.entity.visitor.VisitorReviewStatistics;
 import org.hrd.finalprojectmuseum.model.enums.ReviewType;
+import org.hrd.finalprojectmuseum.repository.MuseumRepository;
 import org.hrd.finalprojectmuseum.repository.ReviewRepository;
+import org.hrd.finalprojectmuseum.repository.VisitorRepository;
+import org.hrd.finalprojectmuseum.service.ProfileService;
 import org.hrd.finalprojectmuseum.service.ReviewService;
 import org.springframework.stereotype.Service;
 
@@ -22,6 +29,8 @@ import java.util.UUID;
 public class ReviewServiceImpl implements ReviewService {
 
     private final ReviewRepository reviewRepository;
+    private final MuseumRepository museumRepository;
+    private final VisitorRepository visitorRepository;
     LocalDateTime updatedAt = LocalDateTime.now();
 
     @Override
@@ -47,7 +56,7 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
-    public List<VisitorReview> getAllVisitorReviews(UUID museumId, Integer page, Integer size, ReviewType reviewType) {
+    public List<VisitorReview> getAllVisitorReviews(UUID museumId, String search, Integer page, Integer size, ReviewType reviewType) {
         if (!reviewRepository.retrieveMuseumId(museumId)){
             throw new AppNotFoundException("Museum ID Not Found");
         }
@@ -56,17 +65,17 @@ public class ReviewServiceImpl implements ReviewService {
         List<VisitorReview> visitorReviews = new ArrayList<>();
 
         if (reviewType == ReviewType.MOST_RECENTLY){
-            visitorReviews = reviewRepository.retrieveAllVisitorReviewsRecently(museumId, size, offset);
+            visitorReviews = reviewRepository.retrieveAllVisitorReviewsRecently(museumId, search, size, offset);
             for(VisitorReview visitorReview : visitorReviews){
                 visitorReview.setIsReviewed(true);
             }
         }else if (reviewType == ReviewType.HIGHEST_RATE){
-            visitorReviews = reviewRepository.retrieveAllVisitorReviewsHighest(museumId, size, offset);
+            visitorReviews = reviewRepository.retrieveAllVisitorReviewsHighest(museumId, search, size, offset);
             for(VisitorReview visitorReview : visitorReviews){
                 visitorReview.setIsReviewed(true);
             }
         } else if (reviewType == ReviewType.LOWEST_RATE) {
-            visitorReviews = reviewRepository.retrieveAllVisitorReviewsLowest(museumId, size, offset);
+            visitorReviews = reviewRepository.retrieveAllVisitorReviewsLowest(museumId, search, size, offset);
             for(VisitorReview visitorReview : visitorReviews){
                 visitorReview.setIsReviewed(true);
             }
@@ -85,8 +94,8 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
-    public Integer getAllVisitorReviews(UUID museumId) {
-        return reviewRepository.countAllVisitorReviews(museumId);
+    public Integer getAllVisitorReviews(UUID museumId, String search) {
+        return reviewRepository.countAllVisitorReviews(museumId, search);
     }
 
     @Override
@@ -125,6 +134,36 @@ public class ReviewServiceImpl implements ReviewService {
             throw new AppNotFoundException("Review ID Not Found");
         }
         reviewRepository.deleteVisitorReviewByMuseumOwner(reviewId, museumId);
+    }
+
+    @Override
+    public VisitorReview getVisitorReviewByVisitorId(UUID museumId, UUID visitorId) {
+        MuseumOwner museumOwner = museumRepository.findMuseumOwnerByMuseumId(museumId);
+        Visitor visitor = visitorRepository.findVisitorById(visitorId);
+        if (museumOwner == null){
+            throw new AppNotFoundException("Museum ID Not Found");
+        } else if (visitor == null) {
+            throw new AppNotFoundException("Visitor ID Not Found");
+        }
+        VisitorReview visitorReview = reviewRepository.retrieveReviewByVisitorId(museumId, visitorId);
+        if (visitorReview == null){
+            throw new AppNotFoundException("Museum is not review by visitor yet");
+        }
+        visitorReview.setIsReviewed(true);
+        return visitorReview;
+    }
+
+    @Override
+    public VisitorReview addAndUpdateReplyReview(UUID museumId, UUID reviewId, ReplyRequest replyRequest) {
+        boolean isReviewExist = reviewRepository.retrieveReviewId(reviewId);
+        if (!isReviewExist){
+            throw new AppNotFoundException("Review ID Not Found");
+        }
+        VisitorReview visitorReview = reviewRepository.addAndUpdateReview(museumId, reviewId, replyRequest);
+        if (visitorReview == null){
+            throw new AppBadRequestException("Reply failed");
+        }
+        return visitorReview;
     }
 
 

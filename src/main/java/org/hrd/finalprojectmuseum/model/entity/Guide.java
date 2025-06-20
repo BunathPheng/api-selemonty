@@ -1,5 +1,6 @@
 package org.hrd.finalprojectmuseum.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -15,4 +16,6 @@ public class Guide {
     private Boolean isAvailable;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private LocalDateTime expiresAt;
 }
