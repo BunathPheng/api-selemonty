@@ -24,26 +24,27 @@ jobs:
         with:
           distribution: temurin
           java-version: 21
+          cache: maven
 
-      # 3. Cache Maven dependencies (FIX 429 ERROR)
+      # 3. Cache Maven repository (IMPORTANT FIX for 429)
       - name: Cache Maven dependencies
         uses: actions/cache@v4
         with:
-          path: ~/.m2
+          path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
 
-      # 4. Pre-download dependencies (avoid Maven Central spam)
-      - name: Resolve dependencies
-        run: mvn dependency:go-offline
+      # 4. Force full dependency download (prevents runtime Maven calls)
+      - name: Resolve Maven dependencies
+        run: mvn -B -ntp dependency:resolve dependency:resolve-plugins
 
       # 5. Build Spring Boot app
       - name: Build with Maven
-        run: mvn clean package -DskipTests
+        run: mvn -B clean package -DskipTests
 
-      # 6. Trivy FS scan (code + dependencies)
-      - name: Trivy File System Scan
+      # 6. Trivy file system scan (code + dependencies)
+      - name: Trivy FS Scan
         run: |
           docker run --rm -v $(pwd):/src aquasec/trivy fs /src
 
@@ -59,7 +60,7 @@ jobs:
       - name: Push to Docker Hub
         run: docker push $DOCKER_HUB_USER/$IMAGE_NAME:$IMAGE_TAG
 
-      # 10. Trivy Image scan
+      # 10. Trivy Image Scan
       - name: Trivy Image Scan
         run: |
           docker run --rm aquasec/trivy image $DOCKER_HUB_USER/$IMAGE_NAME:$IMAGE_TAG
