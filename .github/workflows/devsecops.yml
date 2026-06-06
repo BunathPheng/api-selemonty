@@ -31,6 +31,32 @@ jobs:
           java-version: 21
 
       #-------------------------------------------------------
+      # Setup Node (required for Snyk CLI)
+      #-------------------------------------------------------
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      #-------------------------------------------------------
+      # Install Snyk CLI
+      #-------------------------------------------------------
+      - name: Install Snyk CLI
+        run: npm install -g snyk
+
+      #-------------------------------------------------------
+      # Authenticate Snyk
+      #-------------------------------------------------------
+      - name: Authenticate Snyk
+        run: snyk auth ${{ secrets.SNYK_TOKEN }}
+
+      #-------------------------------------------------------
+      # Snyk Dependency Scan (Spring Boot)
+      #-------------------------------------------------------
+      - name: Snyk Maven Dependency Scan
+        run: snyk test --all-projects --severity-threshold=high
+
+      #-------------------------------------------------------
       # Cache Maven
       #-------------------------------------------------------
       - name: Cache Maven Repository
@@ -73,7 +99,7 @@ jobs:
             --no-progress
 
       #-------------------------------------------------------
-      # Resolve Maven Dependencies
+      # Resolve Dependencies
       #-------------------------------------------------------
       - name: Resolve Maven Dependencies
         run: |
@@ -81,16 +107,13 @@ jobs:
           mvn -B dependency:resolve-plugins --no-transfer-progress
 
       #-------------------------------------------------------
-      # Build Spring Boot
+      # Build Spring Boot App
       #-------------------------------------------------------
       - name: Build Spring Boot
-        run: |
-          mvn clean package \
-            -DskipTests \
-            --no-transfer-progress
+        run: mvn clean package -DskipTests --no-transfer-progress
 
       #-------------------------------------------------------
-      # Trivy Filesystem Scan
+      # Trivy FS Scan (backup security layer)
       #-------------------------------------------------------
       - name: Trivy Filesystem Scan
         run: |
@@ -124,7 +147,7 @@ jobs:
             -o reports/html.tpl
 
       #-------------------------------------------------------
-      # Generate HTML Report
+      # Generate HTML Report (Docker Image Scan)
       #-------------------------------------------------------
       - name: Generate Trivy HTML Report
         run: |
@@ -149,7 +172,7 @@ jobs:
           path: reports/trivy-report.html
 
       #-------------------------------------------------------
-      # Fail if HIGH or CRITICAL vulnerabilities exist
+      # Trivy Security Gate (BLOCK PUSH IF VA EXISTS)
       #-------------------------------------------------------
       - name: Trivy Security Gate
         run: |
@@ -174,9 +197,8 @@ jobs:
           --password-stdin
 
       #-------------------------------------------------------
-      # Push Image
+      # Push Image (ONLY if SNYK + TRIVY passed)
       #-------------------------------------------------------
       - name: Push Docker Image
         run: |
-          docker push \
-          $DOCKER_HUB_USER/$IMAGE_NAME:$IMAGE_TAG
+          docker push $DOCKER_HUB_USER/$IMAGE_NAME:$IMAGE_TAG
