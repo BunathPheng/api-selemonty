@@ -14,47 +14,53 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout
-      - uses: actions/checkout@v4
+      # 1. Checkout code
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      # 2. Java 21
+      # 2. Setup Java 21
       - name: Setup Java 21
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 21
+          cache: maven
 
-      # 3. Cache Maven (must be first)
-      - name: Cache Maven
+      # 3. Cache Maven dependencies (IMPORTANT for 429 fix)
+      - name: Cache Maven repository
         uses: actions/cache@v4
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
 
-      # 4. Preload dependencies (avoid runtime downloads)
-      - name: Warm dependencies
+      # 4. Pre-download dependencies safely
+      - name: Resolve dependencies
         run: mvn -B dependency:go-offline
 
-      # 5. Build OFFLINE (KEY FIX)
-      - name: Build project offline
-        run: mvn -B -o clean package -DskipTests
+      # 5. Build Spring Boot app (NORMAL MODE - NO OFFLINE)
+      - name: Build with Maven
+        run: mvn -B clean package -DskipTests
 
-      # 6. Trivy scan (NO Maven involved)
-      - name: Trivy FS Scan
-        run: docker run --rm -v $(pwd):/src aquasec/trivy fs /src
+      # 6. Trivy scan (code + dependencies)
+      - name: Trivy File System Scan
+        run: |
+          docker run --rm -v $(pwd):/src aquasec/trivy fs /src
 
-      # 7. Docker build
-      - name: Build image
+      # 7. Build Docker image
+      - name: Build Docker Image
         run: docker build -t $DOCKER_HUB_USER/$IMAGE_NAME:$IMAGE_TAG .
 
-      # 8. Docker login
-      - name: Login Docker Hub
+      # 8. Login to Docker Hub
+      - name: Login to Docker Hub
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
-      # 9. Push image
-      - name: Push image
+      # 9. Push image to Docker Hub
+      - name: Push Docker Image
         run: docker push $DOCKER_HUB_USER/$IMAGE_NAME:$IMAGE_TAG
 
-      # 10. Image scan
-      - name: Trivy image scan
-        run: docker run --rm aquasec/trivy image $DOCKER_HUB_USER/$IMAGE_NAME:$IMAGE_TAG
+      # 10. Trivy image scan
+      - name: Trivy Image Scan
+        run: |
+          docker run --rm aquasec/trivy image $DOCKER_HUB_USER/$IMAGE_NAME:$IMAGE_TAG
