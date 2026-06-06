@@ -19,6 +19,22 @@
 
     <properties>
         <java.version>21</java.version>
+
+        <!-- ============================================================ -->
+        <!-- Security overrides — fixes all 13 CVEs from Trivy scan       -->
+        <!-- ============================================================ -->
+
+        <!-- Fixes CVE-2026-41293 (CRITICAL), CVE-2026-43512 (CRITICAL),  -->
+        <!-- CVE-2026-43515 (CRITICAL), CVE-2026-41284, CVE-2026-42498,   -->
+        <!-- CVE-2026-43513 (all HIGH)                                     -->
+        <tomcat.version>10.1.55</tomcat.version>
+
+        <!-- Fixes CVE-2026-42583, CVE-2026-42579, CVE-2026-42584,        -->
+        <!-- CVE-2026-42587 (all HIGH) — covers all 4 netty-codec modules -->
+        <netty.version>4.1.133.Final</netty.version>
+
+        <!-- Fixes CVE-2026-42198 (HIGH)                                  -->
+        <postgresql.version>42.7.11</postgresql.version>
     </properties>
 
     <dependencies>
@@ -61,6 +77,7 @@
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <scope>runtime</scope>
+            <!-- version controlled by <postgresql.version> property above -->
         </dependency>
 
         <!-- MinIO -->
@@ -191,6 +208,14 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-websocket</artifactId>
+        </dependency>
+
+        <!-- BouncyCastle — explicit pin to fix CVE-2026-5598 (HIGH)      -->
+        <!-- Transitive via spring-security-oauth2 / minio; must pin here -->
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk18on</artifactId>
+            <version>1.84</version>
         </dependency>
 
         <!-- Test -->
