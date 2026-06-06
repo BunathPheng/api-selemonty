@@ -5,8 +5,8 @@ on:
     branches: [ "main" ]
 
 env:
-  DOCKER_HUB_USER: phengbunath
-  IMAGE_NAME: spring-app-bunath
+  DOCKER_HUB_USER: ${{ secrets.DOCKER_USERNAME }}
+  IMAGE_NAME: spring-app
   IMAGE_TAG: latest
 
 jobs:
@@ -25,28 +25,41 @@ jobs:
           distribution: temurin
           java-version: 21
 
-      # 3. Build Spring Boot app
+      # 3. Cache Maven dependencies (FIX 429 ERROR)
+      - name: Cache Maven dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      # 4. Pre-download dependencies (avoid Maven Central spam)
+      - name: Resolve dependencies
+        run: mvn dependency:go-offline
+
+      # 5. Build Spring Boot app
       - name: Build with Maven
         run: mvn clean package -DskipTests
 
-      # 4. Trivy FS scan (code + dependencies)
+      # 6. Trivy FS scan (code + dependencies)
       - name: Trivy File System Scan
         run: |
           docker run --rm -v $(pwd):/src aquasec/trivy fs /src
 
-      # 5. Build Docker image
+      # 7. Build Docker image
       - name: Build Docker Image
         run: docker build -t $DOCKER_HUB_USER/$IMAGE_NAME:$IMAGE_TAG .
 
-      # 6. Login to Docker Hub
+      # 8. Login to Docker Hub
       - name: Login to Docker Hub
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
-      # 7. Push image to Docker Hub
+      # 9. Push Docker image
       - name: Push to Docker Hub
         run: docker push $DOCKER_HUB_USER/$IMAGE_NAME:$IMAGE_TAG
 
-      # 8. Scan Docker image
+      # 10. Trivy Image scan
       - name: Trivy Image Scan
         run: |
           docker run --rm aquasec/trivy image $DOCKER_HUB_USER/$IMAGE_NAME:$IMAGE_TAG
