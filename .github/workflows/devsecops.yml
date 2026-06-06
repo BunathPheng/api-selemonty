@@ -5,8 +5,8 @@ on:
     branches: [ "main" ]
 
 env:
-  DOCKER_HUB_USER: your-dockerhub-username
-  IMAGE_NAME: spring-app
+  DOCKER_HUB_USER: phengbunath
+  IMAGE_NAME: spring-app-bunath
   IMAGE_TAG: latest
 
 jobs:
