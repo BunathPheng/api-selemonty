@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.4.5</version>
+        <version>3.5.14</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>org.hrd</groupId>
@@ -28,6 +28,13 @@
     </scm>
     <properties>
         <java.version>21</java.version>
+        <spring-security.version>6.5.9</spring-security.version>
+        <thymeleaf.version>3.1.5.RELEASE</thymeleaf.version>
+        <tomcat.version>10.1.55</tomcat.version>
+        <spring-framework.version>6.2.11</spring-framework.version>
+        <postgresql.version>42.7.11</postgresql.version>
+        <netty.version>4.1.133.Final</netty.version>
+        <snappy-java.version>1.1.10.4</snappy-java.version>
     </properties>
     <dependencies>
         <dependency>
@@ -155,7 +162,7 @@
         <dependency>
             <groupId>io.minio</groupId>
             <artifactId>minio</artifactId>
-            <version>8.5.4</version>
+            <version>8.6.0</version>
         </dependency>
 <!--        <dependency>-->
 <!--            <groupId>org.springframework.boot</groupId>-->
