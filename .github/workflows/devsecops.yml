@@ -19,14 +19,18 @@ jobs:
         uses: actions/checkout@v4
 
       # 2. Setup Java 21
+      #    NOTE: No "cache: maven" here — we manage the cache manually
+      #    below for full control and to avoid dual-cache conflicts.
       - name: Setup Java 21
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 21
-          cache: maven
 
-      # 3. Cache Maven dependencies (IMPORTANT for 429 fix)
+      # 3. Cache Maven local repository
+      #    - Primary key is tied to all pom.xml files (exact match = full cache hit)
+      #    - restore-keys provide a warm fallback even when pom.xml changes,
+      #      so Maven only downloads the delta rather than everything from scratch.
       - name: Cache Maven repository
         uses: actions/cache@v4
         with:
@@ -35,18 +39,35 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
-      # 4. Pre-download dependencies safely
-      - name: Resolve dependencies
-        run: mvn -B dependency:go-offline
+      # 4. Populate local Maven cache BEFORE any scanning tool runs.
+      #    - dependency:go-offline  → downloads all project jars/poms
+      #    - dependency:resolve-plugins → downloads all Maven plugin jars
+      #    Both are needed; skipping plugins leaves gaps that cause 429s later.
+      #    --no-transfer-progress keeps logs clean and avoids noisy retries.
+      - name: Resolve dependencies (populate local cache)
+        run: |
+          mvn -B dependency:go-offline --no-transfer-progress
+          mvn -B dependency:resolve-plugins --no-transfer-progress
 
-      # 5. Build Spring Boot app (NORMAL MODE - NO OFFLINE)
+      # 5. Build the Spring Boot application
+      #    Cache is now fully warm, so no Maven Central calls are needed.
       - name: Build with Maven
-        run: mvn -B clean package -DskipTests
+        run: mvn -B clean package -DskipTests --no-transfer-progress
 
-      # 6. Trivy scan (code + dependencies)
+      # 6. Trivy filesystem scan
+      #    - Mount ~/.m2 into the container so Trivy's Maven analyzer reads
+      #      local jars instead of re-fetching them from Maven Central.
+      #    - --skip-db-update avoids re-downloading the vuln DB on every run
+      #      (the DB is already bundled in the aquasec/trivy image).
       - name: Trivy File System Scan
         run: |
-          docker run --rm -v $(pwd):/src aquasec/trivy fs /src
+          docker run --rm \
+            -v $(pwd):/src \
+            -v ~/.m2:/root/.m2 \
+            aquasec/trivy fs \
+              --skip-db-update \
+              --cache-dir /tmp/trivy-cache \
+              /src
 
       # 7. Build Docker image
       - name: Build Docker Image
@@ -61,6 +82,10 @@ jobs:
         run: docker push $DOCKER_HUB_USER/$IMAGE_NAME:$IMAGE_TAG
 
       # 10. Trivy image scan
+      #     --skip-db-update reuses the DB already in the image layer cache.
       - name: Trivy Image Scan
         run: |
-          docker run --rm aquasec/trivy image $DOCKER_HUB_USER/$IMAGE_NAME:$IMAGE_TAG
+          docker run --rm \
+            aquasec/trivy image \
+              --skip-db-update \
+              $DOCKER_HUB_USER/$IMAGE_NAME:$IMAGE_TAG
