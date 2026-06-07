@@ -56,6 +56,18 @@ jobs:
       - name: Snyk Maven Dependency Scan
         run: snyk test --all-projects --severity-threshold=high
 
+
+     #-------------------------------------------------------
+     # Upload Project to Snyk Dashboard
+     #-------------------------------------------------------
+      - name: Snyk Monitor
+        if: success()
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        run: |
+          snyk monitor \
+            --all-projects
+
       #-------------------------------------------------------
       # Cache Maven
       #-------------------------------------------------------
