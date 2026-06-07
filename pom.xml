@@ -227,6 +227,22 @@
 
     </dependencies>
 
+    <!-- ============================================================ -->
+    <!-- Transitive version overrides via dependencyManagement        -->
+    <!-- ============================================================ -->
+    <dependencyManagement>
+        <dependencies>
+            <!-- Fixes SNYK-JAVA-ORGAPACHECOMMONS-10734078 [High]         -->
+            <!-- Uncontrolled Recursion in commons-lang3@3.17.0           -->
+            <!-- Path: minio@8.6.0 > commons-compress@1.28.0             -->
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>3.18.0</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <build>
         <plugins>
 
